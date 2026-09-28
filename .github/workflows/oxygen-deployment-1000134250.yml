@@ -1,5 +1,10 @@
 name: Storefront 1000134250
-on: [push]
+# Deploy to production only from the default branch.
+# PRs / feature branches are validated by the CI workflow (lint, format, test, build).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
