@@ -6,12 +6,13 @@ import {
   useNavigation,
   useOutletContext,
 } from 'react-router';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: 'Profile'}];
+  return buildRouteMeta({title: 'Profile', noIndex: true});
 };
 
 /**

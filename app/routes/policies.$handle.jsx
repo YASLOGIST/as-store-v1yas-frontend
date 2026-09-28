@@ -1,10 +1,14 @@
 import {Link, useLoaderData} from 'react-router';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.policy.title ?? ''}`}];
+  return buildRouteMeta({
+    title: data?.policy.title,
+    description: `${data?.policy.title ?? 'Policy'} for AS Store.`,
+  });
 };
 
 /**

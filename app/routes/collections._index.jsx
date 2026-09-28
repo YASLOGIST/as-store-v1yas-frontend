@@ -1,6 +1,17 @@
 import {useLoaderData, Link} from 'react-router';
 import {getPaginationVariables, Image} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {buildRouteMeta} from '~/lib/seo';
+
+/**
+ * @type {Route.MetaFunction}
+ */
+export const meta = () => {
+  return buildRouteMeta({
+    title: 'Collections',
+    description: 'Browse every collection in the store.',
+  });
+};
 
 /**
  * @param {Route.LoaderArgs} args
@@ -41,7 +52,7 @@ async function loadCriticalData({context, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 
@@ -51,7 +62,13 @@ export default function Collections() {
 
   return (
     <div className="collections">
-      <h1>Collections</h1>
+      <div className="collection-header">
+        <span className="eyebrow">Browse</span>
+        <h1>Collections</h1>
+        <p className="collection-description">
+          Curated drops and catalog sections — pick your lane.
+        </p>
+      </div>
       <PaginatedResourceSection
         connection={collections}
         resourcesClassName="collections-grid"

@@ -30,6 +30,7 @@ export default [
       '**/*.graphql.d.ts',
       '**/*.graphql.ts',
       '**/*.generated.d.ts',
+      '**/*.d.ts',
       '**/.react-router/',
       '**/packages/hydrogen/dist/',
     ],
@@ -225,6 +226,12 @@ export default [
   ...compat.extends('plugin:jest/recommended').map((config) => ({
     ...config,
     files: ['**/*.test.*'],
+    // Tests run on Vitest, which implements the Jest API.
+    settings: {
+      jest: {
+        version: 'latest',
+      },
+    },
   })),
   {
     files: ['**/*.test.*'],

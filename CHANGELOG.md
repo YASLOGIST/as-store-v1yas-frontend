@@ -1,5 +1,31 @@
 # skeleton
 
+## Unreleased — Storefront Experience Upgrade (“Volt”)
+
+### Major Changes
+
+- **New “Volt” design system** (`app/styles/`): dark high-tech theme with aurora
+  gradients, glassmorphic surfaces, tech-grid hero, fluid typography, motion
+  (scroll-driven reveal animations, marquee, shimmer skeletons) — all driven by
+  CSS custom properties and fully `prefers-reduced-motion` safe.
+- **Quick add-to-cart** from product cards with optimistic cart updates and
+  Sale / Sold-out badges + compare-at pricing. Product fragments now fetch
+  `variants(first: 1)` and `compareAtPriceRange`.
+- **SEO toolkit** (`app/lib/seo.js` + `StructuredData`): JSON-LD structured data
+  (Product, CollectionPage, BlogPosting, BreadcrumbList, WebSite/SearchAction),
+  full OpenGraph/Twitter meta on every route, canonical URLs, `noindex` on
+  cart/search/account pages, breadcrumbs on product & collection pages.
+- **PWA polish**: web manifest, maskable icons, theme color, new SVG logo mark.
+
+### Minor Changes
+
+- Vitest unit test suite for lib helpers (`npm test`), Prettier scripts,
+  `npm run verify` pipeline, and a GitHub Actions CI workflow
+  (lint → format → test → build).
+- Security headers on every server response; body scroll lock for drawers;
+  skip-to-content link; refreshed header/footer/error pages/skeleton loaders.
+- Lint is now **100% clean** (was 17 problems) and Prettier-formanned throughout.
+
 ## 2026.1.0
 
 ### Major Changes

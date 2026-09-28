@@ -2,6 +2,7 @@ import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
 import {useAside} from '~/components/Aside';
 import {CartLineItem} from '~/components/CartLineItem';
+import {IconPackage} from '~/components/Icons';
 import {CartSummary} from './CartSummary';
 /**
  * Returns a map of all line items and their children.
@@ -87,14 +88,19 @@ export function CartMain({layout, cart: originalCart}) {
 function CartEmpty({hidden = false}) {
   const {close} = useAside();
   return (
-    <div hidden={hidden}>
+    <div className="cart-empty" hidden={hidden}>
+      <span className="cart-empty-illustration">
+        <IconPackage />
+      </span>
+      <h4>Your cart is empty</h4>
+      <p>Future-you knows what to do. Start exploring the catalog.</p>
       <br />
-      <p>
-        Looks like you haven&rsquo;t added anything yet, let&rsquo;s get you
-        started!
-      </p>
-      <br />
-      <Link to="/collections" onClick={close} prefetch="viewport">
+      <Link
+        className="btn btn-primary"
+        to="/collections"
+        onClick={close}
+        prefetch="viewport"
+      >
         Continue shopping →
       </Link>
     </div>

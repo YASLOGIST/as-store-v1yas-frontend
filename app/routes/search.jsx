@@ -3,12 +3,17 @@ import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {SearchForm} from '~/components/SearchForm';
 import {SearchResults} from '~/components/SearchResults';
 import {getEmptyPredictiveSearchResult} from '~/lib/search';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: `Hydrogen | Search`}];
+  return buildRouteMeta({
+    title: 'Search',
+    description: 'Search products, collections, pages and articles.',
+    noIndex: true,
+  });
 };
 
 /**
@@ -39,20 +44,24 @@ export default function SearchPage() {
 
   return (
     <div className="search">
-      <h1>Search</h1>
+      <span className="eyebrow">Search</span>
+      <h1>Find anything</h1>
       <SearchForm>
         {({inputRef}) => (
-          <>
+          <div className="search-page-form">
             <input
+              className="search-input"
               defaultValue={term}
               name="q"
-              placeholder="Search…"
+              placeholder="Search products, collections…"
               ref={inputRef}
               type="search"
+              aria-label="Search the store"
             />
-            &nbsp;
-            <button type="submit">Search</button>
-          </>
+            <button className="btn btn-primary" type="submit">
+              Search
+            </button>
+          </div>
         )}
       </SearchForm>
       {error && <p style={{color: 'red'}}>{error}</p>}

@@ -1,4 +1,4 @@
-import {useLoaderData} from 'react-router';
+import {useLoaderData, Link} from 'react-router';
 import {
   getSelectedProductOptions,
   Analytics,
@@ -6,23 +6,28 @@ import {
   getProductOptions,
   getAdjacentAndFirstAvailableVariants,
   useSelectedOptionInUrlParam,
+  useNonce,
 } from '@shopify/hydrogen';
 import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {breadcrumbJsonLd, buildRouteMeta, productJsonLd} from '~/lib/seo';
+import {StructuredData} from '~/components/StructuredData';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
-  return [
-    {title: `Hydrogen | ${data?.product.title ?? ''}`},
-    {
-      rel: 'canonical',
-      href: `/products/${data?.product.handle}`,
-    },
-  ];
+export const meta = ({data, matches}) => {
+  const product = data?.product;
+  const origin = matches?.[0]?.data?.origin ?? '';
+  return buildRouteMeta({
+    title: product?.seo?.title || product?.title,
+    description: product?.seo?.description || product?.description,
+    canonical: `${origin}/products/${product?.handle}`,
+    image: product?.featuredImage?.url,
+    type: 'product',
+  });
 };
 
 /**
@@ -76,7 +81,7 @@ async function loadCriticalData({context, params, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context, params}) {
+function loadDeferredData() {
   // Put any API calls that is not critical to be available on first page render
   // For example: product reviews, product recommendations, social feeds.
 
@@ -103,30 +108,56 @@ export default function Product() {
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  const {title, descriptionHtml} = product;
+  const {title, descriptionHtml, vendor} = product;
+  const nonce = useNonce();
 
   return (
     <div className="product">
+      <StructuredData
+        nonce={nonce}
+        data={productJsonLd(product, {
+          url: `/products/${product.handle}`,
+        })}
+      />
+      <StructuredData
+        nonce={nonce}
+        data={breadcrumbJsonLd([
+          {name: 'Home', url: '/'},
+          {name: 'Products', url: '/collections'},
+          {name: product.title},
+        ])}
+      />
       <ProductImage image={selectedVariant?.image} />
       <div className="product-main">
+        <nav className="breadcrumbs" aria-label="Breadcrumb">
+          <Link prefetch="intent" to="/">
+            Home
+          </Link>
+          <span className="crumb-sep" aria-hidden="true">
+            /
+          </span>
+          <Link prefetch="intent" to="/collections">
+            Products
+          </Link>
+          <span className="crumb-sep" aria-hidden="true">
+            /
+          </span>
+          <span aria-current="page">{title}</span>
+        </nav>
+        {vendor ? <span className="eyebrow">{vendor}</span> : null}
         <h1>{title}</h1>
         <ProductPrice
           price={selectedVariant?.price}
           compareAtPrice={selectedVariant?.compareAtPrice}
         />
-        <br />
         <ProductForm
           productOptions={productOptions}
           selectedVariant={selectedVariant}
         />
-        <br />
-        <br />
-        <p>
-          <strong>Description</strong>
-        </p>
-        <br />
-        <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
-        <br />
+        <div className="product-description">
+          <h5>Description</h5>
+          <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
+        </div>
       </div>
       <Analytics.ProductView
         data={{
@@ -192,6 +223,10 @@ const PRODUCT_FRAGMENT = `#graphql
     handle
     descriptionHtml
     description
+    featuredImage {
+      url
+      altText
+    }
     encodedVariantExistence
     encodedVariantAvailability
     options {
