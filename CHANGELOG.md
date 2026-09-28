@@ -1,5 +1,20 @@
 # skeleton
 
+## Unreleased — Rebrand: AS Store → YAS Store
+
+### Major Changes
+
+- **Rebrand to “YAS Store”**: every user-facing occurrence of the previous
+  “AS Store” name is now “YAS Store”, across SEO titles and descriptions
+  (`Home · YAS Store`), JSON-LD fallbacks (brand, author, WebSite), the
+  `Header` and `Footer` shop-name fallbacks, the PWA manifest (`name` and
+  `short_name`), `README.md`, `.env.example`, the Volt design-system preview
+  (`guides/design-preview.html`) and the `app/styles/app.css` banner.
+- **OG share image regenerated** (`public/og-image.jpg`) with YAS STORE
+  branding at 1200×630, preserving the Volt aurora/lightning-mark artwork.
+- Test fixtures updated to assert the new brand strings (vendor fixture
+  `AS Labs` → `YAS Labs`).
+
 ## Unreleased — Storefront Experience Upgrade (“Volt”)
 
 ### Major Changes
