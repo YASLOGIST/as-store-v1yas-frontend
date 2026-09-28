@@ -8,7 +8,7 @@
  *   <StructuredData data={productJsonLd(product)} />
  */
 
-const DEFAULT_TITLE = 'AS Store';
+const DEFAULT_TITLE = 'YAS Store';
 const TITLE_SEPARATOR = '·';
 
 /**
@@ -113,7 +113,7 @@ export function productJsonLd(product, options = {}) {
     sku: variant?.sku ?? undefined,
     barcode: variant?.barcode ?? undefined,
     image: product.featuredImage?.url ? [product.featuredImage.url] : undefined,
-    brand: {'@type': 'Brand', name: product.vendor || 'AS Store'},
+    brand: {'@type': 'Brand', name: product.vendor || 'YAS Store'},
     url: options.url,
     offers: price
       ? {
@@ -166,7 +166,7 @@ export function articleJsonLd(article) {
     image: article.image?.url ? [article.image.url] : undefined,
     datePublished: article.publishedAt,
     dateModified: article.publishedAt,
-    author: {'@type': 'Person', name: article.author?.name ?? 'AS Store'},
+    author: {'@type': 'Person', name: article.author?.name ?? 'YAS Store'},
   };
 }
 

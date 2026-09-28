@@ -17,7 +17,7 @@ import {buildRouteMeta} from '~/lib/seo';
  */
 export const meta = () => {
   return buildRouteMeta({
-    title: 'AS Store',
+    title: 'YAS Store',
     description:
       'High-tech gear, engineered for tomorrow. Discover the catalog — built on Shopify Hydrogen.',
   });
