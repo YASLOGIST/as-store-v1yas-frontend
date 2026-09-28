@@ -14,7 +14,7 @@ export const meta = ({data}) => {
     title: `${data?.collection.title ?? 'Collection'}`,
     description:
       data?.collection.description?.slice(0, 155) ||
-      'Browse the collection at AS Store.',
+      'Browse the collection at YAS Store.',
     type: 'website',
   });
 };

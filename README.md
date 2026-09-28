@@ -1,10 +1,10 @@
-# AS Store — Hydrogen Storefront
+# YAS Store — Hydrogen Storefront
 
 A high-tech Shopify storefront built on **Hydrogen 2026.1** and **React Router 7** —
 server-rendered at the edge, streamed for instant loads, and dressed in a custom
 "Volt" dark design system.
 
-![AS Store](public/og-image.jpg)
+![YAS Store](public/og-image.jpg)
 
 ## ✨ What's inside
 

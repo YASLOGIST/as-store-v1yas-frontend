@@ -16,7 +16,7 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
                 <span className="footer-brand-logo">
                   <LogoMark size={30} />
                   <span className="gradient-text">
-                    {header?.shop?.name ?? 'AS Store'}
+                    {header?.shop?.name ?? 'YAS Store'}
                   </span>
                 </span>
                 <p>
@@ -57,7 +57,7 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
 
             <div className="footer-bottom">
               <span>
-                © {new Date().getFullYear()} {header?.shop?.name ?? 'AS Store'}{' '}
+                © {new Date().getFullYear()} {header?.shop?.name ?? 'YAS Store'}{' '}
                 — All rights reserved
               </span>
               <span className="footer-powered">

@@ -1,6 +1,6 @@
 {
-  "name": "AS Store",
-  "short_name": "AS Store",
+  "name": "YAS Store",
+  "short_name": "YAS Store",
   "description": "High-tech gear, engineered for tomorrow.",
   "start_url": "/",
   "display": "standalone",
