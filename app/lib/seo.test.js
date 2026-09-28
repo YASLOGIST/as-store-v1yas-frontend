@@ -12,7 +12,7 @@ describe('buildRouteMeta', () => {
     const meta = buildRouteMeta({title: 'Home'});
 
     const title = meta.find((m) => 'title' in m);
-    expect(title?.title).toBe('Home · AS Store');
+    expect(title?.title).toBe('Home · YAS Store');
 
     expect(meta).toContainEqual({
       name: 'description',
@@ -23,13 +23,13 @@ describe('buildRouteMeta', () => {
   });
 
   it('uses the bare brand title when title matches the brand', () => {
-    const meta = buildRouteMeta({title: 'AS Store'});
-    expect(meta.find((m) => 'title' in m)?.title).toBe('AS Store');
+    const meta = buildRouteMeta({title: 'YAS Store'});
+    expect(meta.find((m) => 'title' in m)?.title).toBe('YAS Store');
   });
 
   it('falls back to the brand title when no title is given', () => {
     const meta = buildRouteMeta({});
-    expect(meta.find((m) => 'title' in m)?.title).toBe('AS Store');
+    expect(meta.find((m) => 'title' in m)?.title).toBe('YAS Store');
   });
 
   it('includes canonical, image and large-image card when provided', () => {
@@ -143,7 +143,7 @@ describe('breadcrumbJsonLd', () => {
 
 describe('websiteJsonLd', () => {
   it('includes a SearchAction', () => {
-    const ld = websiteJsonLd({shopName: 'AS Store', url: 'https://x.com'});
+    const ld = websiteJsonLd({shopName: 'YAS Store', url: 'https://x.com'});
     expect(ld['@type']).toBe('WebSite');
     expect(ld.potentialAction.target).toBe(
       'https://x.com/search?q={search_term_string}',

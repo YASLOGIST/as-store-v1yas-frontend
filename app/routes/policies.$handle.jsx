@@ -7,7 +7,7 @@ import {buildRouteMeta} from '~/lib/seo';
 export const meta = ({data}) => {
   return buildRouteMeta({
     title: data?.policy.title,
-    description: `${data?.policy.title ?? 'Policy'} for AS Store.`,
+    description: `${data?.policy.title ?? 'Policy'} for YAS Store.`,
   });
 };
 

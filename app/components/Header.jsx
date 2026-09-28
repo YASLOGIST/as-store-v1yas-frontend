@@ -21,7 +21,7 @@ export function Header({header, isLoggedIn, cart, publicStoreDomain}) {
         <span className="header-brand-logo">
           <LogoMark size={20} />
         </span>
-        <span>{shop?.name ?? 'AS Store'}</span>
+        <span>{shop?.name ?? 'YAS Store'}</span>
       </NavLink>
       <HeaderMenu
         menu={menu}

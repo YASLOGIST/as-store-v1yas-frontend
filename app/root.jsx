@@ -69,7 +69,7 @@ export function links() {
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
-  const shopName = data?.header?.shop?.name ?? 'AS Store';
+  const shopName = data?.header?.shop?.name ?? 'YAS Store';
   const origin = data?.origin;
   return [
     {name: 'theme-color', content: '#05060c'},
@@ -205,7 +205,7 @@ export default function App() {
       <StructuredData
         nonce={nonce}
         data={websiteJsonLd({
-          shopName: data.header?.shop?.name ?? 'AS Store',
+          shopName: data.header?.shop?.name ?? 'YAS Store',
         })}
       />
       <PageLayout {...data}>
