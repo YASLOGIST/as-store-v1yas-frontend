@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AS Store — Volt Design System Preview</title>
+    <link rel="stylesheet" href="../app/styles/reset.css" />
+    <link rel="stylesheet" href="../app/styles/app.css" />
+    <style>
+      /* Preview-only helpers: stand-ins for Storefront API imagery */
+      .ph {
+        background:
+          radial-gradient(120% 120% at 20% 10%, rgba(124, 92, 255, 0.5), transparent 55%),
+          radial-gradient(120% 120% at 85% 90%, rgba(34, 211, 238, 0.45), transparent 55%),
+          linear-gradient(140deg, #10131f, #0a0c16 60%, #131029);
+        position: relative;
+      }
+      .ph::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 26px 26px;
+      }
+      .preview-note {
+        max-width: 1320px;
+        margin: 1rem auto 0;
+        padding: 0.7rem 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <p class="preview-note">
+      DESIGN PREVIEW — static snapshot of the “Volt” design system. The live
+      storefront renders this theme with real Storefront API data
+      (<code>npm run dev</code>).
+    </p>
+
+    <!-- ============ Header ============ -->
+    <header class="header">
+      <a href="#" class="header-brand">
+        <span class="header-brand-logo">
+          <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
+            <defs>
+              <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#7c5cff" />
+                <stop offset="0.55" stop-color="#4b7bff" />
+                <stop offset="1" stop-color="#22d3ee" />
+              </linearGradient>
+            </defs>
+            <path d="M32 7 53 19.25v25.5L32 57 11 44.75v-25.5Z" fill="none" stroke="url(#lg1)" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M35.5 15 22 34.5h8.5L27 49l14.5-19.5H33Z" fill="url(#lg1)" />
+          </svg>
+        </span>
+        <span>AS Store</span>
+      </a>
+      <nav class="header-menu-desktop" role="navigation">
+        <a class="header-menu-item active" href="#">Home</a>
+        <a class="header-menu-item" href="#">Collections</a>
+        <a class="header-menu-item" href="#">Journal</a>
+        <a class="header-menu-item" href="#">Policies</a>
+      </nav>
+      <nav class="header-ctas" role="navigation">
+        <a class="header-cta" href="#">Sign in</a>
+        <a class="header-cta" href="#">Search</a>
+        <a class="header-cta header-cta-cart" href="#">Cart <span class="cart-count">3</span></a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- ============ Hero ============ -->
+      <section class="hero">
+        <div class="hero-inner">
+          <span class="badge hero-badge"><span class="pulse"></span> Next-generation storefront</span>
+          <h1>Gear from the <span class="gradient-text">future</span>,<br />shipped today.</h1>
+          <p class="hero-sub">
+            A curated catalog of high-tech essentials for builders, makers and
+            explorers — rendered at the speed of light on Shopify Hydrogen.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#catalog">Shop the catalog →</a>
+            <a class="btn btn-ghost" href="#">⚡ Explore everything</a>
+          </div>
+          <dl class="hero-stats">
+            <div class="hero-stat"><dd>Edge</dd><dt>Global delivery</dt></div>
+            <div class="hero-stat"><dd>100%</dd><dt>Server rendered</dt></div>
+            <div class="hero-stat"><dd>&lt;1s</dd><dt>Streamed pages</dt></div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ============ Marquee ============ -->
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span class="marquee-item">Free shipping over $100</span>
+          <span class="marquee-item">30-day returns</span>
+          <span class="marquee-item">Secure checkout</span>
+          <span class="marquee-item">Ships in 24 hours</span>
+          <span class="marquee-item">Carbon neutral</span>
+          <span class="marquee-item">Human support</span>
+          <span class="marquee-item">Free shipping over $100</span>
+          <span class="marquee-item">30-day returns</span>
+          <span class="marquee-item">Secure checkout</span>
+          <span class="marquee-item">Ships in 24 hours</span>
+          <span class="marquee-item">Carbon neutral</span>
+          <span class="marquee-item">Human support</span>
+        </div>
+      </div>
+
+      <!-- ============ Featured collection ============ -->
+      <section class="home-section" style="margin-bottom: 3rem">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Featured drop</span>
+            <h2>Fresh off the line</h2>
+          </div>
+        </div>
+        <a class="featured-collection" href="#">
+          <div class="featured-collection-image ph"></div>
+          <div class="featured-collection-caption">
+            <div>
+              <span class="badge hero-badge">Collection</span>
+              <h1>Automated Home</h1>
+            </div>
+            <span class="btn btn-primary">Shop now →</span>
+          </div>
+        </a>
+      </section>
+
+      <!-- ============ Product grid ============ -->
+      <section class="home-section" id="catalog">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Top picks</span>
+            <h2>Recommended products</h2>
+          </div>
+          <a class="btn btn-ghost section-cta" href="#">View all →</a>
+        </div>
+        <div class="recommended-products-grid">
+          <div class="product-item">
+            <div class="product-item-media">
+              <div class="product-item-badges"><span class="badge badge-sale">Sale</span></div>
+              <div class="ph" style="aspect-ratio: 1"></div>
+              <div class="product-quick-add"><button>+ Quick add</button></div>
+            </div>
+            <div class="product-item-info">
+              <a class="product-item-title" href="#"><h4>Nural Dock Pro</h4></a>
+              <small>$149.00 <s>$189.00</s></small>
+            </div>
+          </div>
+          <div class="product-item">
+            <div class="product-item-media">
+              <div class="ph" style="aspect-ratio: 1"></div>
+              <div class="product-quick-add"><button>+ Quick add</button></div>
+            </div>
+            <div class="product-item-info">
+              <a class="product-item-title" href="#"><h4>Volt Core Station</h4></a>
+              <small>$249.00</small>
+            </div>
+          </div>
+          <div class="product-item">
+            <div class="product-item-media">
+              <div class="product-item-badges"><span class="badge badge-soldout">Sold out</span></div>
+              <div class="ph" style="aspect-ratio: 1"></div>
+            </div>
+            <div class="product-item-info">
+              <a class="product-item-title" href="#"><h4>Halo Desk Mat</h4></a>
+              <small>$59.00</small>
+            </div>
+          </div>
+          <div class="product-item">
+            <div class="product-item-media">
+              <div class="product-item-badges"><span class="badge badge-new">New</span></div>
+              <div class="ph" style="aspect-ratio: 1"></div>
+              <div class="product-quick-add"><button>+ Quick add</button></div>
+            </div>
+            <div class="product-item-info">
+              <a class="product-item-title" href="#"><h4>Orbit Keyboard 65</h4></a>
+              <small>$199.00</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Skeleton loaders ============ -->
+      <section class="home-section">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Streaming states</span>
+            <h2>Skeleton loaders</h2>
+          </div>
+        </div>
+        <div class="recommended-products-grid" aria-hidden="true">
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-image"></div>
+            <div class="skeleton skeleton-line w-60"></div>
+            <div class="skeleton skeleton-line w-40"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-image"></div>
+            <div class="skeleton skeleton-line w-60"></div>
+            <div class="skeleton skeleton-line w-40"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-image"></div>
+            <div class="skeleton skeleton-line w-60"></div>
+            <div class="skeleton skeleton-line w-40"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-image"></div>
+            <div class="skeleton skeleton-line w-60"></div>
+            <div class="skeleton skeleton-line w-40"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Value props ============ -->
+      <section class="home-section">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Why us</span>
+            <h2>Built like the future</h2>
+          </div>
+        </div>
+        <div class="value-props">
+          <div class="value-prop">
+            <span class="value-prop-icon">🚀</span>
+            <h4>Fast, everywhere</h4>
+            <p>Edge-rendered pages and same-day dispatch on every in-stock item.</p>
+          </div>
+          <div class="value-prop">
+            <span class="value-prop-icon">🛡️</span>
+            <h4>Secure by default</h4>
+            <p>PCI-compliant checkout, encrypted sessions and strict CSP headers.</p>
+          </div>
+          <div class="value-prop">
+            <span class="value-prop-icon">⚡</span>
+            <h4>Instant search</h4>
+            <p>Predictive results as you type — products, collections and articles.</p>
+          </div>
+          <div class="value-prop">
+            <span class="value-prop-icon">🌍</span>
+            <h4>Localized</h4>
+            <p>Multi-currency and multi-language storefronts out of the box.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ Footer ============ -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="footer-brand-logo">
+            <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true">
+              <defs>
+                <linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#7c5cff" />
+                  <stop offset="0.55" stop-color="#4b7bff" />
+                  <stop offset="1" stop-color="#22d3ee" />
+                </linearGradient>
+              </defs>
+              <path d="M32 7 53 19.25v25.5L32 57 11 44.75v-25.5Z" fill="none" stroke="url(#lg2)" stroke-width="3.5" stroke-linejoin="round" />
+              <path d="M35.5 15 22 34.5h8.5L27 49l14.5-19.5H33Z" fill="url(#lg2)" />
+            </svg>
+            <span class="gradient-text">AS Store</span>
+          </span>
+          <p>
+            High-tech gear, engineered for tomorrow. Every product in the catalog
+            is curated for people who build the future.
+          </p>
+        </div>
+        <div>
+          <h5 class="footer-heading">Navigate</h5>
+          <nav class="footer-menu">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Refund Policy</a>
+            <a href="#">Shipping Policy</a>
+            <a href="#">Terms of Service</a>
+          </nav>
+        </div>
+        <div>
+          <h5 class="footer-heading">Explore</h5>
+          <nav class="footer-menu">
+            <a href="#">All collections</a>
+            <a href="#">Search</a>
+            <a href="#">Journal</a>
+            <a href="#">Policies</a>
+          </nav>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 AS Store — All rights reserved</span>
+        <span class="footer-powered">
+          <span class="pulse"></span> Powered by <a href="#">Hydrogen</a>
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>

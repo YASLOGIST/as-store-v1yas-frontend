@@ -1,12 +1,22 @@
 import {useLoaderData} from 'react-router';
-import {Image} from '@shopify/hydrogen';
+import {Image, useNonce} from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {articleJsonLd, buildRouteMeta} from '~/lib/seo';
+import {StructuredData} from '~/components/StructuredData';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.article.title ?? ''} article`}];
+  const article = data?.article;
+  return buildRouteMeta({
+    title: article?.seo?.title || article?.title,
+    description:
+      article?.seo?.description ||
+      (article?.excerpt ? String(article.excerpt).slice(0, 155) : undefined),
+    image: article?.image?.url,
+    type: 'article',
+  });
 };
 
 /**
@@ -68,7 +78,7 @@ async function loadCriticalData({context, request, params}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 
@@ -76,6 +86,7 @@ export default function Article() {
   /** @type {LoaderReturnData} */
   const {article} = useLoaderData();
   const {title, image, contentHtml, author} = article;
+  const nonce = useNonce();
 
   const publishedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -85,10 +96,13 @@ export default function Article() {
 
   return (
     <div className="article">
+      <StructuredData nonce={nonce} data={articleJsonLd(article)} />
+      <span className="eyebrow">Journal</span>
       <h1>
         {title}
-        <div>
-          <time dateTime={article.publishedAt}>{publishedDate}</time> &middot;{' '}
+        <div className="article-meta">
+          <time dateTime={article.publishedAt}>{publishedDate}</time>
+          <span aria-hidden="true">·</span>
           <address>{author?.name}</address>
         </div>
       </h1>
@@ -96,7 +110,7 @@ export default function Article() {
       {image && <Image data={image} sizes="90vw" loading="eager" />}
       <div
         dangerouslySetInnerHTML={{__html: contentHtml}}
-        className="article"
+        className="article-content"
       />
     </div>
   );
@@ -115,6 +129,7 @@ const ARTICLE_QUERY = `#graphql
       articleByHandle(handle: $articleHandle) {
         handle
         title
+        excerpt
         contentHtml
         publishedAt
         author: authorV2 {

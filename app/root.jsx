@@ -11,9 +11,12 @@ import {
 } from 'react-router';
 import favicon from '~/assets/favicon.svg';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
+import {websiteJsonLd} from '~/lib/seo';
+import {StructuredData} from '~/components/StructuredData';
 import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
-import {PageLayout} from './components/PageLayout';
+import {PageLayout} from '~/components/PageLayout';
+import {LogoMark} from '~/components/Icons';
 
 /**
  * This is important to avoid re-fetching root queries on sub-navigations
@@ -55,8 +58,27 @@ export function links() {
       href: 'https://shop.app',
     },
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    {rel: 'manifest', href: '/manifest.webmanifest'},
+    {rel: 'apple-touch-icon', href: '/icons/icon-192.png'},
   ];
 }
+
+/**
+ * Base meta tags shared by every route. Route-level meta functions
+ * merge on top of these (leaf tags win per name/property).
+ * @type {Route.MetaFunction}
+ */
+export const meta = ({data}) => {
+  const shopName = data?.header?.shop?.name ?? 'AS Store';
+  const origin = data?.origin;
+  return [
+    {name: 'theme-color', content: '#05060c'},
+    {property: 'og:site_name', content: shopName},
+    ...(origin
+      ? [{property: 'og:image', content: `${origin}/og-image.jpg`}]
+      : []),
+  ];
+};
 
 /**
  * @param {Route.LoaderArgs} args
@@ -74,6 +96,7 @@ export async function loader(args) {
     ...deferredData,
     ...criticalData,
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
+    origin: new URL(args.request.url).origin,
     shop: getShopAnalytics({
       storefront,
       publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
@@ -140,7 +163,7 @@ function loadDeferredData({context}) {
 }
 
 /**
- * @param {{children?: React.ReactNode}}
+ * @param {{children?: React.ReactNode}} props
  */
 export function Layout({children}) {
   const nonce = useNonce();
@@ -167,6 +190,7 @@ export function Layout({children}) {
 export default function App() {
   /** @type {RootLoader} */
   const data = useRouteLoaderData('root');
+  const nonce = useNonce();
 
   if (!data) {
     return <Outlet />;
@@ -178,6 +202,12 @@ export default function App() {
       shop={data.shop}
       consent={data.consent}
     >
+      <StructuredData
+        nonce={nonce}
+        data={websiteJsonLd({
+          shopName: data.header?.shop?.name ?? 'AS Store',
+        })}
+      />
       <PageLayout {...data}>
         <Outlet />
       </PageLayout>
@@ -199,13 +229,21 @@ export function ErrorBoundary() {
 
   return (
     <div className="route-error">
-      <h1>Oops</h1>
+      <LogoMark size={56} />
       <h2>{errorStatus}</h2>
-      {errorMessage && (
+      <h1>
+        {errorStatus === 404 ? 'Page not found' : 'Something went sideways'}
+      </h1>
+      <p>
+        {errorStatus === 404
+          ? "The page you're looking for doesn't exist or has been moved."
+          : 'An unexpected error occurred. Please try again.'}
+      </p>
+      {errorMessage ? (
         <fieldset>
           <pre>{errorMessage}</pre>
         </fieldset>
-      )}
+      ) : null}
     </div>
   );
 }

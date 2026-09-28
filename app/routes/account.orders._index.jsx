@@ -17,12 +17,13 @@ import {
 } from '~/lib/orderFilters';
 import {CUSTOMER_ORDERS_QUERY} from '~/graphql/customer-account/CustomerOrdersQuery';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: 'Orders'}];
+  return buildRouteMeta({title: 'Orders', noIndex: true});
 };
 
 /**
@@ -121,7 +122,7 @@ function EmptyOrders({hasFilters = false}) {
  * }}
  */
 function OrderSearchForm({currentFilters}) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isSearching =
     navigation.state !== 'idle' &&

@@ -2,12 +2,16 @@ import {useLoaderData} from 'react-router';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: `Hydrogen | Products`}];
+  return buildRouteMeta({
+    title: 'All products',
+    description: 'Browse the full catalog — every product in the store.',
+  });
 };
 
 /**
@@ -49,7 +53,7 @@ async function loadCriticalData({context, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 
@@ -59,7 +63,13 @@ export default function Collection() {
 
   return (
     <div className="collection">
-      <h1>Products</h1>
+      <div className="collection-header">
+        <span className="eyebrow">Catalog</span>
+        <h1>All products</h1>
+        <p className="collection-description">
+          Everything in the store, in one place.
+        </p>
+      </div>
       <PaginatedResourceSection
         connection={products}
         resourcesClassName="products-grid"
@@ -68,6 +78,7 @@ export default function Collection() {
           <ProductItem
             key={product.id}
             product={product}
+            index={index}
             loading={index < 8 ? 'eager' : undefined}
           />
         )}
@@ -98,6 +109,17 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
       }
       maxVariantPrice {
         ...MoneyCollectionItem
+      }
+    }
+    compareAtPriceRange {
+      minVariantPrice {
+        ...MoneyCollectionItem
+      }
+    }
+    variants(first: 1) {
+      nodes {
+        id
+        availableForSale
       }
     }
   }

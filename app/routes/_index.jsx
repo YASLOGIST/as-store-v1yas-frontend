@@ -1,13 +1,26 @@
 import {Await, useLoaderData, Link} from 'react-router';
-import {Suspense} from 'react';
+import {Fragment, Suspense} from 'react';
 import {Image} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
+import {ProductGridSkeleton} from '~/components/Skeleton';
+import {
+  IconArrowRight,
+  IconBolt,
+  IconGlobe,
+  IconRocket,
+  IconShield,
+} from '~/components/Icons';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: 'Hydrogen | Home'}];
+  return buildRouteMeta({
+    title: 'AS Store',
+    description:
+      'High-tech gear, engineered for tomorrow. Discover the catalog — built on Shopify Hydrogen.',
+  });
 };
 
 /**
@@ -64,8 +77,84 @@ export default function Homepage() {
   const data = useLoaderData();
   return (
     <div className="home">
+      <Hero />
+      <TechMarquee />
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />
+      <ValueProps />
+    </div>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="hero">
+      <div className="hero-inner">
+        <span className="badge hero-badge">
+          <span className="pulse" aria-hidden="true" />
+          Next-generation storefront
+        </span>
+        <h1>
+          Gear from the <span className="gradient-text">future</span>,
+          <br />
+          shipped today.
+        </h1>
+        <p className="hero-sub">
+          A curated catalog of high-tech essentials for builders, makers and
+          explorers — rendered at the speed of light on Shopify Hydrogen.
+        </p>
+        <div className="hero-actions">
+          <Link className="btn btn-primary" to="/collections" prefetch="intent">
+            Shop the catalog
+            <IconArrowRight />
+          </Link>
+          <Link className="btn btn-ghost" to="/search" prefetch="intent">
+            <IconBolt />
+            Explore everything
+          </Link>
+        </div>
+        <dl className="hero-stats">
+          <div className="hero-stat">
+            <dd>Edge</dd>
+            <dt>Global delivery</dt>
+          </div>
+          <div className="hero-stat">
+            <dd>100%</dd>
+            <dt>Server rendered</dt>
+          </div>
+          <div className="hero-stat">
+            <dd>&lt;1s</dd>
+            <dt>Streamed pages</dt>
+          </div>
+        </dl>
+      </div>
+    </section>
+  );
+}
+
+/** Scrolling tech-values strip between hero and catalog. */
+function TechMarquee() {
+  const items = [
+    'Free shipping over $100',
+    '30-day returns',
+    'Secure checkout',
+    'Ships in 24 hours',
+    'Carbon neutral',
+    'Human support',
+  ];
+  return (
+    <div className="marquee" aria-hidden="true">
+      <div className="marquee-track">
+        {[0, 1].map((copy) => (
+          <Fragment key={copy}>
+            {items.map((item) => (
+              <span key={item} className="marquee-item">
+                {item}
+              </span>
+            ))}
+          </Fragment>
+        ))}
+      </div>
     </div>
   );
 }
@@ -79,17 +168,34 @@ function FeaturedCollection({collection}) {
   if (!collection) return null;
   const image = collection?.image;
   return (
-    <Link
-      className="featured-collection"
-      to={`/collections/${collection.handle}`}
-    >
-      {image && (
-        <div className="featured-collection-image">
-          <Image data={image} sizes="100vw" />
+    <section className="home-section">
+      <div className="section-head">
+        <div>
+          <span className="eyebrow">Featured drop</span>
+          <h2>Fresh off the line</h2>
         </div>
-      )}
-      <h1>{collection.title}</h1>
-    </Link>
+      </div>
+      <Link
+        className="featured-collection reveal"
+        to={`/collections/${collection.handle}`}
+      >
+        {image && (
+          <div className="featured-collection-image">
+            <Image data={image} sizes="100vw" />
+          </div>
+        )}
+        <div className="featured-collection-caption">
+          <div>
+            <span className="badge hero-badge">Collection</span>
+            <h1>{collection.title}</h1>
+          </div>
+          <span className="btn btn-primary">
+            Shop now
+            <IconArrowRight />
+          </span>
+        </div>
+      </Link>
+    </section>
   );
 }
 
@@ -100,23 +206,80 @@ function FeaturedCollection({collection}) {
  */
 function RecommendedProducts({products}) {
   return (
-    <div className="recommended-products">
-      <h2>Recommended Products</h2>
-      <Suspense fallback={<div>Loading...</div>}>
+    <section className="home-section">
+      <div className="section-head">
+        <div>
+          <span className="eyebrow">Top picks</span>
+          <h2>Recommended products</h2>
+        </div>
+        <Link className="btn btn-ghost section-cta" to="/collections">
+          View all
+          <IconArrowRight />
+        </Link>
+      </div>
+      <Suspense fallback={<ProductGridSkeleton count={8} />}>
         <Await resolve={products}>
           {(response) => (
             <div className="recommended-products-grid">
               {response
-                ? response.products.nodes.map((product) => (
-                    <ProductItem key={product.id} product={product} />
+                ? response.products.nodes.map((product, index) => (
+                    <ProductItem
+                      key={product.id}
+                      product={product}
+                      index={index}
+                      loading={index < 4 ? 'eager' : undefined}
+                    />
                   ))
                 : null}
             </div>
           )}
         </Await>
       </Suspense>
-      <br />
-    </div>
+    </section>
+  );
+}
+
+function ValueProps() {
+  const props = [
+    {
+      icon: <IconRocket />,
+      title: 'Fast, everywhere',
+      body: 'Edge-rendered pages and same-day dispatch on every in-stock item.',
+    },
+    {
+      icon: <IconShield />,
+      title: 'Secure by default',
+      body: 'PCI-compliant checkout, encrypted sessions and strict CSP headers.',
+    },
+    {
+      icon: <IconBolt />,
+      title: 'Instant search',
+      body: 'Predictive results as you type — products, collections and articles.',
+    },
+    {
+      icon: <IconGlobe />,
+      title: 'Localized',
+      body: 'Multi-currency and multi-language storefronts out of the box.',
+    },
+  ];
+  return (
+    <section className="home-section">
+      <div className="section-head">
+        <div>
+          <span className="eyebrow">Why us</span>
+          <h2>Built like the future</h2>
+        </div>
+      </div>
+      <div className="value-props">
+        {props.map((valueProp) => (
+          <div key={valueProp.title} className="value-prop reveal">
+            <span className="value-prop-icon">{valueProp.icon}</span>
+            <h4>{valueProp.title}</h4>
+            <p>{valueProp.body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -154,6 +317,12 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
         currencyCode
       }
     }
+    compareAtPriceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+    }
     featuredImage {
       id
       url
@@ -161,10 +330,16 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
       width
       height
     }
+    variants(first: 1) {
+      nodes {
+        id
+        availableForSale
+      }
+    }
   }
   query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
+    products(first: 8, sortKey: UPDATED_AT, reverse: true) {
       nodes {
         ...RecommendedProduct
       }

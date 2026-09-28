@@ -1,14 +1,22 @@
-import {redirect, useLoaderData} from 'react-router';
+import {redirect, useLoaderData, Link} from 'react-router';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
+import {buildRouteMeta, collectionJsonLd} from '~/lib/seo';
+import {StructuredData} from '~/components/StructuredData';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
+  return buildRouteMeta({
+    title: `${data?.collection.title ?? 'Collection'}`,
+    description:
+      data?.collection.description?.slice(0, 155) ||
+      'Browse the collection at AS Store.',
+    type: 'website',
+  });
 };
 
 /**
@@ -67,7 +75,7 @@ async function loadCriticalData({context, params, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 
@@ -77,8 +85,27 @@ export default function Collection() {
 
   return (
     <div className="collection">
-      <h1>{collection.title}</h1>
-      <p className="collection-description">{collection.description}</p>
+      <StructuredData data={collectionJsonLd(collection)} />
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link prefetch="intent" to="/">
+          Home
+        </Link>
+        <span className="crumb-sep" aria-hidden="true">
+          /
+        </span>
+        <Link prefetch="intent" to="/collections">
+          Collections
+        </Link>
+        <span className="crumb-sep" aria-hidden="true">
+          /
+        </span>
+        <span aria-current="page">{collection.title}</span>
+      </nav>
+      <div className="collection-header">
+        <span className="eyebrow">Collection</span>
+        <h1>{collection.title}</h1>
+        <p className="collection-description">{collection.description}</p>
+      </div>
       <PaginatedResourceSection
         connection={collection.products}
         resourcesClassName="products-grid"
@@ -87,6 +114,7 @@ export default function Collection() {
           <ProductItem
             key={product.id}
             product={product}
+            index={index}
             loading={index < 8 ? 'eager' : undefined}
           />
         )}
@@ -125,6 +153,17 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       }
       maxVariantPrice {
         ...MoneyProductItem
+      }
+    }
+    compareAtPriceRange {
+      minVariantPrice {
+        ...MoneyProductItem
+      }
+    }
+    variants(first: 1) {
+      nodes {
+        id
+        availableForSale
       }
     }
   }

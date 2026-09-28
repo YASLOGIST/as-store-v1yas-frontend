@@ -3,6 +3,24 @@ import {createRequestHandler, storefrontRedirect} from '@shopify/hydrogen';
 import {createHydrogenRouterContext} from '~/lib/context';
 
 /**
+ * Security headers applied to every response.
+ * CSP is handled separately by `createContentSecurityPolicy` in entry.server
+ * (nonce-based, checkout-aware) — these complement it.
+ * @param {Response} response
+ * @return {Response}
+ */
+function withSecurityHeaders(response) {
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()',
+  );
+  response.headers.set('X-DNS-Prefetch-Control', 'on');
+  return response;
+}
+
+/**
  * Export a fetch handler in module format.
  */
 export default {
@@ -45,14 +63,16 @@ export default {
          * If the redirect doesn't exist, then `storefrontRedirect`
          * will pass through the 404 response.
          */
-        return storefrontRedirect({
-          request,
-          response,
-          storefront: hydrogenContext.storefront,
-        });
+        return withSecurityHeaders(
+          await storefrontRedirect({
+            request,
+            response,
+            storefront: hydrogenContext.storefront,
+          }),
+        );
       }
 
-      return response;
+      return withSecurityHeaders(response);
     } catch (error) {
       console.error(error);
       return new Response('An unexpected error occurred', {status: 500});

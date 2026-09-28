@@ -1,12 +1,16 @@
 import {redirect, useLoaderData} from 'react-router';
 import {Money, Image} from '@shopify/hydrogen';
 import {CUSTOMER_ORDER_QUERY} from '~/graphql/customer-account/CustomerOrderQuery';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = ({data}) => {
-  return [{title: `Order ${data?.order?.name}`}];
+  return buildRouteMeta({
+    title: `Order ${data?.order?.name}`,
+    noIndex: true,
+  });
 };
 
 /**

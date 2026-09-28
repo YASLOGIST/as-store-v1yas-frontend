@@ -9,7 +9,12 @@
     "dev": "shopify hydrogen dev --codegen",
     "preview": "shopify hydrogen preview --build",
     "lint": "eslint --no-error-on-unmatched-pattern .",
-    "codegen": "shopify hydrogen codegen && react-router typegen"
+    "codegen": "shopify hydrogen codegen && react-router typegen",
+    "format": "prettier --write \"app/**/*.{js,jsx,css}\" \"*.js\"",
+    "format:check": "prettier --check \"app/**/*.{js,jsx,css}\" \"*.js\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "npm run lint && npm run format:check && npm run test && npx shopify hydrogen build"
   },
   "prettier": "@shopify/prettier-config",
   "dependencies": {
@@ -54,7 +59,8 @@
     "prettier": "^3.4.2",
     "typescript": "^5.9.2",
     "vite": "^6.2.4",
-    "vite-tsconfig-paths": "^4.3.1"
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^5.0.2"
   },
   "engines": {
     "node": ">=18.0.0"

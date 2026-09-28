@@ -1,12 +1,17 @@
 import {useLoaderData, data} from 'react-router';
 import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
+import {buildRouteMeta} from '~/lib/seo';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: `Hydrogen | Cart`}];
+  return buildRouteMeta({
+    title: 'Cart',
+    description: 'Review your cart and check out.',
+    noIndex: true,
+  });
 };
 
 /**
@@ -113,7 +118,8 @@ export default function Cart() {
 
   return (
     <div className="cart">
-      <h1>Cart</h1>
+      <span className="eyebrow">Cart</span>
+      <h1>Your cart</h1>
       <CartMain layout="page" cart={cart} />
     </div>
   );

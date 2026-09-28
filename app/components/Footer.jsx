@@ -1,22 +1,77 @@
 import {Suspense} from 'react';
 import {Await, NavLink} from 'react-router';
+import {LogoMark} from '~/components/Icons';
 
 /**
  * @param {FooterProps}
  */
 export function Footer({footer: footerPromise, header, publicStoreDomain}) {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="footer" aria-hidden="true" />}>
       <Await resolve={footerPromise}>
         {(footer) => (
           <footer className="footer">
-            {footer?.menu && header.shop.primaryDomain?.url && (
-              <FooterMenu
-                menu={footer.menu}
-                primaryDomainUrl={header.shop.primaryDomain.url}
-                publicStoreDomain={publicStoreDomain}
-              />
-            )}
+            <div className="footer-inner">
+              <div className="footer-brand">
+                <span className="footer-brand-logo">
+                  <LogoMark size={30} />
+                  <span className="gradient-text">
+                    {header?.shop?.name ?? 'AS Store'}
+                  </span>
+                </span>
+                <p>
+                  High-tech gear, engineered for tomorrow. Every product in the
+                  catalog is curated for people who build the future.
+                </p>
+              </div>
+
+              <div>
+                <h5 className="footer-heading">Navigate</h5>
+                {footer?.menu && header.shop.primaryDomain?.url && (
+                  <FooterMenu
+                    menu={footer.menu}
+                    primaryDomainUrl={header.shop.primaryDomain.url}
+                    publicStoreDomain={publicStoreDomain}
+                  />
+                )}
+              </div>
+
+              <div>
+                <h5 className="footer-heading">Explore</h5>
+                <nav className="footer-menu" role="navigation">
+                  <NavLink end prefetch="intent" to="/collections">
+                    All collections
+                  </NavLink>
+                  <NavLink end prefetch="intent" to="/search">
+                    Search
+                  </NavLink>
+                  <NavLink end prefetch="intent" to="/blogs">
+                    Journal
+                  </NavLink>
+                  <NavLink end prefetch="intent" to="/policies">
+                    Policies
+                  </NavLink>
+                </nav>
+              </div>
+            </div>
+
+            <div className="footer-bottom">
+              <span>
+                © {new Date().getFullYear()} {header?.shop?.name ?? 'AS Store'}{' '}
+                — All rights reserved
+              </span>
+              <span className="footer-powered">
+                <span className="pulse" aria-hidden="true" />
+                Powered by{' '}
+                <a
+                  href="https://shopify.dev/docs/custom-storefronts/hydrogen"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Hydrogen
+                </a>
+              </span>
+            </div>
           </footer>
         )}
       </Await>
@@ -53,7 +108,7 @@ function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
             end
             key={item.id}
             prefetch="intent"
-            style={activeLinkStyle}
+            className={({isActive}) => (isActive ? 'active' : '')}
             to={url}
           >
             {item.title}
@@ -105,19 +160,6 @@ const FALLBACK_FOOTER_MENU = {
     },
   ],
 };
-
-/**
- * @param {{
- *   isActive: boolean;
- *   isPending: boolean;
- * }}
- */
-function activeLinkStyle({isActive, isPending}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'white',
-  };
-}
 
 /**
  * @typedef {Object} FooterProps

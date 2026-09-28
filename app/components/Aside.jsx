@@ -23,6 +23,10 @@ export function Aside({children, heading, type}) {
     const abortController = new AbortController();
 
     if (expanded) {
+      // Lock body scroll while a drawer is open (all viewports)
+      const previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
       document.addEventListener(
         'keydown',
         function handler(event) {
@@ -32,6 +36,11 @@ export function Aside({children, heading, type}) {
         },
         {signal: abortController.signal},
       );
+
+      return () => {
+        document.body.style.overflow = previousOverflow;
+        abortController.abort();
+      };
     }
     return () => abortController.abort();
   }, [close, expanded]);
