@@ -1,4 +1,5 @@
 import {CUSTOMER_UPDATE_MUTATION} from '~/graphql/customer-account/CustomerUpdateMutation';
+import {assertSameOrigin} from '~/lib/http';
 import {
   data,
   Form,
@@ -28,6 +29,7 @@ export async function loader({context}) {
  * @param {Route.ActionArgs}
  */
 export async function action({request, context}) {
+  assertSameOrigin(request);
   const {customerAccount} = context;
 
   if (request.method !== 'PUT') {

@@ -24,7 +24,10 @@ export const meta = ({data, matches}) => {
   return buildRouteMeta({
     title: product?.seo?.title || product?.title,
     description: product?.seo?.description || product?.description,
-    canonical: `${origin}/products/${product?.handle}`,
+    canonical:
+      origin && product?.handle
+        ? `${origin}/products/${product.handle}`
+        : undefined,
     image: product?.featuredImage?.url,
     type: 'product',
   });
@@ -58,6 +61,7 @@ async function loadCriticalData({context, params, request}) {
 
   const [{product}] = await Promise.all([
     storefront.query(PRODUCT_QUERY, {
+      cache: storefront.CacheShort(),
       variables: {handle, selectedOptions: getSelectedProductOptions(request)},
     }),
     // Add other queries here, so that they are loaded in parallel
@@ -72,6 +76,7 @@ async function loadCriticalData({context, params, request}) {
 
   return {
     product,
+    canonicalUrl: `${new URL(request.url).origin}/products/${product.handle}`,
   };
 }
 
@@ -90,7 +95,7 @@ function loadDeferredData() {
 
 export default function Product() {
   /** @type {LoaderReturnData} */
-  const {product} = useLoaderData();
+  const {product, canonicalUrl} = useLoaderData();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -100,7 +105,7 @@ export default function Product() {
 
   // Sets the search param to the selected variant without navigation
   // only when no search params are set in the url
-  useSelectedOptionInUrlParam(selectedVariant.selectedOptions);
+  useSelectedOptionInUrlParam(selectedVariant?.selectedOptions ?? []);
 
   // Get the product options array
   const productOptions = getProductOptions({
@@ -115,9 +120,10 @@ export default function Product() {
     <div className="product">
       <StructuredData
         nonce={nonce}
-        data={productJsonLd(product, {
-          url: `/products/${product.handle}`,
-        })}
+        data={productJsonLd(
+          {...product, selectedOrFirstAvailableVariant: selectedVariant},
+          {url: canonicalUrl},
+        )}
       />
       <StructuredData
         nonce={nonce}
@@ -154,6 +160,11 @@ export default function Product() {
           productOptions={productOptions}
           selectedVariant={selectedVariant}
         />
+        <ul className="product-assurances" aria-label="Purchase assurances">
+          <li>Secure Shopify checkout</li>
+          <li>Encrypted session</li>
+          <li>Live inventory</li>
+        </ul>
         <div className="product-description">
           <h5>Description</h5>
           <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />

@@ -52,10 +52,13 @@ export function links() {
     {
       rel: 'preconnect',
       href: 'https://cdn.shopify.com',
+      crossOrigin: 'anonymous',
     },
+    {rel: 'dns-prefetch', href: 'https://cdn.shopify.com'},
     {
       rel: 'preconnect',
       href: 'https://shop.app',
+      crossOrigin: 'anonymous',
     },
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
     {rel: 'manifest', href: '/manifest.webmanifest'},
@@ -101,6 +104,10 @@ export async function loader(args) {
       storefront,
       publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
     }),
+    locale: {
+      country: args.context.storefront.i18n.country,
+      language: args.context.storefront.i18n.language,
+    },
     consent: {
       checkoutDomain: env.PUBLIC_CHECKOUT_DOMAIN,
       storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
@@ -167,12 +174,16 @@ function loadDeferredData({context}) {
  */
 export function Layout({children}) {
   const nonce = useNonce();
+  const rootData = useRouteLoaderData('root');
+  const language = rootData?.locale?.language?.toLowerCase() ?? 'en';
 
   return (
-    <html lang="en">
+    <html lang={language}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="color-scheme" content="dark" />
+        <meta name="format-detection" content="telephone=no" />
         <link rel="stylesheet" href={resetStyles}></link>
         <link rel="stylesheet" href={appStyles}></link>
         <Meta />
@@ -206,6 +217,7 @@ export default function App() {
         nonce={nonce}
         data={websiteJsonLd({
           shopName: data.header?.shop?.name ?? 'YAS Store',
+          url: data.origin,
         })}
       />
       <PageLayout {...data}>
@@ -217,32 +229,51 @@ export default function App() {
 
 export function ErrorBoundary() {
   const error = useRouteError();
-  let errorMessage = 'Unknown error';
   let errorStatus = 500;
+  let errorMessage = 'Unknown error';
 
   if (isRouteErrorResponse(error)) {
-    errorMessage = error?.data?.message ?? error.data;
     errorStatus = error.status;
+    errorMessage =
+      typeof error.data === 'string'
+        ? error.data
+        : (error.data?.message ?? error.statusText);
   } else if (error instanceof Error) {
     errorMessage = error.message;
   }
+
+  const isNotFound = errorStatus === 404;
+  const showDetails = import.meta.env.DEV && Boolean(errorMessage);
 
   return (
     <div className="route-error">
       <LogoMark size={56} />
       <h2>{errorStatus}</h2>
-      <h1>
-        {errorStatus === 404 ? 'Page not found' : 'Something went sideways'}
-      </h1>
+      <h1>{isNotFound ? 'Page not found' : 'Something went sideways'}</h1>
       <p>
-        {errorStatus === 404
+        {isNotFound
           ? "The page you're looking for doesn't exist or has been moved."
-          : 'An unexpected error occurred. Please try again.'}
+          : 'We could not complete that request. Please try again in a moment.'}
       </p>
-      {errorMessage ? (
-        <fieldset>
+      <div className="route-error-actions">
+        <a className="btn btn-primary" href="/">
+          Return home
+        </a>
+        {!isNotFound ? (
+          <button
+            className="btn btn-ghost"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            Try again
+          </button>
+        ) : null}
+      </div>
+      {showDetails ? (
+        <details>
+          <summary>Developer details</summary>
           <pre>{errorMessage}</pre>
-        </fieldset>
+        </details>
       ) : null}
     </div>
   );

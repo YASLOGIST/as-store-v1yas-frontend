@@ -6,7 +6,9 @@ import {parseGid} from '@shopify/hydrogen';
 export async function loader({request, context}) {
   const url = new URL(request.url);
 
-  const {shop} = await context.storefront.query(ROBOTS_QUERY);
+  const {shop} = await context.storefront.query(ROBOTS_QUERY, {
+    cache: context.storefront.CacheLong(),
+  });
 
   const shopId = parseGid(shop.id).id;
   const body = robotsTxtData({url: url.origin, shopId});

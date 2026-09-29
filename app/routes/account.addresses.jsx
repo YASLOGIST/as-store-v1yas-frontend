@@ -11,6 +11,7 @@ import {
   CREATE_ADDRESS_MUTATION,
 } from '~/graphql/customer-account/CustomerAddressMutations';
 import {buildRouteMeta} from '~/lib/seo';
+import {assertSameOrigin} from '~/lib/http';
 
 /**
  * @type {Route.MetaFunction}
@@ -32,6 +33,7 @@ export async function loader({context}) {
  * @param {Route.ActionArgs}
  */
 export async function action({request, context}) {
+  assertSameOrigin(request);
   const {customerAccount} = context;
 
   try {

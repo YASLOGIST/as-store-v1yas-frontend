@@ -125,6 +125,21 @@ describe('collectionJsonLd', () => {
       name: 'A',
     });
   });
+
+  it('emits absolute product URLs when a canonical collection URL is known', () => {
+    const ld = collectionJsonLd(
+      /** @type {any} */ ({
+        title: 'Gear',
+        products: {nodes: [{handle: 'a', title: 'A'}]},
+      }),
+      {url: 'https://example.com/collections/gear'},
+    );
+
+    expect(ld.url).toBe('https://example.com/collections/gear');
+    expect(ld.mainEntity.itemListElement[0].url).toBe(
+      'https://example.com/products/a',
+    );
+  });
 });
 
 describe('breadcrumbJsonLd', () => {

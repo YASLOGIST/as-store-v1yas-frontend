@@ -9,13 +9,19 @@ import {StructuredData} from '~/components/StructuredData';
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
+export const meta = ({data, matches}) => {
+  const origin = matches?.[0]?.data?.origin;
   return buildRouteMeta({
     title: `${data?.collection.title ?? 'Collection'}`,
     description:
       data?.collection.description?.slice(0, 155) ||
       'Browse the collection at YAS Store.',
     type: 'website',
+    canonical:
+      origin && data?.collection.handle
+        ? `${origin}/collections/${data.collection.handle}`
+        : undefined,
+    image: data?.collection.image?.url,
   });
 };
 
@@ -50,6 +56,7 @@ async function loadCriticalData({context, params, request}) {
 
   const [{collection}] = await Promise.all([
     storefront.query(COLLECTION_QUERY, {
+      cache: storefront.CacheShort(),
       variables: {handle, ...paginationVariables},
       // Add other queries here, so that they are loaded in parallel
     }),
@@ -66,6 +73,7 @@ async function loadCriticalData({context, params, request}) {
 
   return {
     collection,
+    canonicalUrl: `${new URL(request.url).origin}/collections/${collection.handle}`,
   };
 }
 
@@ -81,11 +89,13 @@ function loadDeferredData() {
 
 export default function Collection() {
   /** @type {LoaderReturnData} */
-  const {collection} = useLoaderData();
+  const {collection, canonicalUrl} = useLoaderData();
 
   return (
     <div className="collection">
-      <StructuredData data={collectionJsonLd(collection)} />
+      <StructuredData
+        data={collectionJsonLd(collection, {url: canonicalUrl})}
+      />
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link prefetch="intent" to="/">
           Home
@@ -115,7 +125,7 @@ export default function Collection() {
             key={product.id}
             product={product}
             index={index}
-            loading={index < 8 ? 'eager' : undefined}
+            loading={index < 4 ? 'eager' : 'lazy'}
           />
         )}
       </PaginatedResourceSection>
@@ -186,6 +196,12 @@ const COLLECTION_QUERY = `#graphql
       handle
       title
       description
+      image {
+        url
+        altText
+        width
+        height
+      }
       products(
         first: $first,
         last: $last,

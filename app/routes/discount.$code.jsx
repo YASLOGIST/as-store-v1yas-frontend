@@ -1,4 +1,6 @@
 import {redirect} from 'react-router';
+import {getLocalRedirect} from '~/lib/http';
+import {sanitizeCommerceCode} from '~/lib/validation';
 
 /**
  * Automatically applies a discount found on the url
@@ -14,28 +16,27 @@ import {redirect} from 'react-router';
  */
 export async function loader({request, context, params}) {
   const {cart} = context;
-  const {code} = params;
-
+  const code = sanitizeCommerceCode(params.code);
   const url = new URL(request.url);
   const searchParams = new URLSearchParams(url.search);
-  let redirectParam =
-    searchParams.get('redirect') || searchParams.get('return_to') || '/';
-
-  if (redirectParam.includes('//')) {
-    // Avoid redirecting to external URLs to prevent phishing attacks
-    redirectParam = '/';
-  }
-
+  const redirectParam = getLocalRedirect(
+    request,
+    searchParams.get('redirect') || searchParams.get('return_to'),
+    '/',
+  );
   searchParams.delete('redirect');
   searchParams.delete('return_to');
 
-  const redirectUrl = `${redirectParam}?${searchParams}`;
+  const target = new URL(redirectParam, url.origin);
+  searchParams.forEach((value, key) => target.searchParams.append(key, value));
+  const redirectUrl = `${target.pathname}${target.search}${target.hash}`;
 
-  if (!code) {
-    return redirect(redirectUrl);
-  }
+  if (!code) return redirect(redirectUrl);
 
   const result = await cart.updateDiscountCodes([code]);
+  if (!result.cart) {
+    throw new Response('Unable to apply discount', {status: 422});
+  }
   const headers = cart.setCartId(result.cart.id);
 
   // Using set-cookie on a 303 redirect will not work if the domain origin have port number (:3000)

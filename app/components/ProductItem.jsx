@@ -3,6 +3,7 @@ import {Image, Money} from '@shopify/hydrogen';
 import {useVariantUrl} from '~/lib/variants';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
+import {LogoMark} from '~/components/Icons';
 
 /**
  * Product card with hover states, status badges and one-tap quick add.
@@ -26,10 +27,17 @@ export function ProductItem({product, loading, index}) {
   const variant = product.variants?.nodes?.[0];
   const price = product.priceRange?.minVariantPrice;
   const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
-  const onSale =
+  const onSale = Boolean(
+    price &&
     compareAtPrice &&
-    Number(compareAtPrice.amount) > Number(price?.amount ?? '0');
+    Number(compareAtPrice.amount) > Number(price.amount),
+  );
   const soldOut = variant ? !variant.availableForSale : false;
+  const salePercent = onSale
+    ? Math.round(
+        (1 - Number(price.amount) / Number(compareAtPrice.amount)) * 100,
+      )
+    : 0;
 
   return (
     <div
@@ -42,18 +50,22 @@ export function ProductItem({product, loading, index}) {
             {soldOut ? (
               <span className="badge badge-soldout">Sold out</span>
             ) : onSale ? (
-              <span className="badge badge-sale">Sale</span>
+              <span className="badge badge-sale">Save {salePercent}%</span>
             ) : null}
           </div>
         )}
-        {image && (
+        {image ? (
           <Image
             alt={image.altText || product.title}
             aspectRatio="1/1"
             data={image}
-            loading={loading}
-            sizes="(min-width: 45em) 400px, 100vw"
+            loading={loading ?? 'lazy'}
+            sizes="(min-width: 75em) 300px, (min-width: 45em) 33vw, 50vw"
           />
+        ) : (
+          <div className="product-item-placeholder" aria-hidden="true">
+            <LogoMark size={52} />
+          </div>
         )}
         {variant && !soldOut ? (
           <div className="product-quick-add">
@@ -69,7 +81,15 @@ export function ProductItem({product, loading, index}) {
               }}
               onClick={() => open('cart')}
             >
-              + Quick add
+              {(isLoading) =>
+                isLoading ? (
+                  'Adding…'
+                ) : (
+                  <>
+                    + Quick add<span className="sr-only"> {product.title}</span>
+                  </>
+                )
+              }
             </AddToCartButton>
           </div>
         ) : null}

@@ -1,10 +1,20 @@
 import {useLoaderData, Link} from 'react-router';
+import {buildRouteMeta} from '~/lib/seo';
+
+export const meta = () =>
+  buildRouteMeta({
+    title: 'Policies',
+    description:
+      'Read YAS Store policies, terms, shipping and returns information.',
+  });
 
 /**
  * @param {Route.LoaderArgs}
  */
 export async function loader({context}) {
-  const data = await context.storefront.query(POLICIES_QUERY);
+  const data = await context.storefront.query(POLICIES_QUERY, {
+    cache: context.storefront.CacheLong(),
+  });
 
   const shopPolicies = data.shop;
   const policies = [

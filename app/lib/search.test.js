@@ -1,5 +1,9 @@
 import {describe, expect, it} from 'vitest';
-import {getEmptyPredictiveSearchResult} from './search';
+import {
+  getEmptyPredictiveSearchResult,
+  getSearchUrl,
+  urlWithTrackingParams,
+} from './search';
 
 describe('getEmptyPredictiveSearchResult', () => {
   it('returns a reset empty state with all item buckets', () => {
@@ -23,5 +27,31 @@ describe('getEmptyPredictiveSearchResult', () => {
     const b = getEmptyPredictiveSearchResult();
     expect(a).not.toBe(b);
     expect(a.items).not.toBe(b.items);
+  });
+});
+
+describe('search URLs', () => {
+  it('encodes terms exactly once', () => {
+    expect(getSearchUrl('neural headset & stand')).toBe(
+      '/search?q=neural+headset+%26+stand',
+    );
+    expect(
+      urlWithTrackingParams({
+        baseUrl: '/products/headset',
+        term: 'neural headset',
+        trackingParams: 'utm_source=shopify&utm_medium=predictive',
+      }),
+    ).toBe(
+      '/products/headset?q=neural+headset&utm_source=shopify&utm_medium=predictive',
+    );
+  });
+
+  it('preserves existing parameters without creating a second question mark', () => {
+    expect(
+      urlWithTrackingParams({
+        baseUrl: '/products/headset?Color=Black',
+        term: 'headset',
+      }),
+    ).toBe('/products/headset?Color=Black&q=headset');
   });
 });

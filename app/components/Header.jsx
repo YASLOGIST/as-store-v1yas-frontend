@@ -9,6 +9,7 @@ import {
   IconUser,
   LogoMark,
 } from '~/components/Icons';
+import {resolveMenuUrl} from '~/lib/navigation';
 
 /**
  * @param {HeaderProps}
@@ -58,15 +59,28 @@ export function HeaderMenu({
         </NavLink>
       )}
       {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
-        if (!item.url) return null;
+        const destination = resolveMenuUrl({
+          url: item.url,
+          primaryDomainUrl,
+          publicStoreDomain,
+        });
+        if (!destination) return null;
 
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
-            : item.url;
+        if (destination.external) {
+          return (
+            <a
+              className="header-menu-item"
+              href={destination.href}
+              key={item.id}
+              onClick={close}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {item.title}
+            </a>
+          );
+        }
+
         return (
           <NavLink
             className={({isActive, isPending}) =>
@@ -78,7 +92,7 @@ export function HeaderMenu({
             key={item.id}
             onClick={close}
             prefetch="intent"
-            to={url}
+            to={destination.href}
           >
             {item.title}
           </NavLink>
@@ -102,11 +116,13 @@ function HeaderCtas({isLoggedIn, cart}) {
         aria-label="Account"
       >
         <IconUser />
-        <Suspense fallback="Sign in">
-          <Await resolve={isLoggedIn} errorElement="Sign in">
-            {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
-          </Await>
-        </Suspense>
+        <span className="header-cta-label" aria-hidden="true">
+          <Suspense fallback="Sign in">
+            <Await resolve={isLoggedIn} errorElement="Sign in">
+              {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
+            </Await>
+          </Suspense>
+        </span>
       </NavLink>
       <SearchToggle />
       <CartToggle cart={cart} />
@@ -136,7 +152,10 @@ function SearchToggle() {
       aria-label="Search"
     >
       <IconSearch />
-      <span aria-hidden="true">Search</span>
+      <span className="header-cta-label" aria-hidden="true">
+        Search
+      </span>
+      <kbd aria-hidden="true">⌘K</kbd>
     </button>
   );
 }
@@ -169,7 +188,9 @@ function CartBadge({count}) {
       }}
     >
       <IconCart />
-      <span aria-hidden="true">Cart</span>
+      <span className="header-cta-label" aria-hidden="true">
+        Cart
+      </span>
       {count === null ? null : (
         <span key={count} className="cart-count">
           {count}

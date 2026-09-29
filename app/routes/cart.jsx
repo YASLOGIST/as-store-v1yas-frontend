@@ -2,6 +2,8 @@ import {useLoaderData, data} from 'react-router';
 import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
 import {buildRouteMeta} from '~/lib/seo';
+import {assertSameOrigin, getLocalRedirect} from '~/lib/http';
+import {assertCartInput, sanitizeCommerceCode} from '~/lib/validation';
 
 /**
  * @type {Route.MetaFunction}
@@ -17,21 +19,28 @@ export const meta = () => {
 /**
  * @type {HeadersFunction}
  */
-export const headers = ({actionHeaders}) => actionHeaders;
+export const headers = ({actionHeaders, loaderHeaders}) => {
+  const headers = new Headers(loaderHeaders);
+  new Headers(actionHeaders).forEach((value, key) =>
+    headers.append(key, value),
+  );
+  headers.set('Cache-Control', 'private, no-store, max-age=0');
+  return headers;
+};
 
 /**
  * @param {Route.ActionArgs}
  */
 export async function action({request, context}) {
+  assertSameOrigin(request);
   const {cart} = context;
-
   const formData = await request.formData();
-
   const {action, inputs} = CartForm.getFormInput(formData);
 
   if (!action) {
-    throw new Error('No action provided');
+    throw new Response('No cart action provided', {status: 400});
   }
+  assertCartInput(action, inputs);
 
   let status = 200;
   let result;
@@ -47,20 +56,17 @@ export async function action({request, context}) {
       result = await cart.removeLines(inputs.lineIds);
       break;
     case CartForm.ACTIONS.DiscountCodesUpdate: {
-      const formDiscountCode = inputs.discountCode;
+      const formDiscountCode = sanitizeCommerceCode(inputs.discountCode);
 
-      // User inputted discount code
+      // Combine the user-entered code with codes already applied to the cart.
       const discountCodes = formDiscountCode ? [formDiscountCode] : [];
-
-      // Combine discount codes already applied on cart
-      discountCodes.push(...inputs.discountCodes);
+      discountCodes.push(...(inputs.discountCodes ?? []));
 
       result = await cart.updateDiscountCodes(discountCodes);
       break;
     }
     case CartForm.ACTIONS.GiftCardCodesAdd: {
-      const formGiftCardCode = inputs.giftCardCode;
-
+      const formGiftCardCode = sanitizeCommerceCode(inputs.giftCardCode);
       const giftCardCodes = formGiftCardCode ? [formGiftCardCode] : [];
 
       result = await cart.addGiftCardCodes(giftCardCodes);
@@ -78,18 +84,19 @@ export async function action({request, context}) {
       break;
     }
     default:
-      throw new Error(`${action} cart action is not defined`);
+      throw new Response('Unsupported cart action', {status: 400});
   }
 
   const cartId = result?.cart?.id;
   const headers = cartId ? cart.setCartId(result.cart.id) : new Headers();
   const {cart: cartResult, errors, warnings} = result;
 
-  const redirectTo = formData.get('redirectTo') ?? null;
+  const redirectTo = formData.get('redirectTo');
   if (typeof redirectTo === 'string') {
     status = 303;
-    headers.set('Location', redirectTo);
+    headers.set('Location', getLocalRedirect(request, redirectTo));
   }
+  headers.set('Cache-Control', 'private, no-store, max-age=0');
 
   return data(
     {

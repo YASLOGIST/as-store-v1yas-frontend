@@ -1,27 +1,11 @@
 import * as serverBuild from 'virtual:react-router/server-build';
 import {createRequestHandler, storefrontRedirect} from '@shopify/hydrogen';
 import {createHydrogenRouterContext} from '~/lib/context';
+import {getRequestId, hardenResponse, requestLog} from '~/lib/http';
 
 /**
- * Security headers applied to every response.
- * CSP is handled separately by `createContentSecurityPolicy` in entry.server
- * (nonce-based, checkout-aware) — these complement it.
- * @param {Response} response
- * @return {Response}
- */
-function withSecurityHeaders(response) {
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=()',
-  );
-  response.headers.set('X-DNS-Prefetch-Control', 'on');
-  return response;
-}
-
-/**
- * Export a fetch handler in module format.
+ * Oxygen worker entry. The request boundary owns correlation, security policy,
+ * privacy-safe diagnostics, session persistence, and Shopify redirects.
  */
 export default {
   /**
@@ -31,51 +15,94 @@ export default {
    * @return {Promise<Response>}
    */
   async fetch(request, env, executionContext) {
+    const startedAt = performance.now();
+    const requestId = getRequestId(request);
+    const contentLength = Number(request.headers.get('content-length') || 0);
+
+    if (contentLength > 1024 * 1024) {
+      return hardenResponse(
+        new Response('Request body too large', {status: 413}),
+        {
+          request,
+          requestId,
+          durationMs: performance.now() - startedAt,
+          isProduction: process.env.NODE_ENV === 'production',
+        },
+      );
+    }
+
     try {
       const hydrogenContext = await createHydrogenRouterContext(
         request,
         env,
         executionContext,
       );
-
-      /**
-       * Create a Hydrogen request handler that internally
-       * delegates to React Router for routing and rendering.
-       */
       const handleRequest = createRequestHandler({
         build: serverBuild,
         mode: process.env.NODE_ENV,
         getLoadContext: () => hydrogenContext,
       });
 
-      const response = await handleRequest(request);
+      let response = await handleRequest(request);
+      response = new Response(response.body, response);
 
       if (hydrogenContext.session.isPending) {
-        response.headers.set(
+        response.headers.append(
           'Set-Cookie',
           await hydrogenContext.session.commit(),
         );
       }
 
       if (response.status === 404) {
-        /**
-         * Check for redirects only when there's a 404 from the app.
-         * If the redirect doesn't exist, then `storefrontRedirect`
-         * will pass through the 404 response.
-         */
-        return withSecurityHeaders(
-          await storefrontRedirect({
+        response = await storefrontRedirect({
+          request,
+          response,
+          storefront: hydrogenContext.storefront,
+        });
+      }
+
+      const durationMs = performance.now() - startedAt;
+      if (response.status >= 500) {
+        console.error(
+          requestLog({
             request,
-            response,
-            storefront: hydrogenContext.storefront,
+            requestId,
+            status: response.status,
+            durationMs,
           }),
         );
       }
 
-      return withSecurityHeaders(response);
+      return hardenResponse(response, {
+        request,
+        requestId,
+        durationMs,
+        isProduction: process.env.NODE_ENV === 'production',
+      });
     } catch (error) {
-      console.error(error);
-      return new Response('An unexpected error occurred', {status: 500});
+      const durationMs = performance.now() - startedAt;
+      console.error(
+        requestLog({
+          request,
+          requestId,
+          status: 500,
+          durationMs,
+          error,
+        }),
+      );
+
+      return hardenResponse(
+        new Response('An unexpected error occurred', {
+          status: 500,
+          headers: {'Content-Type': 'text/plain; charset=utf-8'},
+        }),
+        {
+          request,
+          requestId,
+          durationMs,
+          isProduction: process.env.NODE_ENV === 'production',
+        },
+      );
     }
   },
 };

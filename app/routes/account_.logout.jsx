@@ -1,4 +1,5 @@
 import {redirect} from 'react-router';
+import {assertSameOrigin} from '~/lib/http';
 
 // if we don't implement this, /account/logout will get caught by account.$.tsx to do login
 
@@ -9,7 +10,8 @@ export async function loader() {
 /**
  * @param {Route.ActionArgs}
  */
-export async function action({context}) {
+export async function action({context, request}) {
+  assertSameOrigin(request);
   return context.customerAccount.logout();
 }
 

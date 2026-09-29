@@ -1,8 +1,10 @@
+import {useState} from 'react';
 import {Link, useNavigate} from 'react-router';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 
 /**
+ * Variant and quantity selection with URL-synchronized options.
  * @param {{
  *   productOptions: MappedProductOptions[];
  *   selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
@@ -11,15 +13,16 @@ import {useAside} from './Aside';
 export function ProductForm({productOptions, selectedVariant}) {
   const navigate = useNavigate();
   const {open} = useAside();
+  const [quantity, setQuantity] = useState(1);
+
   return (
     <div className="product-form">
       {productOptions.map((option) => {
-        // If there is only a single value in the option values, don't display the option
         if (option.optionValues.length === 1) return null;
 
         return (
-          <div className="product-options" key={option.name}>
-            <h5>{option.name}</h5>
+          <fieldset className="product-options" key={option.name}>
+            <legend>{option.name}</legend>
             <div className="product-options-grid">
               {option.optionValues.map((value) => {
                 const {
@@ -32,18 +35,14 @@ export function ProductForm({productOptions, selectedVariant}) {
                   isDifferentProduct,
                   swatch,
                 } = value;
-
                 const optionClass = `product-options-item${
                   selected ? ' selected' : ''
                 }${available ? '' : ' unavailable'}`;
 
                 if (isDifferentProduct) {
-                  // SEO
-                  // When the variant is a combined listing child product
-                  // that leads to a different url, we need to render it
-                  // as an anchor tag
                   return (
                     <Link
+                      aria-current={selected ? 'page' : undefined}
                       className={optionClass}
                       key={option.name + name}
                       prefetch="intent"
@@ -54,56 +53,80 @@ export function ProductForm({productOptions, selectedVariant}) {
                       <ProductOptionSwatch swatch={swatch} name={name} />
                     </Link>
                   );
-                } else {
-                  // SEO
-                  // When the variant is an update to the search param,
-                  // render it as a button with javascript navigating to
-                  // the variant so that SEO bots do not index these as
-                  // duplicated links
-                  return (
-                    <button
-                      type="button"
-                      className={optionClass}
-                      key={option.name + name}
-                      disabled={!exists}
-                      onClick={() => {
-                        if (!selected) {
-                          void navigate(`?${variantUriQuery}`, {
-                            replace: true,
-                            preventScrollReset: true,
-                          });
-                        }
-                      }}
-                    >
-                      <ProductOptionSwatch swatch={swatch} name={name} />
-                    </button>
-                  );
                 }
+
+                return (
+                  <button
+                    aria-pressed={selected}
+                    type="button"
+                    className={optionClass}
+                    key={option.name + name}
+                    disabled={!exists}
+                    onClick={() => {
+                      if (!selected) {
+                        void navigate(`?${variantUriQuery}`, {
+                          replace: true,
+                          preventScrollReset: true,
+                        });
+                      }
+                    }}
+                  >
+                    <ProductOptionSwatch swatch={swatch} name={name} />
+                  </button>
+                );
               })}
             </div>
-            <br />
-          </div>
+          </fieldset>
         );
       })}
-      <AddToCartButton
-        disabled={!selectedVariant || !selectedVariant.availableForSale}
-        onClick={() => {
-          open('cart');
-        }}
-        lines={
-          selectedVariant
-            ? [
-                {
-                  merchandiseId: selectedVariant.id,
-                  quantity: 1,
-                  selectedVariant,
-                },
-              ]
-            : []
-        }
-      >
-        {selectedVariant?.availableForSale ? 'Add to cart' : 'Sold out'}
-      </AddToCartButton>
+
+      <div className="product-purchase-row">
+        <div className="quantity-selector" aria-label="Quantity">
+          <button
+            aria-label="Decrease quantity"
+            disabled={quantity === 1}
+            onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+            type="button"
+          >
+            −
+          </button>
+          <output aria-live="polite" aria-label={`Quantity ${quantity}`}>
+            {quantity}
+          </output>
+          <button
+            aria-label="Increase quantity"
+            disabled={quantity === 99}
+            onClick={() => setQuantity((value) => Math.min(99, value + 1))}
+            type="button"
+          >
+            +
+          </button>
+        </div>
+        <AddToCartButton
+          className="add-to-cart"
+          disabled={!selectedVariant || !selectedVariant.availableForSale}
+          onClick={() => open('cart')}
+          lines={
+            selectedVariant
+              ? [
+                  {
+                    merchandiseId: selectedVariant.id,
+                    quantity,
+                    selectedVariant,
+                  },
+                ]
+              : []
+          }
+        >
+          {(isLoading) =>
+            isLoading
+              ? `Adding ${quantity}…`
+              : selectedVariant?.availableForSale
+                ? `Add ${quantity > 1 ? `${quantity} ` : ''}to cart`
+                : 'Sold out'
+          }
+        </AddToCartButton>
+      </div>
     </div>
   );
 }
@@ -121,15 +144,16 @@ function ProductOptionSwatch({swatch, name}) {
   if (!image && !color) return name;
 
   return (
-    <div
-      aria-label={name}
-      className="product-option-label-swatch"
-      style={{
-        backgroundColor: color || 'transparent',
-      }}
-    >
-      {!!image && <img src={image} alt={name} />}
-    </div>
+    <span className="product-option-with-label">
+      <span
+        aria-hidden="true"
+        className="product-option-label-swatch"
+        style={{backgroundColor: color || 'transparent'}}
+      >
+        {image ? <img src={image} alt="" height="24" width="24" /> : null}
+      </span>
+      <span>{name}</span>
+    </span>
   );
 }
 

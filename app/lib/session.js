@@ -30,12 +30,14 @@ export class AppSession {
    * @param {string[]} secrets
    */
   static async init(request, secrets) {
+    const secure = new URL(request.url).protocol === 'https:';
     const storage = createCookieSessionStorage({
       cookie: {
-        name: 'session',
+        name: secure ? '__Host-yas_session' : 'yas_session',
         httpOnly: true,
         path: '/',
         sameSite: 'lax',
+        secure,
         secrets,
       },
     });
