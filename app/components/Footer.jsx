@@ -1,6 +1,7 @@
 import {Suspense} from 'react';
 import {Await, NavLink} from 'react-router';
 import {LogoMark} from '~/components/Icons';
+import {resolveMenuUrl} from '~/lib/navigation';
 
 /**
  * @param {FooterProps}
@@ -90,17 +91,20 @@ function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
   return (
     <nav className="footer-menu" role="navigation">
       {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
-        if (!item.url) return null;
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
-            : item.url;
-        const isExternal = !url.startsWith('/');
-        return isExternal ? (
-          <a href={url} key={item.id} rel="noopener noreferrer" target="_blank">
+        const destination = resolveMenuUrl({
+          url: item.url,
+          primaryDomainUrl,
+          publicStoreDomain,
+        });
+        if (!destination) return null;
+
+        return destination.external ? (
+          <a
+            href={destination.href}
+            key={item.id}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
             {item.title}
           </a>
         ) : (
@@ -109,7 +113,7 @@ function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
             key={item.id}
             prefetch="intent"
             className={({isActive}) => (isActive ? 'active' : '')}
-            to={url}
+            to={destination.href}
           >
             {item.title}
           </NavLink>

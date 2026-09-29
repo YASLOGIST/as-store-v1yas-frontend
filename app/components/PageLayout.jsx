@@ -1,16 +1,14 @@
 import {Await, Link} from 'react-router';
-import {Suspense, useId} from 'react';
-import {Aside} from '~/components/Aside';
+import {Suspense, useEffect, useId} from 'react';
+import {Aside, useAside} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
 import {CartSkeleton} from '~/components/Skeleton';
 import {IconSearch} from '~/components/Icons';
-import {
-  SEARCH_ENDPOINT,
-  SearchFormPredictive,
-} from '~/components/SearchFormPredictive';
+import {SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
+import {getSearchUrl} from '~/lib/search';
 
 /**
  * @param {PageLayoutProps}
@@ -25,6 +23,7 @@ export function PageLayout({
 }) {
   return (
     <Aside.Provider>
+      <GlobalShortcuts />
       <a className="skip-to-content" href="#main-content">
         Skip to content
       </a>
@@ -72,10 +71,12 @@ function SearchAside() {
     <Aside type="search" heading="Search">
       <div className="predictive-search">
         <SearchFormPredictive>
-          {({fetchResults, goToSearch, inputRef}) => (
+          {({fetchResults, inputRef}) => (
             <div className="predictive-search-form">
               <input
+                autoComplete="off"
                 className="search-input"
+                data-autofocus
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}
@@ -83,9 +84,10 @@ function SearchAside() {
                 ref={inputRef}
                 type="search"
                 list={queriesDatalistId}
+                maxLength={100}
                 aria-label="Search the store"
               />
-              <button className="btn btn-primary" onClick={goToSearch}>
+              <button className="btn btn-primary" type="submit">
                 <IconSearch />
                 Search
               </button>
@@ -132,10 +134,7 @@ function SearchAside() {
                   term={term}
                 />
                 {term.current && total ? (
-                  <Link
-                    onClick={closeSearch}
-                    to={`${SEARCH_ENDPOINT}?q=${term.current}`}
-                  >
+                  <Link onClick={closeSearch} to={getSearchUrl(term.current)}>
                     <p>
                       View all results for <q>{term.current}</q>
                       &nbsp; →
@@ -159,7 +158,7 @@ function SearchAside() {
  */
 function MobileMenuAside({header, publicStoreDomain}) {
   return (
-    header.menu &&
+    header?.menu &&
     header.shop.primaryDomain?.url && (
       <Aside type="mobile" heading="Menu">
         <HeaderMenu
@@ -171,6 +170,33 @@ function MobileMenuAside({header, publicStoreDomain}) {
       </Aside>
     )
   );
+}
+
+function GlobalShortcuts() {
+  const {open} = useAside();
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      const target = event.target;
+      const isTyping =
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName));
+      const isSearchShortcut =
+        (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) ||
+        (event.key === '/' && !isTyping);
+
+      if (isSearchShortcut) {
+        event.preventDefault();
+        open('search');
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
+  return null;
 }
 
 /**

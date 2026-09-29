@@ -1,4 +1,5 @@
 import {Image} from '@shopify/hydrogen';
+import {LogoMark} from './Icons';
 
 /**
  * @param {{
@@ -7,7 +8,14 @@ import {Image} from '@shopify/hydrogen';
  */
 export function ProductImage({image}) {
   if (!image) {
-    return <div className="product-image" />;
+    return (
+      <div
+        className="product-image product-image-placeholder"
+        aria-hidden="true"
+      >
+        <LogoMark size={72} />
+      </div>
+    );
   }
   return (
     <div className="product-image">

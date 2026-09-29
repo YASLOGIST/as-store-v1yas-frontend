@@ -1,3 +1,23 @@
+/** Returns the empty state of a regular search response. */
+export function getEmptyRegularSearchResult() {
+  return {
+    total: 0,
+    items: {
+      articles: {nodes: []},
+      pages: {nodes: []},
+      products: {
+        nodes: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+      },
+    },
+  };
+}
+
 /**
  * Returns the empty state of a predictive search result to reset the search state.
  */
@@ -32,19 +52,32 @@ export function getEmptyPredictiveSearchResult() {
 export function urlWithTrackingParams({
   baseUrl,
   trackingParams,
-  params: extraParams,
+  params: extraParams = {},
   term,
 }) {
-  let search = new URLSearchParams({
-    ...extraParams,
-    q: encodeURIComponent(term),
-  }).toString();
+  const url = new URL(baseUrl, 'https://storefront.invalid');
+
+  Object.entries(extraParams).forEach(([name, value]) => {
+    if (typeof value === 'string') url.searchParams.set(name, value);
+  });
+  url.searchParams.set('q', term ?? '');
 
   if (trackingParams) {
-    search = `${search}&${trackingParams}`;
+    new URLSearchParams(trackingParams).forEach((value, name) => {
+      url.searchParams.set(name, value);
+    });
   }
 
-  return `${baseUrl}?${search}`;
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+/** @param {string} term */
+export function getSearchUrl(term) {
+  const params = new URLSearchParams();
+  const normalized = String(term ?? '').trim();
+  if (normalized) params.set('q', normalized);
+  const search = params.toString();
+  return `/search${search ? `?${search}` : ''}`;
 }
 
 /**

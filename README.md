@@ -1,7 +1,8 @@
 # YAS Store — Hydrogen Storefront
 
-A high-tech Shopify storefront built on **Hydrogen 2026.1** and **React Router 7** —
-server-rendered at the edge, streamed for instant loads, and dressed in a custom
+A high-tech Shopify storefront built on **Hydrogen 2026.4.5** and the
+security-patched **React Router 7.18.4** — server-rendered at the edge, streamed
+for instant loads, and dressed in a custom
 "Volt" dark design system.
 
 ![YAS Store](public/og-image.jpg)
@@ -24,20 +25,25 @@ server-rendered at the edge, streamed for instant loads, and dressed in a custom
 
 **Engineering**
 
-- 🧪 **Vitest test suite** — unit tests for SEO helpers, order filters and
-  search utilities (`npm test`)
+- 🧪 **Vitest test suite** — 50+ unit tests across HTTP hardening, proxy
+  isolation, validation, navigation, SEO, search and order filtering (`npm test`)
 - 🚦 **CI pipeline** — lint + format check + tests + build on every PR
 - 🧹 **Zero-lint codebase** — ESLint (React, a11y, hooks, imports) passes clean
 - 📐 **Prettier** with Shopify's shared config (`npm run format`)
-- 🔒 **Security headers** — `X-Content-Type-Options`, `Referrer-Policy`,
-  `Permissions-Policy` on every response, plus nonce-based CSP from Hydrogen
+- 🔒 **Zero-trust request boundary** — strict browser-origin checks, bounded
+  payloads, safe local redirects, secure rotating session cookies, constrained
+  checkout proxy, private cache policy and nonce-based CSP
+- 📈 **Edge diagnostics** — privacy-safe correlation IDs and `Server-Timing`
+  without logging cookies, tokens, query strings or customer input
+- 🛡️ **Dependency gate** — patched routing/runtime packages, constrained
+  transitive overrides and a zero-advisory CI audit (`npm run audit:security`)
 - 🔎 **SEO toolkit** (`app/lib/seo.js`) — JSON-LD structured data for Products,
   Collections, Articles, Breadcrumbs and WebSite + full OpenGraph/Twitter meta
   on every route, `noindex` on cart/search/account pages
 
 ## 🚀 Getting started
 
-**Requirements:** Node.js ≥ 20
+**Requirements:** Node.js ≥ 22
 
 ```bash
 npm install
@@ -64,8 +70,11 @@ Shopify admin under **Settings → Apps and sales channels → Headless**.
 | `npm run format:check`  | Prettier check (used in CI)                           |
 | `npm test`              | Run the Vitest unit test suite                        |
 | `npm run test:watch`    | Watch mode                                            |
+| `npm run audit:prod`    | Audit the production-only dependency graph            |
+| `npm run audit:security`| Audit the complete dependency graph                    |
+| `npm run check`         | Lint + format + tests + complete security audit        |
 | `npm run codegen`       | Regenerate Storefront API + route types               |
-| `npm run verify`        | lint + format:check + test + build                    |
+| `npm run verify`        | Run all checks and a production build                 |
 
 ## 🏗️ Project structure
 
@@ -77,8 +86,12 @@ Shopify admin under **Settings → Apps and sales channels → Headless**.
 │   │   ├── Skeleton.jsx   # suspense placeholders
 │   │   └── StructuredData.jsx # JSON-LD renderer
 │   ├── graphql/           # Customer Account API queries
-│   ├── lib/               # helpers — seo.js, session, search, variants…
-│   │   └── *.test.js      # Vitest unit tests (co-located)
+│   ├── lib/               # domain/runtime modules — HTTP, env, proxy, SEO…
+│   │   ├── http.js        # request boundary, headers, CSRF, redirects, tracing
+│   │   ├── validation.js  # bounded commerce/search input contracts
+│   │   ├── navigation.js  # safe merchant-managed menu links
+│   │   ├── proxy.js       # allowlisted checkout GraphQL relay
+│   │   └── *.test.js      # co-located Vitest contracts
 │   ├── routes/            # file-based routes (React Router 7)
 │   ├── styles/            # reset.css + app.css (the Volt design system)
 │   ├── root.jsx           # document shell, SEO defaults, error boundary

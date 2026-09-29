@@ -15,11 +15,13 @@ import {buildRouteMeta} from '~/lib/seo';
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = () => {
+export const meta = ({matches}) => {
+  const origin = matches?.[0]?.data?.origin;
   return buildRouteMeta({
     title: 'YAS Store',
     description:
       'High-tech gear, engineered for tomorrow. Discover the catalog — built on Shopify Hydrogen.',
+    canonical: origin ? `${origin}/` : undefined,
   });
 };
 
@@ -43,7 +45,9 @@ export async function loader(args) {
  */
 async function loadCriticalData({context}) {
   const [{collections}] = await Promise.all([
-    context.storefront.query(FEATURED_COLLECTION_QUERY),
+    context.storefront.query(FEATURED_COLLECTION_QUERY, {
+      cache: context.storefront.CacheShort(),
+    }),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
@@ -60,7 +64,9 @@ async function loadCriticalData({context}) {
  */
 function loadDeferredData({context}) {
   const recommendedProducts = context.storefront
-    .query(RECOMMENDED_PRODUCTS_QUERY)
+    .query(RECOMMENDED_PRODUCTS_QUERY, {
+      cache: context.storefront.CacheShort(),
+    })
     .catch((error) => {
       // Log query errors, but don't throw them so the page can still render
       console.error(error);
@@ -123,7 +129,7 @@ function Hero() {
             <dt>Server rendered</dt>
           </div>
           <div className="hero-stat">
-            <dd>&lt;1s</dd>
+            <dd>Live</dd>
             <dt>Streamed pages</dt>
           </div>
         </dl>
@@ -135,12 +141,12 @@ function Hero() {
 /** Scrolling tech-values strip between hero and catalog. */
 function TechMarquee() {
   const items = [
-    'Free shipping over $100',
-    '30-day returns',
-    'Secure checkout',
-    'Ships in 24 hours',
-    'Carbon neutral',
-    'Human support',
+    'Secure Shopify checkout',
+    'Edge-rendered pages',
+    'Predictive discovery',
+    'Optimized media',
+    'Accessible interactions',
+    'Private sessions',
   ];
   return (
     <div className="marquee" aria-hidden="true">
@@ -181,7 +187,12 @@ function FeaturedCollection({collection}) {
       >
         {image && (
           <div className="featured-collection-image">
-            <Image data={image} sizes="100vw" />
+            <Image
+              data={image}
+              fetchPriority="high"
+              loading="eager"
+              sizes="100vw"
+            />
           </div>
         )}
         <div className="featured-collection-caption">
@@ -227,7 +238,7 @@ function RecommendedProducts({products}) {
                       key={product.id}
                       product={product}
                       index={index}
-                      loading={index < 4 ? 'eager' : undefined}
+                      loading="lazy"
                     />
                   ))
                 : null}
@@ -244,12 +255,12 @@ function ValueProps() {
     {
       icon: <IconRocket />,
       title: 'Fast, everywhere',
-      body: 'Edge-rendered pages and same-day dispatch on every in-stock item.',
+      body: 'Streamed edge rendering and optimized media keep every interaction responsive.',
     },
     {
       icon: <IconShield />,
       title: 'Secure by default',
-      body: 'PCI-compliant checkout, encrypted sessions and strict CSP headers.',
+      body: 'Shopify checkout, hardened cookies, origin checks and strict CSP headers.',
     },
     {
       icon: <IconBolt />,
@@ -258,8 +269,8 @@ function ValueProps() {
     },
     {
       icon: <IconGlobe />,
-      title: 'Localized',
-      body: 'Multi-currency and multi-language storefronts out of the box.',
+      title: 'Accessible by design',
+      body: 'Keyboard-first navigation, clear focus states and reduced-motion support.',
     },
   ];
   return (

@@ -131,20 +131,23 @@ export function productJsonLd(product, options = {}) {
 /**
  * CollectionPage + ItemList JSON-LD.
  * @param {CollectionLdInput} collection
+ * @param {{url?: string}} [options]
  */
-export function collectionJsonLd(collection) {
+export function collectionJsonLd(collection, options = {}) {
+  const baseUrl = options.url ? new URL(options.url).origin : '';
   return {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: collection.title,
     description: collection.description ?? undefined,
+    url: options.url,
     mainEntity: {
       '@type': 'ItemList',
       itemListElement: (collection.products?.nodes ?? []).map(
         (product, index) => ({
           '@type': 'ListItem',
           position: index + 1,
-          url: `/products/${product.handle}`,
+          url: `${baseUrl}/products/${product.handle}`,
           name: product.title,
         }),
       ),

@@ -1,9 +1,11 @@
 import {CartForm} from '@shopify/hydrogen';
 
 /**
+ * Mutation-aware add button that prevents duplicate submissions and exposes its
+ * progress to assistive technology.
  * @param {{
  *   analytics?: unknown;
- *   children: React.ReactNode;
+ *   children: React.ReactNode | ((isLoading: boolean) => React.ReactNode);
  *   className?: string;
  *   disabled?: boolean;
  *   lines: Array<OptimisticCartLineInput>;
@@ -14,32 +16,37 @@ export function AddToCartButton({
   analytics,
   children,
   className,
-  disabled,
+  disabled = false,
   lines,
   onClick,
 }) {
   return (
     <CartForm route="/cart" inputs={{lines}} action={CartForm.ACTIONS.LinesAdd}>
-      {(fetcher) => (
-        <>
-          <input
-            name="analytics"
-            type="hidden"
-            value={JSON.stringify(analytics)}
-          />
-          <button
-            type="submit"
-            className={className}
-            onClick={onClick}
-            disabled={disabled ?? fetcher.state !== 'idle'}
-          >
-            {children}
-          </button>
-        </>
-      )}
+      {(fetcher) => {
+        const isLoading = fetcher.state !== 'idle';
+        return (
+          <>
+            {analytics ? (
+              <input
+                name="analytics"
+                type="hidden"
+                value={JSON.stringify(analytics)}
+              />
+            ) : null}
+            <button
+              aria-busy={isLoading}
+              type="submit"
+              className={className}
+              onClick={onClick}
+              disabled={disabled || isLoading}
+            >
+              {typeof children === 'function' ? children(isLoading) : children}
+            </button>
+          </>
+        );
+      }}
     </CartForm>
   );
 }
 
-/** @typedef {import('react-router').FetcherWithComponents} FetcherWithComponents */
 /** @typedef {import('@shopify/hydrogen').OptimisticCartLineInput} OptimisticCartLineInput */

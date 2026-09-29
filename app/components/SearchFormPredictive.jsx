@@ -1,11 +1,13 @@
 import {useFetcher, useNavigate} from 'react-router';
-import {useRef, useEffect} from 'react';
+import {useEffect, useRef} from 'react';
+import {getSearchUrl} from '~/lib/search';
 import {useAside} from './Aside';
 
 export const SEARCH_ENDPOINT = '/search';
+const SEARCH_DEBOUNCE_MS = 180;
 
 /**
- *  Search form component that sends search requests to the `/search` route
+ * Predictive search form with bounded request frequency and encoded navigation.
  * @param {SearchFormPredictiveProps}
  */
 export function SearchFormPredictive({
@@ -15,45 +17,48 @@ export function SearchFormPredictive({
 }) {
   const fetcher = useFetcher({key: 'search'});
   const inputRef = useRef(null);
+  const debounceTimer = useRef(undefined);
   const navigate = useNavigate();
   const aside = useAside();
 
-  /** Reset the input value and blur the input */
-  function resetInput(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (inputRef?.current?.value) {
-      inputRef.current.blur();
-    }
-  }
-
-  /** Navigate to the search page with the current input value */
   function goToSearch() {
-    const term = inputRef?.current?.value;
-    void navigate(SEARCH_ENDPOINT + (term ? `?q=${term}` : ''));
+    const term = inputRef.current?.value ?? '';
+    window.clearTimeout(debounceTimer.current);
+    void navigate(getSearchUrl(term));
+    inputRef.current?.blur();
     aside.close();
   }
 
-  /** Fetch search results based on the input value */
-  function fetchResults(event) {
-    void fetcher.submit(
-      {q: event.target.value || '', limit: 5, predictive: true},
-      {method: 'GET', action: SEARCH_ENDPOINT},
-    );
+  function handleSubmit(event) {
+    event.preventDefault();
+    goToSearch();
   }
 
-  // ensure the passed input has a type of search, because SearchResults
-  // will select the element based on the input
+  /** @param {React.ChangeEvent<HTMLInputElement> | React.FocusEvent<HTMLInputElement>} event */
+  function fetchResults(event) {
+    const value = event.currentTarget.value;
+    window.clearTimeout(debounceTimer.current);
+
+    const submit = () => {
+      void fetcher.submit(
+        {q: value, limit: 5, predictive: true},
+        {method: 'GET', action: SEARCH_ENDPOINT},
+      );
+    };
+
+    if (!value.trim()) submit();
+    else debounceTimer.current = window.setTimeout(submit, SEARCH_DEBOUNCE_MS);
+  }
+
   useEffect(() => {
-    inputRef?.current?.setAttribute('type', 'search');
+    inputRef.current?.setAttribute('type', 'search');
+    return () => window.clearTimeout(debounceTimer.current);
   }, []);
 
-  if (typeof children !== 'function') {
-    return null;
-  }
+  if (typeof children !== 'function') return null;
 
   return (
-    <fetcher.Form {...props} className={className} onSubmit={resetInput}>
+    <fetcher.Form {...props} className={className} onSubmit={handleSubmit}>
       {children({inputRef, fetcher, fetchResults, goToSearch})}
     </fetcher.Form>
   );
@@ -61,7 +66,7 @@ export function SearchFormPredictive({
 
 /**
  * @typedef {(args: {
- *   fetchResults: (event: React.ChangeEvent<HTMLInputElement>) => void;
+ *   fetchResults: (event: React.ChangeEvent<HTMLInputElement> | React.FocusEvent<HTMLInputElement>) => void;
  *   goToSearch: () => void;
  *   inputRef: React.MutableRefObject<HTMLInputElement | null>;
  *   fetcher: Fetcher<PredictiveSearchReturn>;

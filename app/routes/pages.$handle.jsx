@@ -37,6 +37,7 @@ async function loadCriticalData({context, request, params}) {
 
   const [{page}] = await Promise.all([
     context.storefront.query(PAGE_QUERY, {
+      cache: context.storefront.CacheLong(),
       variables: {
         handle: params.handle,
       },

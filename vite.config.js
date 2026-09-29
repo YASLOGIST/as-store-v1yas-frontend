@@ -7,9 +7,10 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   plugins: [hydrogen(), oxygen(), reactRouter(), tsconfigPaths()],
   build: {
-    // Allow a strict Content-Security-Policy
-    // withtout inlining assets as base64:
+    // Keep assets external so a nonce-based CSP never needs data: fallbacks.
     assetsInlineLimit: 0,
+    cssCodeSplit: true,
+    target: 'es2022',
   },
   ssr: {
     optimizeDeps: {
@@ -27,6 +28,11 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['.tryhydrogen.dev'],
+    host: '0.0.0.0',
+    allowedHosts: ['.tryhydrogen.dev', '.e2b.app', 'localhost'],
+  },
+  preview: {
+    host: '0.0.0.0',
+    allowedHosts: ['.tryhydrogen.dev', '.e2b.app', 'localhost'],
   },
 });

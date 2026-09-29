@@ -40,6 +40,7 @@ async function loadCriticalData({context, request}) {
 
   const [{products}] = await Promise.all([
     storefront.query(CATALOG_QUERY, {
+      cache: storefront.CacheShort(),
       variables: {...paginationVariables},
     }),
     // Add other queries here, so that they are loaded in parallel
@@ -79,7 +80,7 @@ export default function Collection() {
             key={product.id}
             product={product}
             index={index}
-            loading={index < 8 ? 'eager' : undefined}
+            loading={index < 4 ? 'eager' : 'lazy'}
           />
         )}
       </PaginatedResourceSection>

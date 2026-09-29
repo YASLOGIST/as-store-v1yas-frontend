@@ -2,8 +2,12 @@ import {useLoaderData} from 'react-router';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {SearchForm} from '~/components/SearchForm';
 import {SearchResults} from '~/components/SearchResults';
-import {getEmptyPredictiveSearchResult} from '~/lib/search';
+import {
+  getEmptyPredictiveSearchResult,
+  getEmptyRegularSearchResult,
+} from '~/lib/search';
 import {buildRouteMeta} from '~/lib/seo';
+import {clampSearchLimit, normalizeSearchTerm} from '~/lib/validation';
 
 /**
  * @type {Route.MetaFunction}
@@ -22,16 +26,23 @@ export const meta = () => {
 export async function loader({request, context}) {
   const url = new URL(request.url);
   const isPredictive = url.searchParams.has('predictive');
-  const searchPromise = isPredictive
-    ? predictiveSearch({request, context})
-    : regularSearch({request, context});
 
-  searchPromise.catch((error) => {
+  try {
+    return await (isPredictive
+      ? predictiveSearch({request, context})
+      : regularSearch({request, context}));
+  } catch (error) {
     console.error(error);
-    return {term: '', result: null, error: error.message};
-  });
-
-  return await searchPromise;
+    const term = normalizeSearchTerm(url.searchParams.get('q'));
+    return {
+      type: isPredictive ? 'predictive' : 'regular',
+      term,
+      error: 'Search is temporarily unavailable. Please try again.',
+      result: isPredictive
+        ? getEmptyPredictiveSearchResult()
+        : getEmptyRegularSearchResult(),
+    };
+  }
 }
 
 /**
@@ -64,7 +75,11 @@ export default function SearchPage() {
           </div>
         )}
       </SearchForm>
-      {error && <p style={{color: 'red'}}>{error}</p>}
+      {error ? (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
       {!term || !result?.total ? (
         <SearchResults.Empty />
       ) : (
@@ -145,6 +160,9 @@ const SEARCH_ARTICLE_FRAGMENT = `#graphql
     id
     title
     trackingParameters
+    blog {
+      handle
+    }
   }
 `;
 
@@ -228,7 +246,10 @@ async function regularSearch({request, context}) {
   const {storefront} = context;
   const url = new URL(request.url);
   const variables = getPaginationVariables(request, {pageBy: 8});
-  const term = String(url.searchParams.get('q') || '');
+  const term = normalizeSearchTerm(url.searchParams.get('q'));
+  if (!term) {
+    return {type: 'regular', term, result: getEmptyRegularSearchResult()};
+  }
 
   // Search articles, pages, and products for the `q` term
   const {errors, ...items} = await storefront.query(SEARCH_QUERY, {
@@ -244,8 +265,8 @@ async function regularSearch({request, context}) {
     0,
   );
 
-  const error = errors
-    ? errors.map(({message}) => message).join(', ')
+  const error = errors?.length
+    ? 'Some search results may be unavailable.'
     : undefined;
 
   return {type: 'regular', term, error, result: {total, items}};
@@ -387,8 +408,8 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
 async function predictiveSearch({request, context}) {
   const {storefront} = context;
   const url = new URL(request.url);
-  const term = String(url.searchParams.get('q') || '').trim();
-  const limit = Number(url.searchParams.get('limit') || 10);
+  const term = normalizeSearchTerm(url.searchParams.get('q'));
+  const limit = clampSearchLimit(url.searchParams.get('limit'));
   const type = 'predictive';
 
   if (!term) return {type, term, result: getEmptyPredictiveSearchResult()};

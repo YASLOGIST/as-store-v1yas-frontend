@@ -20,10 +20,15 @@ export function SearchResultsPredictive({children}) {
    * Utility that resets the search input
    */
   function resetInput() {
+    term.current = '';
     if (inputRef.current) {
       inputRef.current.blur();
       inputRef.current.value = '';
     }
+    void fetcher.submit(
+      {q: '', limit: 5, predictive: true},
+      {method: 'GET', action: '/search'},
+    );
   }
 
   /**
@@ -255,8 +260,9 @@ function usePredictiveSearch() {
   const term = useRef('');
   const inputRef = useRef(null);
 
-  if (fetcher?.state === 'loading') {
-    term.current = String(fetcher.formData?.get('q') || '');
+  const submittedTerm = fetcher.formData?.get('q');
+  if (submittedTerm != null) {
+    term.current = String(submittedTerm);
   }
 
   // capture the search input element as a ref

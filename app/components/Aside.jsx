@@ -1,14 +1,26 @@
-import {createContext, useContext, useEffect, useState} from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 /**
- * A side bar component with Overlay
- * @example
- * ```jsx
- * <Aside type="search" heading="SEARCH">
- *  <input type="search" />
- *  ...
- * </Aside>
- * ```
+ * Accessible drawer with focus containment, focus restoration, escape handling,
+ * scroll locking, and isolated landmarks.
  * @param {{
  *   children?: React.ReactNode;
  *   type: AsideType;
@@ -18,48 +30,100 @@ import {createContext, useContext, useEffect, useState} from 'react';
 export function Aside({children, heading, type}) {
   const {type: activeType, close} = useAside();
   const expanded = type === activeType;
+  const panelRef = useRef(null);
+  const headingId = useId();
 
   useEffect(() => {
+    if (!expanded) return undefined;
+
     const abortController = new AbortController();
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const previousOverflow = document.body.style.overflow;
+    const panel = panelRef.current;
+    document.body.style.overflow = 'hidden';
 
-    if (expanded) {
-      // Lock body scroll while a drawer is open (all viewports)
-      const previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-
-      document.addEventListener(
-        'keydown',
-        function handler(event) {
-          if (event.key === 'Escape') {
-            close();
-          }
-        },
-        {signal: abortController.signal},
-      );
-
-      return () => {
-        document.body.style.overflow = previousOverflow;
-        abortController.abort();
-      };
+    function getFocusableElements() {
+      return panel
+        ? Array.from(panel.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+            (element) => element instanceof HTMLElement,
+          )
+        : [];
     }
-    return () => abortController.abort();
+
+    function onKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = getFocusableElements();
+      if (!focusable.length) {
+        event.preventDefault();
+        panel?.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown, {
+      signal: abortController.signal,
+    });
+    const animationFrame = requestAnimationFrame(() => {
+      const autofocus = panel?.querySelector('[data-autofocus]');
+      if (autofocus instanceof HTMLElement) autofocus.focus();
+      else getFocusableElements()[0]?.focus();
+    });
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      abortController.abort();
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
   }, [close, expanded]);
 
   return (
     <div
-      aria-modal
+      aria-hidden={!expanded}
       className={`overlay ${expanded ? 'expanded' : ''}`}
-      role="dialog"
+      data-drawer={type}
     >
-      <button className="close-outside" onClick={close} />
-      <aside>
+      <button
+        aria-label={`Close ${String(heading).toLowerCase()}`}
+        className="close-outside"
+        onClick={close}
+        tabIndex={-1}
+        type="button"
+      />
+      <aside
+        aria-labelledby={headingId}
+        aria-modal={expanded || undefined}
+        className="drawer"
+        ref={panelRef}
+        role="dialog"
+        tabIndex={-1}
+      >
         <header>
-          <h3>{heading}</h3>
+          <h2 id={headingId}>{heading}</h2>
           <button className="close reset" onClick={close} aria-label="Close">
             &times;
           </button>
         </header>
-        <main>{children}</main>
+        <div className="drawer-content">{children}</div>
       </aside>
     </div>
   );
@@ -69,17 +133,12 @@ const AsideContext = createContext(null);
 
 Aside.Provider = function AsideProvider({children}) {
   const [type, setType] = useState('closed');
+  const close = useCallback(() => setType('closed'), []);
+  const open = useCallback((nextType) => setType(nextType), []);
+  const value = useMemo(() => ({type, open, close}), [close, open, type]);
 
   return (
-    <AsideContext.Provider
-      value={{
-        type,
-        open: setType,
-        close: () => setType('closed'),
-      }}
-    >
-      {children}
-    </AsideContext.Provider>
+    <AsideContext.Provider value={value}>{children}</AsideContext.Provider>
   );
 };
 
@@ -99,5 +158,3 @@ export function useAside() {
  *   close: () => void;
  * }} AsideContextValue
  */
-
-/** @typedef {import('react').ReactNode} ReactNode */

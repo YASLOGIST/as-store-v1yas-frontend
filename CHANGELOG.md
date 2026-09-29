@@ -1,5 +1,46 @@
 # skeleton
 
+## Unreleased — 10× Production Architecture Upgrade
+
+### Security and reliability
+
+- Centralized the edge request boundary in `app/lib/http.js`: correlation IDs,
+  server timing, strict security headers, HSTS, private cache enforcement and
+  privacy-safe structured error logs.
+- Added same-origin enforcement to every mutation, safe local redirects, bounded
+  cart/search/discount inputs and strict cart-permalink parsing.
+- Rebuilt the checkout GraphQL proxy with domain/API-version validation, a 256 KiB
+  body ceiling, request-header allowlisting, upstream status preservation and no
+  cookie/auth-response leakage.
+- Hardened cookies with `Secure`, `HttpOnly`, `SameSite=Lax`, `__Host-` naming and
+  comma-separated signing-secret rotation; runtime env fails fast without
+  exposing values.
+- Upgraded to Hydrogen 2026.4.5, React Router 7.18.4 and Vite 6.4.3; the
+  complete dependency graph now audits at zero known vulnerabilities and gates CI.
+
+### Architecture and performance
+
+- Introduced isolated, tested modules for HTTP policy, runtime env, proxying,
+  merchant navigation and commerce validation.
+- Added Storefront API caching to catalog queries, corrected responsive image
+  loading priorities, fixed double-encoded search URLs and debounced predictive
+  search traffic.
+- Added edge `Server-Timing`, request IDs, bounded mutation bodies and secure
+  upstream abort propagation. Arena/remote preview hosts now work out of the box.
+
+### Experience and accessibility
+
+- Drawers now provide focus trapping/restoration, Escape handling, scroll lock,
+  unique labels and one-main-landmark semantics; global `/` and Cmd/Ctrl+K search
+  shortcuts were added.
+- Product purchase UX now includes quantity controls, mutation progress, duplicate
+  submit prevention, sale percentages, image fallbacks and purchase assurances.
+- Rebuilt account navigation for the dark design system, improved mobile header
+  density, focus states, reduced-motion behavior, error recovery and safe
+  production error disclosure.
+- Expanded the test suite to cover security boundaries, hostile redirects, proxy
+  isolation, input bounds, env rotation and menu URL sanitization.
+
 ## Unreleased — Rebrand: AS Store → YAS Store
 
 ### Major Changes

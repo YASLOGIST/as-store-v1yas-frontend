@@ -168,9 +168,9 @@ Researchers who report valid findings are credited (with permission) in our publ
 
 This policy is versioned and changes are logged. Material changes will be announced in the repository's release notes.
 
-**Current version:** `2026.1`
-**Last reviewed:** May 2026
-**Next scheduled review:** August 2026
+**Current version:** `2026.9`
+**Last reviewed:** September 2026
+**Next scheduled review:** December 2026
 
 ---
 

@@ -1,4 +1,5 @@
 import {redirect} from 'react-router';
+import {parseCartPermalink, sanitizeCommerceCode} from '~/lib/validation';
 
 /**
  * Automatically creates a new cart based on the URL and redirects straight to checkout.
@@ -23,21 +24,10 @@ export async function loader({request, context, params}) {
   const {cart} = context;
   const {lines} = params;
   if (!lines) return redirect('/cart');
-  const linesMap = lines.split(',').map((line) => {
-    const lineDetails = line.split(':');
-    const variantId = lineDetails[0];
-    const quantity = parseInt(lineDetails[1], 10);
-
-    return {
-      merchandiseId: `gid://shopify/ProductVariant/${variantId}`,
-      quantity,
-    };
-  });
+  const linesMap = parseCartPermalink(lines);
 
   const url = new URL(request.url);
-  const searchParams = new URLSearchParams(url.search);
-
-  const discount = searchParams.get('discount');
+  const discount = sanitizeCommerceCode(url.searchParams.get('discount'));
   const discountArray = discount ? [discount] : [];
 
   // create a cart
