@@ -1,3 +1,16 @@
+/**
+ * Return context-aware copy for an empty search state.
+ * Keeping this decision pure makes the initial, no-match, and error states
+ * independently testable instead of presenting every state as “no results”.
+ * @param {{term?: string, error?: string}} state
+ */
+export function getSearchEmptyMessage({term = '', error} = {}) {
+  if (error) return null;
+  return term
+    ? `No results for “${term}”. Try a broader or different search.`
+    : 'Enter a product, collection, page or article to start searching.';
+}
+
 /** Returns the empty state of a regular search response. */
 export function getEmptyRegularSearchResult() {
   return {

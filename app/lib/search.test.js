@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   getEmptyPredictiveSearchResult,
+  getSearchEmptyMessage,
   getSearchUrl,
   urlWithTrackingParams,
 } from './search';
@@ -27,6 +28,24 @@ describe('getEmptyPredictiveSearchResult', () => {
     const b = getEmptyPredictiveSearchResult();
     expect(a).not.toBe(b);
     expect(a.items).not.toBe(b.items);
+  });
+});
+
+describe('search empty-state copy', () => {
+  it('guides an initial visit without claiming a failed match', () => {
+    expect(getSearchEmptyMessage()).toContain('start searching');
+  });
+
+  it('identifies a completed search with no matches', () => {
+    expect(getSearchEmptyMessage({term: 'orbital mouse'})).toContain(
+      'orbital mouse',
+    );
+  });
+
+  it('stays silent when the error alert owns the status message', () => {
+    expect(getSearchEmptyMessage({term: 'mouse', error: 'Unavailable'})).toBe(
+      null,
+    );
   });
 });
 
