@@ -17,7 +17,11 @@
     "verify": "npm run check && npx shopify hydrogen build",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "check": "npm run lint && npm run format:check && npm run test && npm run audit:security",
-    "audit:security": "npm audit --audit-level=high"
+    "audit:security": "npm audit --audit-level=high",
+    "build:ci": "shopify hydrogen build",
+    "check:a11y": "eslint app --no-error-on-unmatched-pattern --max-warnings=0",
+    "check:performance": "node scripts/check-bundle.mjs",
+    "check:security": "npm run audit:security && vitest run app/lib/http.test.js app/lib/proxy.test.js app/lib/validation.test.js app/tests/storefront-flows.test.js"
   },
   "prettier": "@shopify/prettier-config",
   "dependencies": {

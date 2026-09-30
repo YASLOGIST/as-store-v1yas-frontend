@@ -1,5 +1,25 @@
 # skeleton
 
+## Unreleased — Verification, locale and interaction upgrade
+
+### Added
+
+- Added five route-level characterization tests for product, search and cart flows,
+  raising the suite from 55 to 69 passing tests across 10 files.
+- Added explicit accessibility and security CI gates plus enforced production
+  bundle budgets (50 KiB largest JS, 150 KiB aggregate JS, 12 KiB CSS; gzip).
+- Added validated BCP-47-like document locale handling and automatic RTL layout.
+- Added accessible global navigation progress and product sharing with native,
+  clipboard and selectable-link fallbacks.
+- Added `docs/AUDIT.md` with evidence, ranked findings and resolution status.
+
+### Changed
+
+- Enabled the supported React Router v8 request/data URL future flags, eliminating
+  both baseline migration warnings during production builds.
+- Added a credential-free `build:ci` command and repeatable security/performance
+  verification scripts.
+
 ## Unreleased — 10× Production Architecture Upgrade
 
 ### Security and reliability
