@@ -5,6 +5,7 @@ import {SearchResults} from '~/components/SearchResults';
 import {
   getEmptyPredictiveSearchResult,
   getEmptyRegularSearchResult,
+  getSearchEmptyMessage,
 } from '~/lib/search';
 import {buildRouteMeta} from '~/lib/seo';
 import {clampSearchLimit, normalizeSearchTerm} from '~/lib/validation';
@@ -75,14 +76,17 @@ export default function SearchPage() {
           </div>
         )}
       </SearchForm>
-      {error ? (
-        <p className="form-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {!term || !result?.total ? (
-        <SearchResults.Empty />
-      ) : (
+      <div aria-live="polite" aria-atomic="true">
+        {error ? (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        {!result?.total ? (
+          <SearchResults.Empty message={getSearchEmptyMessage({term, error})} />
+        ) : null}
+      </div>
+      {result?.total ? (
         <SearchResults result={result} term={term}>
           {({articles, pages, products, term}) => (
             <div>
@@ -92,7 +96,7 @@ export default function SearchPage() {
             </div>
           )}
         </SearchResults>
-      )}
+      ) : null}
       <Analytics.SearchView data={{searchTerm: term, searchResults: result}} />
     </div>
   );

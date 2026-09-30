@@ -147,8 +147,9 @@ function SearchResultsProducts({term, products}) {
   );
 }
 
-function SearchResultsEmpty() {
-  return <p>No results, try a different search.</p>;
+/** @param {{message?: string | null}} props */
+function SearchResultsEmpty({message}) {
+  return message ? <p className="search-empty">{message}</p> : null;
 }
 
 /** @typedef {RegularSearchReturn['result']['items']} SearchItems */
