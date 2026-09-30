@@ -1,498 +1,516 @@
 <div align="center">
 
-<img src="public/og-image.jpg" alt="YAS Store — Hydrogen storefront" width="820">
+<img src="public/og-image.jpg" alt="YAS Store storefront interface" width="860">
 
-# ⚡ YAS Store
+# YAS Store
 
-**A production-grade, edge-rendered Shopify storefront — engineered like infrastructure.**
+<sub>TECHNICAL WHITEPAPER · RELEASE 2026.9.0</sub>
 
-Server-rendered at the edge on **Hydrogen 2026.4.5** · streamed for instant loads ·
-wrapped in a zero-trust request boundary · dressed in the custom **“Volt”** dark design system.
+### The production reference architecture for edge-native Shopify commerce
+
+**Streaming storefront delivery, a centralized zero-trust boundary, and measurable quality gates—built on Shopify Hydrogen and designed for Oxygen.**
 
 [![CI](https://github.com/YASLOGIST/as-store-v1yas-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/YASLOGIST/as-store-v1yas-frontend/actions/workflows/ci.yml)
-[![Node](https://img.shields.io/badge/node-%E2%89%A5%2022-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Node](https://img.shields.io/badge/Node.js-%E2%89%A5_22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![Hydrogen](https://img.shields.io/badge/Hydrogen-2026.4.5-7c5cff?logo=shopify&logoColor=white)](https://shopify.dev/docs/custom-storefronts/hydrogen)
 [![React Router](https://img.shields.io/badge/React_Router-7.18.4-22d3ee)](https://reactrouter.com)
-[![Tests](https://img.shields.io/badge/tests-69%20passing-4ade80)](#-testing-strategy)
-[![Advisories](https://img.shields.io/badge/dependencies-0%20known%20vulnerabilities-4ade80)](#-security-model)
-[![License: MIT](https://img.shields.io/badge/license-MIT-9aa3ba)](./LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-9aa3ba)](./LICENSE)
 
-**[Quick start](#-quick-start) · [Architecture](#-architecture) · [Security](#-security-model) · [Design system](#-the-volt-design-system) · [Docs](#-documentation-map)**
+[**System Architecture**](#system-architecture) · [**Feature Matrix**](#feature-matrix) · [**Core Workflows**](#core-workflows) · [**Tech Stack**](#tech-stack) · [**Run Locally**](#run-locally)
 
 </div>
 
 ---
 
-## 📑 Table of contents
+> **Executive position**
+>
+> YAS Store is not a theme with an API attached. It is a server-rendered commerce system in which delivery, security, observability, search, cart state, account state, SEO, and accessibility are treated as one operating model. The result is a storefront foundation that can move from evaluation to production without a second architecture pass.
 
-| # | Section | What you'll learn |
-|---|---------|-------------------|
-| 1 | [Why this exists](#-why-this-exists) | The engineering philosophy behind the build |
-| 2 | [By the numbers](#-by-the-numbers) | Hard, CI-enforced quality metrics |
-| 3 | [Feature matrix](#-feature-matrix) | Everything the storefront does, at a glance |
-| 4 | [Architecture](#-architecture) | System topology + request lifecycle diagrams |
-| 5 | [Quick start](#-quick-start) | From clone to running storefront in minutes |
-| 6 | [Environment variables](#-environment-variables) | Every variable, its purpose and source |
-| 7 | [Commands](#-commands) | The full operational toolkit, grouped by intent |
-| 8 | [Project structure](#-project-structure) | Annotated source tree |
-| 9 | [Volt design system](#-the-volt-design-system) | Tokens, utilities and motion contracts |
-| 10 | [Security model](#-security-model) | The zero-trust boundary, layer by layer |
-| 11 | [Performance](#-performance-budgets) | Bundle budgets and why they're enforced |
-| 12 | [Testing strategy](#-testing-strategy) | What 69 tests actually protect |
-| 13 | [SEO engine](#-seo-engine) | Structured data, meta and crawl surfaces |
-| 14 | [Deployment](#-deployment) | Continuous delivery to Shopify Oxygen |
-| 15 | [Documentation map](#-documentation-map) | Deep-dive docs in this repository |
-| 16 | [Contributing](#-contributing) | How to ship changes safely |
+## Executive Brief
 
----
+YAS Store is engineered for teams that need Shopify's commerce platform without surrendering control of frontend performance, interface quality, or request security. React is streamed from the edge; Shopify clients and signed sessions are created per request; mutations cross explicit validation boundaries; and every production change is evaluated against tests, security checks, and gzip budgets.
 
-## 🎯 Why this exists
+| Business requirement | Engineering response | Practical outcome |
+|---|---|---|
+| Fast first render | Edge SSR, streamed HTML, deferred non-critical data, route-level code splitting | Useful UI arrives before every downstream query has completed |
+| Safe commerce mutations | Same-origin enforcement, bounded inputs, validated Shopify IDs, local-only commerce redirects | Cart operations fail closed at the trust boundary |
+| Predictable operations | Correlation IDs, `Server-Timing`, structured privacy-safe logs, explicit cache policy | Incidents can be traced without logging customer input or credentials |
+| Durable acquisition | Canonicals, OpenGraph/Twitter metadata, JSON-LD, sitemaps, robots controls | Product and editorial surfaces are machine-readable and crawlable |
+| Controlled frontend growth | CI-enforced JavaScript and CSS gzip ceilings | Performance regressions become build failures, not backlog items |
+| Inclusive global UX | Semantic controls, focus-managed drawers, live regions, RTL-aware document shell | Keyboard, assistive-technology, reduced-motion, and RTL use cases are first-class |
 
-Most storefront templates optimize for *time-to-demo*. **YAS Store optimizes for time-to-production** — the day-one posture of a real commerce platform:
+### Verified engineering baseline
 
-> **Every request is untrusted. Every millisecond is budgeted. Every regression is tested. Every page is crawlable.**
+The repository's [acceptance record](./docs/ACCEPTANCE.md) documents the following baseline:
 
-Four pillars hold this up:
-
-1. **⚡ Edge-first rendering** — React 18 streams from the Oxygen worker runtime; skeletons mirror the streamed content so the page *feels* instant before data arrives.
-2. **🔒 Zero-trust by construction** — a single hardened boundary (`server.js` → `app/lib/http.js`) owns correlation IDs, security headers, CSP nonces, cookie policy and safe redirects. Security is not sprinkled across routes; it's centralized and *tested as code*.
-3. **📐 Budgets, not vibes** — gzip budgets for JS and CSS are enforced in CI. If a change makes the storefront heavier, the build fails. Performance can't silently rot.
-4. **🌍 Commerce-grade UX** — RTL-aware locale handling, keyboard-first search, focus-trapped drawers, `prefers-reduced-motion` support and accessible navigation feedback are baseline, not enhancements.
+| Signal | Baseline | Enforcement |
+|---|---:|---|
+| Automated tests | **69** across 10 files | `npm test` |
+| Security-focused checks | **26**, included in the full suite | `npm run check:security` |
+| Lint and accessibility warnings | **0** | `npm run lint` · `npm run check:a11y` |
+| Largest JavaScript asset | **≤ 50 KiB gzip** | `npm run check:performance` |
+| Total client JavaScript | **≤ 150 KiB gzip** | `npm run check:performance` |
+| Total CSS | **≤ 12 KiB gzip** | `npm run check:performance` |
+| Known dependency advisories at verification | **0** | `npm run audit:security` |
 
 ---
 
-## 📊 By the numbers
+## System Architecture
 
-Every metric below is **enforced by CI**, not aspirational:
-
-| Metric | Value | Enforced by |
-|--------|-------|-------------|
-| Unit + flow tests passing | **69** across 10 files | `npm test` |
-| Known dependency vulnerabilities | **0** | `npm run audit:security` |
-| Lint / a11y warnings | **0** | `npm run lint`, `npm run check:a11y` |
-| Largest JS route chunk (gzip) | **≤ 50 KiB** | `npm run check:performance` |
-| Total client JavaScript (gzip) | **≤ 150 KiB** | `npm run check:performance` |
-| Entire Volt CSS system (gzip) | **≤ 12 KiB** | `npm run check:performance` |
-| Structured-data types emitted | **5** (Product, Collection, Article, BreadcrumbList, WebSite) | `app/lib/seo.js` |
-| Security response headers applied | **10+** on every response | `app/lib/http.js` |
-| Node.js engine | **≥ 22** | `package.json#engines` |
-
----
-
-## ✨ Feature matrix
-
-### 🛍️ Customer experience
-
-| Feature | Detail |
-|---------|--------|
-| ⚡ Quick add-to-cart | One-tap add from any product card with optimistic cart updates — stretched-link cards keep the HTML valid (no nested interactives) |
-| 🔍 Predictive search | As-you-type products, collections, pages and articles in a slide-in drawer; debounced traffic |
-| 💀 Skeleton loaders | Shimmering placeholders that mirror streamed content shape-for-shape |
-| 🏷️ Smart product cards | Sale / Sold-out badges, compare-at price strikes, hover image zoom, scroll-driven reveal |
-| 🧭 Breadcrumbs | On product and collection pages, mirrored as JSON-LD |
-| 🔗 Progressive sharing | Native share sheet → clipboard → selectable-link fallback |
-| ⏳ Navigation feedback | Reduced-motion-safe progress bar + screen-reader status announcements |
-| 🌍 Locale-aware shell | Validated document language; automatic RTL for Arabic, Hebrew, Persian, Urdu and related locales |
-| 📱 PWA-ready | Web manifest, maskable icons, theme color, SVG favicon |
-| ⌨️ Keyboard-first | <kbd>/</kbd> focuses search · <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> opens predictive search · <kbd>Esc</kbd> closes drawers and restores focus |
-| 🎯 Focus management | Drawers trap and restore focus, lock scroll, carry unique labels |
-
-### 🏗️ Engineering
-
-| Capability | Detail |
-|------------|--------|
-| 🧪 Vitest suite | 69 tests: cart, product, search, HTTP hardening, proxy isolation, validation, locale, navigation, SEO + route-level storefront flows |
-| 🚦 CI pipeline | Lint → a11y → format → tests → security audit → production build → bundle budgets, on every PR |
-| 🔎 SEO toolkit | JSON-LD for Products, Collections, Articles, Breadcrumbs and WebSite; full OpenGraph/Twitter meta; `noindex` on cart/search/account |
-| 🤖 Crawl surfaces | Edge-generated `robots.txt` + paginated `sitemap.xml` |
-| 📐 Codegen | Storefront API + Customer Account API types regenerate with `npm run codegen` |
-| 🧹 Zero-lint codebase | ESLint 9 (React, a11y, hooks, imports) passes with zero warnings |
-| 📦 Deterministic builds | `build:ci` builds production bundles with no store credentials required |
-
-### 🔐 Security & observability
-
-| Control | Detail |
-|---------|--------|
-| 🛡️ Hardened boundary | Strict browser-origin checks, bounded payloads, safe local redirects, private cache policy |
-| 🍪 Rotating sessions | `__Host-` prefixed, `Secure` · `HttpOnly` · `SameSite=Lax` cookies with comma-separated secret rotation |
-| 🔀 Constrained proxy | Allowlisted checkout GraphQL relay: domain + API-version validation, 256 KiB ceiling, header allowlist, zero cookie/auth leakage |
-| 📈 Edge diagnostics | Privacy-safe correlation IDs + `Server-Timing`; never logs cookies, tokens, query strings or customer input |
-| 🧾 CSP | Nonce-based Content-Security-Policy; assets stay external so no `data:` fallbacks are ever needed |
-| 🚫 Fast-fail | 1 MiB request ceiling at the worker — oversized bodies get an immediate `413`, never reach a route |
-
----
-
-## 🏗️ Architecture
-
-### System topology
+### Architecture at a glance
 
 ```mermaid
 flowchart TB
-  B["🌐 Browser<br/>Volt design system · streamed React 18 UI"]
+  U["Browser\nHTML stream · React UI · PWA shell"]
 
-  subgraph EDGE["⚡ Oxygen Worker — zero-trust boundary"]
+  subgraph O["Shopify Oxygen edge runtime"]
     direction TB
-    W["server.js<br/>request ceiling · 413 fast-fail · error containment"]
-    H["app/lib/http.js<br/>security headers · CSP nonce · correlation · Server-Timing"]
-    RR["React Router 7<br/>file routes · loaders · actions"]
-    SS["Signed session<br/>__Host- cookie · rotating secret"]
+    E["Worker request boundary\nsize gate · request ID · error containment"]
+    H["Response policy\nCSP · security headers · cache policy · timing"]
+    C["Request-scoped Hydrogen context\nStorefront client · account client · cart · session"]
+    R["React Router 7\nloaders · actions · route modules"]
+    V["Domain controls\nvalidation · redirects · locale · SEO · proxy"]
+    S["Streaming renderer\nnonce-aware React 18 SSR"]
   end
 
-  subgraph SHOPIFY["🛍️ Shopify"]
-    SFA["Storefront API<br/>GraphQL · cached catalog reads"]
-    CAA["Customer Account API<br/>OAuth + GraphQL"]
-    CHK["Checkout"]
+  subgraph P["Shopify platform services"]
+    SF["Storefront API\ncatalog · search · cart"]
+    CA["Customer Account API\nOAuth · profile · orders · addresses"]
+    CO["Checkout GraphQL endpoint"]
   end
 
-  B -->|"HTTPS"| W
-  W --> H
-  H --> RR
-  RR --> SS
-  RR -->|"cached queries"| SFA
-  RR -->|"authenticated flows"| CAA
-  RR -->|"allowlisted relay"| CHK
-  RR -->|"streamed HTML + skeletons"| B
+  U -->|HTTPS request| E
+  E --> C
+  C --> R
+  R --> V
+  R -->|cached catalog reads| SF
+  R -->|authenticated operations| CA
+  V -->|allowlisted relay| CO
+  R --> S
+  S --> H
+  H -->|streamed response| U
 ```
+
+### Responsibility model
+
+| Layer | Owns | Deliberately does not own |
+|---|---|---|
+| `server.js` | Request correlation, declared 1 MiB body rejection, context creation, session commit, Shopify redirects, safe failure response | Route-specific business behavior |
+| `app/lib/http.js` | Security headers, sensitive-route cache policy, origin checks, safe redirects, timing, sanitized request logs | Rendering and Shopify queries |
+| `app/lib/context.js` | Runtime configuration validation, request-scoped Shopify clients, cache, cart, and signed session | Global mutable application state |
+| React Router route modules | Page data, mutations, metadata, response semantics | Cross-cutting transport policy |
+| `app/lib/*` domain modules | Input contracts, proxy isolation, navigation safety, locale, search state, SEO schemas | UI composition |
+| React component layer | Progressive enhancement, accessibility, analytics events, interaction state | Secret handling or direct privileged API access |
+| Shopify services | Catalog, customer identity, cart persistence, checkout | Storefront presentation and edge policy |
 
 ### Request lifecycle
 
-Every request walks the same hardened path — no route can bypass it:
+Every request follows the same path:
+
+1. **Identify** — accept a syntactically safe upstream request ID or issue a new UUID.
+2. **Reject early** — requests declaring a body larger than 1 MiB receive `413` before route dispatch.
+3. **Validate configuration** — required domains, tokens, and session secrets fail fast without echoing secret values.
+4. **Create isolated context** — cache, signed session, Storefront API, Customer Account API, and cart helpers are instantiated for that request.
+5. **Dispatch** — React Router selects a loader or action; domain modules validate untrusted input before Shopify receives it.
+6. **Render or mutate** — catalog reads use Shopify caching; sensitive operations are explicitly private and non-cacheable.
+7. **Stream** — React 18 returns a nonce-aware HTML stream. Bots wait for complete rendering; browsers can receive progressive output.
+8. **Harden and observe** — the boundary applies headers without buffering the stream, emits timing, and records a privacy-safe request event when required.
 
 ```mermaid
 sequenceDiagram
   autonumber
   participant B as Browser
   participant W as Worker boundary
-  participant L as Route loader
-  participant S as Storefront API
+  participant R as Route loader/action
+  participant S as Shopify API
 
-  B->>W: GET /products/:handle
-  W->>W: Request ID · body ceiling (413 fast-fail)
-  W->>W: Create request-scoped clients + signed session
-  W->>L: Dispatch via React Router
-  L->>S: Product GraphQL (cacheable catalog read)
-  S-->>L: Product data
-  L-->>W: Streamed Response (skeletons first)
-  W->>W: Harden headers · CSP nonce · Server-Timing
-  W-->>B: Rendered page + correlation ID
+  B->>W: HTTPS request
+  W->>W: Correlate · validate env · create context
+  W->>R: Dispatch with request-scoped services
+  R->>R: Normalize and validate input
+  R->>S: GraphQL query or mutation
+  S-->>R: Domain result
+  R-->>W: Stream or mutation response
+  W->>W: Commit session · harden · measure
+  W-->>B: Response + X-Request-ID + Server-Timing
 ```
 
-**Key decisions, and why:**
+### Architectural invariants
 
-- **Request-scoped everything** — GraphQL clients and sessions are created per request in `app/lib/context.js`; no shared mutable state at the edge.
-- **Streaming over buffering** — the boundary re-wraps response *streams* (never buffers) so security headers stay writable while HTML flushes early.
-- **Cache split** — catalog reads are cached; anything touching a session or a mutation is `Cache-Control: private` by policy.
-- **One boundary, many tests** — `app/lib/http.test.js` and `app/lib/proxy.test.js` pin the trust contract in CI, so hardening can't regress silently.
+- **No shared request state.** Shopify clients and session state are scoped to a single request.
+- **No unbounded commerce input.** Search terms, result limits, cart lines, quantities, codes, IDs, and proxy bodies have explicit contracts.
+- **No open redirects.** User-influenced destinations resolve only to same-origin paths.
+- **No public caching of customer state.** Account, cart, discount, API, and cookie-setting responses are forced to `private, no-store`.
+- **No stream buffering for hardening.** Response streams are rewrapped so policy headers remain writable while progressive delivery is preserved.
+- **No sensitive diagnostic payloads.** Logs omit cookies, tokens, query strings, headers, customer input, and stack details.
+- **No silent budget drift.** CI fails when JavaScript or CSS crosses its gzip ceiling.
 
-The full behavioral specification (with per-flow sequence diagrams) lives in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+For the behavioral specification and evidence map, see [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ---
 
-## 🚀 Quick start
+## Feature Matrix
 
-**Requirements:** Node.js ≥ 22 · npm 10+ · a Shopify store with Headless channel access
+### Commerce and customer experience
+
+| Capability | Implementation | Value delivered |
+|---|---|---|
+| Product discovery | Full and predictive search across products, collections, pages, articles, and query suggestions | Faster paths from intent to inventory |
+| Product merchandising | Variant selection, availability, compare-at pricing, sale/sold-out states, image treatment, breadcrumbs | Decision-critical product data remains visible and actionable |
+| Quick add | Product-card add-to-cart with optimistic interaction and valid non-nested controls | Lower-friction conversion from listing surfaces |
+| Cart management | Add, update, remove, discount, gift card, buyer identity, cart permalinks | Complete cart lifecycle without abandoning the storefront shell |
+| Customer accounts | OAuth login, profile, addresses, order history, order detail, logout | Shopify-managed identity with a first-party frontend experience |
+| Content commerce | Blogs, articles, CMS pages, policies, collections, and products | Editorial and transactional journeys share one delivery system |
+| Progressive sharing | Native share sheet, then clipboard, then selectable-link fallback | Share behavior degrades cleanly across browsers |
+| PWA shell | PWA-ready manifest, standard and maskable icons, theme metadata | App-like presentation without making installation a dependency |
+
+### Experience quality
+
+| Capability | Implementation | Operational standard |
+|---|---|---|
+| Streaming states | Shape-matched skeletons and deferred below-the-fold data | Non-critical upstream failure does not block the primary page |
+| Navigation feedback | Visual progress plus polite live-region status | Route changes remain perceivable without delaying navigation |
+| Keyboard interaction | `/` search focus, `Ctrl/⌘ + K` predictive search, `Esc` close/restore | Primary discovery paths work without a pointer |
+| Focus management | Trapped dialogs, scroll lock, focus restoration, unique labels | Drawers behave as accessible modal interfaces |
+| Motion preferences | `prefers-reduced-motion` fallbacks across decorative movement | Animation is enhancement, never a usability requirement |
+| Locale shell | Validated `lang`; automatic RTL direction for recognized locales | Document semantics adapt safely to locale context |
+| Error states | Distinct guidance, no-results, recoverable upstream, 404, and production-safe 500 views | Failures are explicit without exposing internals |
+| Responsive design | Fluid type, spacing, containers, and touch-oriented controls | One system scales from mobile to ultrawide displays |
+
+### Platform capabilities
+
+| Domain | Capability | Implementation evidence |
+|---|---|---|
+| Security | Centralized response hardening and nonce-based CSP | `server.js`, `app/entry.server.jsx`, `app/lib/http.js` |
+| Session integrity | Signed `HttpOnly`, `SameSite=Lax`, secure `__Host-` cookie in HTTPS; multi-secret rotation | `app/lib/session.js`, `app/lib/env.js` |
+| Proxy isolation | POST-only checkout relay, validated domain/version, 256 KiB body limit, header allowlist | `app/lib/proxy.js` |
+| Search safety | NFKC normalization, control-character removal, 100-code-point term limit, bounded result count | `app/lib/validation.js` |
+| Commerce safety | Shopify resource-ID checks, maximum 25 lines, quantity ceiling of 99 | `app/lib/validation.js` |
+| SEO | Canonicals, social metadata, Product/Collection/Article/Breadcrumb/WebSite JSON-LD | `app/lib/seo.js` |
+| Crawl control | Generated `robots.txt`, sitemap index, paginated resource sitemaps, `noindex` for private/utility surfaces | `app/routes/[robots.txt].jsx`, sitemap and route metadata |
+| Observability | Validated correlation IDs, `Server-Timing`, minimal structured logs | `app/lib/http.js` |
+| Quality automation | Lint, a11y, formatting, tests, dependency audit, build, bundle budgets | `.github/workflows/ci.yml` |
+| Type safety | Storefront and Customer Account GraphQL declarations plus React Router type generation | generated `.d.ts` files, `npm run codegen` |
+
+---
+
+## Core Workflows
+
+### Workflow contract
+
+| Workflow | Entry point | Critical path | Failure and cache policy |
+|---|---|---|---|
+| Catalog render | `GET /products/:handle` or collection/content route | Worker → loader → Storefront API → streamed SSR | Catalog reads may cache; missing resources return route-level 404 |
+| Predictive search | `GET /search?predictive&q=…` | Normalize term → clamp limit → Storefront API → typed result buckets | Empty and upstream-error states remain distinct; search is `noindex` |
+| Cart mutation | `POST /cart` | Same-origin check → parse intent → validate input → Hydrogen cart mutation | Invalid input returns `400`, foreign origin `403`; response is private/no-store |
+| Account authentication | `GET /account/login` and OAuth callback | Customer Account authorize → callback → authenticated account client | OAuth errors remain within the account flow; account responses are private |
+| Checkout relay | `POST /api/:version/graphql.json` | Origin check → method/version/domain/body validation → allowlisted fetch | No inbound cookies or authorization headers are forwarded; no-store response |
+| Edge delivery | Any document request | Context → route data → React stream → security headers | Production exceptions become generic `500`; stack details remain server-side |
+| Release | Pull request or push to `main` | Install → static gates → tests → audit → build → bundle budgets → Oxygen | A failed gate blocks delivery; only the default branch deploys |
+
+### 1. Catalog rendering
+
+The route loader requests only the data required by the selected surface. Shared header data is critical; footer, cart, and login state can resolve independently. Deferred reads such as footer data contain upstream failures instead of converting the entire document into a `500`.
+
+```mermaid
+sequenceDiagram
+  participant B as Browser
+  participant P as Product route
+  participant SF as Storefront API
+  participant SSR as Stream renderer
+
+  B->>P: GET /products/:handle
+  par Critical product data
+    P->>SF: Product + variants query
+    SF-->>P: Product result
+  and Non-critical data
+    P->>SF: Shared deferred reads
+    SF-->>P: Result or contained failure
+  end
+  P->>SSR: Route data + deferred promises
+  SSR-->>B: Document shell, product UI, progressive content
+```
+
+**Conversion property:** the buy path depends on product and variant truth, not on footer content or other deferred data.
+
+### 2. Search and discovery
+
+1. Normalize input with Unicode NFKC, remove controls, collapse whitespace, and cap it at 100 code points.
+2. Choose regular or predictive query mode from the request.
+3. Bound predictive result limits to `1…10`; regular product results paginate in groups of eight.
+4. Query typed Shopify result buckets.
+5. Return exactly one of four coherent states: initial guidance, results, no matches, or recoverable upstream failure.
+6. Announce status through a single polite live region and keep search pages out of the index.
+
+**Conversion property:** discovery remains fast and understandable while malformed or excessive input is stopped before reaching Shopify.
+
+### 3. Cart mutation
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser
+  participant A as Cart action
+  participant V as Validation boundary
+  participant C as Hydrogen cart API
+  participant S as Signed session
+
+  B->>A: POST intent + form input
+  A->>V: Verify same origin and action shape
+  V->>V: Bound lines, quantity, IDs, and codes
+  V-->>A: Validated mutation input
+  A->>C: Add / update / remove / discount / identity
+  C-->>A: Cart, warnings, errors
+  A->>S: Persist cart identifier when changed
+  A-->>B: Private response or safe local 303
+```
+
+**Integrity property:** a request can mutate only supported cart operations with bounded Shopify identifiers and quantities. Redirects cannot escape the storefront origin.
+
+### 4. Customer account lifecycle
+
+Authentication delegates credentials to Shopify's Customer Account API. The storefront initiates authorization, receives the OAuth callback through Hydrogen's account client, and resolves authenticated account state per request. Profile, address, and order routes operate through that authenticated client and are never publicly cached.
+
+**Trust property:** the storefront integrates Shopify-managed identity and account state without implementing a parallel credential system.
+
+### 5. Continuous delivery
+
+```mermaid
+flowchart LR
+  PR["Pull request"] --> L["Lint + a11y"]
+  L --> F["Format check"]
+  F --> T["Tests"]
+  T --> A["Dependency + trust-boundary audit"]
+  A --> B["Production build"]
+  B --> P["Gzip budgets"]
+  P --> M["Merge to main"]
+  M --> O["Deploy to Oxygen"]
+```
+
+Every pull request runs the same deterministic controls expected before release. The deployment workflow publishes only from `main` and requires the repository's Oxygen deployment secret.
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Version / contract | Why it is here |
+|---|---|---|---|
+| Commerce framework | Shopify Hydrogen | `2026.4.5` | Storefront primitives, GraphQL clients, cart, analytics, CSP, Oxygen integration |
+| UI runtime | React + React DOM | `18.3.1` | Server streaming, Suspense-compatible rendering, progressive hydration |
+| Routing and data | React Router | `7.18.4` | File routes, loaders, actions, metadata, errors, and server request handling |
+| Edge runtime | Shopify Oxygen / MiniOxygen | Oxygen Workers / `4.2.3` local runtime | Globally distributed execution with a production-like local environment |
+| API layer | Shopify Storefront API | GraphQL, generated declarations | Catalog, search, cart, content, and merchandising data |
+| Identity layer | Shopify Customer Account API | OAuth + GraphQL | Customer profile, addresses, authentication, and orders |
+| Query language | GraphQL | `^16.14.2` | Explicit commerce data contracts and generated operation types |
+| Build system | Vite | `6.4.3`, ES2022 target | Fast local iteration, SSR/client bundling, CSS splitting |
+| Test runner | Vitest | `^5.0.2` | Fast executable contracts for domain modules and primary storefront flows |
+| Static analysis | ESLint | `^9.18.0` | React, hooks, import, Jest, and JSX accessibility rules |
+| Formatting | Prettier + Shopify config | Prettier `^3.4.2` | Stable source formatting shared with Shopify conventions |
+| Type generation | Hydrogen Codegen + React Router typegen | Build-time | Storefront API, Customer Account API, and route declarations |
+| Application language | Modern JavaScript + JSX | ESM, JSDoc, generated `.d.ts` | Runtime simplicity with editor and API contract coverage |
+| Styling | Native CSS | Custom properties, no runtime CSS framework | Small payload, deterministic cascade, complete design-system ownership |
+| Runtime baseline | Node.js + npm | Node `≥22`, npm `10.9.8` | Reproducible local and CI toolchain |
+
+### The Volt interface system
+
+Volt is a dark, high-contrast commerce system implemented in native CSS. It uses a constrained token layer for color, type, space, radius, shadow, glass, duration, and easing; fluid sizing with `clamp()`; and a small utility vocabulary for buttons, badges, skeletons, labels, and reveal states.
+
+| Contract | Implementation |
+|---|---|
+| Brand | Violet-to-cyan accent system on a deep neutral canvas |
+| Payload | Complete CSS ceiling of **12 KiB gzip**, enforced in CI |
+| Motion | Three duration tiers, spring easing, reduced-motion fallbacks |
+| Layout | Fluid gutters and containers from mobile through ultrawide |
+| Delivery | External assets only; CSS code splitting; no runtime style injection |
+| Preview | [`guides/design-preview.html`](./guides/design-preview.html) |
+
+---
+
+## Security, Performance, and Discovery
+
+### Security controls
+
+| Boundary | Control |
+|---|---|
+| Transport | HSTS on production HTTPS; deny framing; MIME sniff protection; strict referrer policy |
+| Content execution | Hydrogen-generated nonce CSP; nonce propagated through React rendering and scripts |
+| Browser capabilities | Restrictive permissions policy, opener policy, origin-agent clustering |
+| Mutation origin | Foreign `Origin` or cross-site browser fetch metadata rejected with `403` |
+| Sessions | Signed, HTTP-only, same-site cookies; secure `__Host-` naming on HTTPS; secret rotation |
+| Inputs | Explicit bounds and resource patterns for search, cart, commerce codes, API versions, and domains |
+| Redirects | Relative same-origin paths only; protocol-relative, foreign, backslash, and control-character targets rejected |
+| Checkout proxy | POST-only, 256 KiB body ceiling, strict outbound header allowlist, narrow response-header forwarding |
+| Caching | Sensitive paths and cookie-setting responses forced to `private, no-store, max-age=0` |
+| Failure disclosure | Generic production error body; no stack trace or thrown payload serialization |
+| Diagnostics | Path-only structured logs with request ID, method, status, duration, and error class name |
+
+Security behavior is pinned by executable tests in `app/lib/http.test.js`, `proxy.test.js`, and `validation.test.js`. Report vulnerabilities through [`SECURITY.md`](./SECURITY.md).
+
+### Performance budgets
+
+[`scripts/check-bundle.mjs`](./scripts/check-bundle.mjs) measures the production output itself—not source estimates.
+
+| Asset class | Gzip ceiling | Intent |
+|---|---:|---|
+| Largest JavaScript asset | **50 KiB** | Bound route-level parse and execution cost |
+| All client JavaScript | **150 KiB** | Keep the complete interaction layer intentionally small |
+| All CSS | **12 KiB** | Preserve a compact, cacheable visual system |
+
+The implementation reinforces these budgets with route splitting, external assets (`assetsInlineLimit: 0`), CSS splitting, cached catalog reads, deferred non-critical queries, and streamed SSR.
+
+### Search and crawl model
+
+- Product, collection, article, breadcrumb, and website data are emitted as schema.org JSON-LD.
+- Public routes receive canonical, OpenGraph, and Twitter metadata.
+- `robots.txt`, a sitemap index, and paginated resource sitemaps are generated at the edge.
+- Cart, search, and account surfaces are marked `noindex` so crawl budget stays focused on public content.
+
+---
+
+## Run Locally
+
+### Prerequisites
+
+- Node.js **22 or newer**
+- npm **10.x**
+- A Shopify store with the **Headless** sales channel
+- Storefront API credentials; Customer Account credentials are optional unless account flows are required
+
+### Install and start
 
 ```bash
 git clone https://github.com/YASLOGIST/as-store-v1yas-frontend.git
 cd as-store-v1yas-frontend
+npm ci
 
-npm install
+cp .env.example .env
+openssl rand -base64 32   # use this output for SESSION_SECRET
 
-cp .env.example .env      # fill in your store credentials (see next section)
-openssl rand -base64 32   # generate your SESSION_SECRET
-
-npm run dev               # dev server + GraphQL codegen + hot reload
+npm run dev
 ```
 
-Open the printed URL (typically `http://localhost:3000`).
+The development command runs Shopify Hydrogen with GraphQL code generation and hot reload. Open the URL printed by the CLI.
 
-**No store credentials yet?** You can still verify the whole toolchain:
-
-```bash
-npm run check             # lint + format + 69 tests + security audit
-npm run build:ci          # credential-free production build
-npm run check:performance # enforce gzip bundle budgets
-```
-
----
-
-## 🔐 Environment variables
-
-Values come from your Shopify admin under
-**Settings → Apps and sales channels → Headless**. Never commit real tokens.
+### Environment contract
 
 | Variable | Required | Purpose |
-|----------|:--------:|---------|
-| `PUBLIC_STORE_DOMAIN` | ✅ | Your store's domain (e.g. `your-store.myshopify.com`) |
-| `PUBLIC_STOREFRONT_API_TOKEN` | ✅ | Public Storefront API access token |
-| `PUBLIC_CHECKOUT_DOMAIN` | ✅ | Checkout domain (usually same as store domain) |
-| `SESSION_SECRET` | ✅ | Cookie signing secret, **min 32 chars** (`openssl rand -base64 32`). For zero-downtime rotation: `NEW_SECRET,PREVIOUS_SECRET` |
-| `PUBLIC_STOREFRONT_ID` | ➖ | Storefront API public ID — enables web pixel analytics |
-| `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID` | ➖ | Customer Account API client ID — enables login/orders/addresses/profile |
+|---|:---:|---|
+| `PUBLIC_STORE_DOMAIN` | Yes | Shopify store hostname, for example `store.myshopify.com` |
+| `PUBLIC_STOREFRONT_API_TOKEN` | Yes | Public Storefront API access token |
+| `PUBLIC_CHECKOUT_DOMAIN` | Yes | Validated checkout hostname |
+| `SESSION_SECRET` | Yes | Cookie signing secret, minimum 32 characters |
+| `PUBLIC_STOREFRONT_ID` | No | Storefront public ID for web pixel analytics |
+| `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID` | No | Enables Customer Account API flows |
 
-Runtime configuration is validated in `app/lib/env.js`, which **fails fast with a precise message but never echoes secret values**.
+For zero-downtime session-secret rotation, use `NEW_SECRET,PREVIOUS_SECRET`. The first value signs new cookies; remaining values continue validating existing cookies. Runtime validation reports missing or malformed configuration by variable name and never echoes values.
 
----
+### Operational commands
 
-## 🧰 Commands
+| Intent | Command | Result |
+|---|---|---|
+| Develop | `npm run dev` | Hydrogen development server, codegen, hot reload |
+| Generate types | `npm run codegen` | Storefront, customer account, and route declarations |
+| Test | `npm test` | Full Vitest suite |
+| Test continuously | `npm run test:watch` | Vitest watch mode |
+| Lint | `npm run lint` | ESLint across the repository |
+| Accessibility gate | `npm run check:a11y` | JSX semantics and document contracts, zero warnings |
+| Format | `npm run format` | Write Prettier formatting |
+| Validate format | `npm run format:check` | Check formatting without modifying files |
+| Security gate | `npm run check:security` | Dependency audit plus boundary-focused tests |
+| Full quality gate | `npm run check` | Lint, format, tests, and dependency audit |
+| Production build | `npm run build` | Code generation plus Hydrogen build; credentials required |
+| CI build | `npm run build:ci` | Credential-free Hydrogen production build |
+| Enforce budgets | `npm run check:performance` | Measure built client assets against gzip ceilings |
+| Full pre-PR verification | `npm run verify` | Quality gate plus production build |
+| Preview | `npm run preview` | Build and run in the local Oxygen-like runtime |
 
-### 🧑‍💻 Development
+To validate the toolchain without connecting a store:
 
-| Command | What it does |
-|---------|--------------|
-| `npm run dev` | Dev server with hot reload + GraphQL codegen |
-| `npm run codegen` | Regenerate Storefront API + route types |
-| `npm run format` | Prettier write (Shopify's shared config) |
-
-### ✅ Quality
-
-| Command | What it does |
-|---------|--------------|
-| `npm run lint` | ESLint across the app — React, a11y, hooks, imports |
-| `npm run format:check` | Prettier check (used in CI) |
-| `npm run check:a11y` | JSX accessibility + document contracts, **zero warnings enforced** |
-| `npm test` | Run the full Vitest suite (69 tests) |
-| `npm run test:watch` | Watch mode |
-
-### 🔒 Security
-
-| Command | What it does |
-|---------|--------------|
-| `npm run audit:security` | Audit the complete dependency graph (`--audit-level=high`) |
-| `npm run audit:prod` | Audit the production-only dependency graph |
-| `npm run check:security` | Dependency audit **+** trust-boundary test suites (HTTP, proxy, validation, flows) |
-
-### 📦 Build & performance
-
-| Command | What it does |
-|---------|--------------|
-| `npm run build` | Production build with codegen (needs credentials) |
-| `npm run build:ci` | Credential-free production build (what CI runs) |
-| `npm run preview` | Build + preview in a local Oxygen-like worker |
-| `npm run check:performance` | Enforce gzip budgets against `dist/client` |
-
-### 🚀 Compound gates
-
-| Command | What it does |
-|---------|--------------|
-| `npm run check` | Lint + format + tests + full security audit |
-| `npm run verify` | Everything in `check` **plus** a production build — run before every PR |
-
----
-
-## 📁 Project structure
-
+```bash
+npm run check
+npm run build:ci
+npm run check:performance
 ```
+
+`check:performance` expects the output produced by `build:ci` or `build`.
+
+---
+
+## Repository Anatomy
+
+```text
+.
 ├── app/
-│   ├── assets/                 # favicon / logo mark (SVG)
-│   ├── components/             # UI components
-│   │   ├── Icons.jsx           #   inline SVG icon set
-│   │   ├── Skeleton.jsx        #   suspense placeholders
-│   │   └── StructuredData.jsx  #   JSON-LD renderer
-│   ├── graphql/                # Customer Account API queries
-│   ├── lib/                    # domain + runtime modules (each tested)
-│   │   ├── http.js             #   request boundary, headers, CSRF, tracing
-│   │   ├── proxy.js            #   allowlisted checkout GraphQL relay
-│   │   ├── validation.js       #   bounded commerce/search input contracts
-│   │   ├── navigation.js       #   safe merchant-managed menu links
-│   │   ├── seo.js              #   JSON-LD + meta generation
-│   │   ├── session.js          #   rotating signed-cookie sessions
-│   │   ├── env.js / context.js #   validated runtime config, request clients
-│   │   └── *.test.js           #   co-located Vitest contracts
-│   ├── routes/                 # file-based routes (React Router 7)
-│   ├── styles/                 # reset.css + app.css (Volt design system)
-│   ├── tests/                  # route-level storefront flow tests
-│   └── root.jsx                # document shell, SEO defaults, error boundary
-├── docs/                       # ARCHITECTURE · AUDIT · ACCEPTANCE
-├── guides/                     # predictive search, search, design preview
-├── public/                     # static assets, PWA manifest + icons
-├── scripts/check-bundle.mjs    # gzip budget enforcement
-├── server.js                  # Oxygen worker entry (the trust boundary)
-└── .github/workflows/          # CI + Oxygen deployment
+│   ├── components/            UI, commerce controls, accessibility primitives
+│   ├── graphql/               Customer Account API operations
+│   ├── lib/                   Trust boundaries, domain rules, SEO, sessions
+│   ├── routes/                File-based storefront and API routes
+│   ├── styles/                Reset and Volt design system
+│   ├── tests/                 Route-level commerce flow contracts
+│   ├── entry.client.jsx       Browser hydration entry
+│   ├── entry.server.jsx       Streaming SSR and nonce CSP
+│   └── root.jsx               Document shell and shared application data
+├── docs/                      Architecture, audit, acceptance evidence
+├── guides/                    Search guides and visual-system preview
+├── public/                    Manifest, icons, and social image
+├── scripts/check-bundle.mjs   Production gzip budget enforcement
+├── server.js                  Oxygen worker and global request boundary
+└── .github/workflows/         CI and Oxygen deployment
 ```
 
-### Routes at a glance
+### Route surface
 
-| Route | Surface |
-|-------|---------|
-| `/` | Home — hero, featured collections |
-| `/products/:handle` | Product page — variants, quantity, JSON-LD, sharing |
-| `/collections/:handle` · `/collections/all` | Collection grid with pagination |
-| `/search` | Full search results |
-| `/cart` · `/cart/:lines` | Cart + cart permalinks |
-| `/discount/:code` | Discount application |
-| `/blogs/:blog/:article` | Blog + articles |
-| `/pages/:handle` · `/policies/*` | CMS pages + policies |
-| `/account/*` | Login/logout, orders, addresses, profile (Customer Account API) |
-| `/api/:version/graphql.json` | Constrained checkout relay |
-| `/robots.txt` · `/sitemap.xml` | Edge-generated crawl surfaces |
+| Surface | Routes |
+|---|---|
+| Home and catalog | `/`, `/products/:handle`, `/collections`, `/collections/:handle`, `/collections/all` |
+| Discovery | `/search`, predictive search through the same loader |
+| Cart and promotions | `/cart`, `/cart/:lines`, `/discount/:code` |
+| Content | `/blogs`, `/blogs/:blog`, `/blogs/:blog/:article`, `/pages/:handle`, `/policies/*` |
+| Account | `/account/*`, `/account/login`, `/account/authorize`, `/account/logout` |
+| Platform | `/api/:version/graphql.json`, `/robots.txt`, `/sitemap.xml`, `/sitemap/:type/:page.xml` |
 
 ---
 
-## 🎨 The Volt design system
+## Evaluation and Adoption
 
-A dark, glassmorphic, high-tech theme built entirely on **CSS custom properties** — no CSS framework, no runtime-injected styles, ~12 KiB gzipped total.
+A pragmatic evaluation can be completed in four passes:
 
-> Preview it standalone: open [`guides/design-preview.html`](./guides/design-preview.html) in a browser.
+1. **Inspect the architecture** — review [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) and the trust-boundary modules under `app/lib/`.
+2. **Run the deterministic gates** — `npm ci`, `npm run check`, `npm run build:ci`, then `npm run check:performance`.
+3. **Connect a Shopify store** — populate `.env`, start the app, and execute the configured-store checks in [`docs/ACCEPTANCE.md`](./docs/ACCEPTANCE.md).
+4. **Validate release mechanics** — configure the Oxygen deployment secret and use the existing protected delivery path from pull request to `main`.
 
-### Core tokens
+This sequence separates source-level confidence from store-specific integration, making adoption risk visible before production traffic is involved.
 
-| Token | Value | Role |
-|-------|-------|------|
-| `--bg` | `#05060c` | Deep-space canvas |
-| `--bg-raised` / `--bg-glass` | `#0a0c16` / `rgba(13,16,28,.72)` | Elevated + frosted surfaces |
-| `--accent` | `#7c5cff` | **Volt violet** — primary brand accent |
-| `--accent-2` | `#22d3ee` | Cyan — secondary accent |
-| `--gradient` | `120deg` violet → blue → cyan | The signature brand gradient |
-| `--glow` | layered violet/cyan shadows | Neon glow for focus/hover states |
-| `--blur` | `saturate(160%) blur(18px)` | Glassmorphism backdrop |
-| `--ease-spring` | `cubic-bezier(.34,1.56,.64,1)` | Overshoot motion for reveals |
-| `--font-mono` | SF Mono / JetBrains Mono / … | Technical voice for numbers + eyebrows |
+## Documentation
 
-Full set (spacing, radii, shadows, durations) lives at the top of [`app/styles/app.css`](./app/styles/app.css).
+| Document | Scope |
+|---|---|
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | System behavior, primary flows, invariants, evidence map |
+| [`docs/AUDIT.md`](./docs/AUDIT.md) | Reverse-engineering audit, findings, and resolutions |
+| [`docs/ACCEPTANCE.md`](./docs/ACCEPTANCE.md) | Automated baseline and configured-store regression checklist |
+| [`CHANGELOG.md`](./CHANGELOG.md) | Release history |
+| [`SECURITY.md`](./SECURITY.md) | Security policy and responsible disclosure |
+| [`guides/predictiveSearch/`](./guides/predictiveSearch) | Predictive search implementation guidance |
+| [`guides/search/`](./guides/search) | Full search implementation guidance |
 
-### Utility classes
-
-`.btn` · `.btn-primary` · `.badge` · `.eyebrow` · `.gradient-text` · `.skeleton` ·
-`.reveal` — scroll-driven entrance animations powered by `animation-timeline: view()`, **progressive enhancement** with a full `prefers-reduced-motion` fallback.
-
-### Design contracts
-
-- **Fluid typography & layout** — `clamp()`-based gutters and container scale from mobile to ultrawide.
-- **Motion hierarchy** — three duration tiers (`--dur-fast`, `--dur`, `--dur-slow`) keep animation consistent, never arbitrary.
-- **Contrast-first palette** — text tokens (`--text`, `--text-muted`, `--text-faint`) are tuned for WCAG-friendly contrast on the dark canvas.
+External references: [Hydrogen](https://shopify.dev/docs/custom-storefronts/hydrogen) · [Storefront API](https://shopify.dev/docs/api/storefront) · [Customer Account API](https://shopify.dev/docs/api/customer) · [React Router](https://reactrouter.com/)
 
 ---
 
-## 🛡️ Security model
+## Contributing
 
-Security is implemented as **one tested boundary** — `server.js` → `app/lib/http.js` — that every request and response must cross. Routes never set their own policy.
+1. Branch from `main`.
+2. Add executable coverage for new behavior, especially at trust boundaries.
+3. Run `npm run verify` before opening a pull request.
+4. Confirm the CI build and bundle-budget gate pass without warnings.
 
-<details>
-<summary><b>🔬 Deep dive: the full control stack</b></summary>
-
-| Layer | Control |
-|-------|---------|
-| Request entry | 1 MiB body ceiling → immediate `413`, fast-fail before routing |
-| Origin | Strict browser-origin checks on every mutation (CSRF defense) |
-| Redirects | Login/callback redirects restricted to safe local paths |
-| Input | Bounded cart/search/discount inputs; strict cart-permalink parsing |
-| Cookies | `__Host-` prefix · `Secure` · `HttpOnly` · `SameSite=Lax` · rotating signing secrets |
-| Proxy | Checkout GraphQL relay: domain + API-version validation, 256 KiB ceiling, request-header allowlist, upstream status preserved, no cookie/auth-response leakage |
-| Caching | `Cache-Control: private` forced on sensitive paths and any `Set-Cookie` response |
-| Headers | `Content-Security-Policy` (nonce-based) · `Strict-Transport-Security` (max-age 1y, includeSubDomains, HTTPS prod) · `X-Frame-Options: DENY` · `X-Content-Type-Options: nosniff` · `Referrer-Policy: strict-origin-when-cross-origin` · locked `Permissions-Policy` · `Cross-Origin-Opener-Policy` · `Origin-Agent-Cluster` |
-| Observability | Per-request correlation IDs (`X-Request-ID`) + `Server-Timing`; structured logs **never** contain cookies, tokens, query strings or customer input |
-| Failure | Production errors return a safe generic message — stack traces never leak |
-| Dependencies | Patched routing/runtime packages, constrained transitive overrides, zero-advisory CI gate |
-
-</details>
-
-**Verification is code, not documentation.** `app/lib/http.test.js`, `app/lib/proxy.test.js` and `app/lib/validation.test.js` pin this entire contract, and `npm run check:security` runs them against the dependency audit on every PR. See [`SECURITY.md`](./SECURITY.md) for responsible disclosure.
-
----
-
-## ⚡ Performance budgets
-
-Performance is a **CI gate**, enforced by [`scripts/check-bundle.mjs`](./scripts/check-bundle.mjs) against the real production build:
-
-| Budget | Ceiling (gzip) | Why |
-|--------|---------------|-----|
-| Largest JS route chunk | **50 KiB** | Keeps any single route's parse/execute cost tiny |
-| Total client JavaScript | **150 KiB** | The whole storefront ships less JS than many hero images |
-| Total CSS | **12 KiB** | The entire Volt system — tokens, utilities, animations — in one cached file |
-
-Supporting decisions:
-
-- **`assetsInlineLimit: 0`** — assets stay external so the nonce-based CSP never needs `data:` fallbacks.
-- **`cssCodeSplit`** — route-level CSS ships only where it's used.
-- **Cached catalog reads + corrected image priorities** — above-fold images load eagerly, the rest lazily.
-- **Streaming SSR + skeletons** — first paint doesn't wait for data.
-
-A PR that makes the store heavier **fails CI** with a per-metric PASS/FAIL table.
-
----
-
-## 🧪 Testing strategy
-
-**69 tests across 10 files**, co-located with the modules they protect:
-
-| Suite | Protects |
-|-------|----------|
-| `app/lib/http.test.js` | Security headers, cache policy, redirects, safe error disclosure |
-| `app/lib/proxy.test.js` | Checkout relay isolation — no cookie/auth leakage, bounded bodies |
-| `app/lib/validation.js` tests | Bounded commerce/search input contracts |
-| `app/lib/navigation.test.js` | Safe merchant-managed menu links |
-| `app/lib/locale.test.js` | Document language + RTL direction |
-| `app/lib/seo.test.js` | JSON-LD shapes, meta, `noindex` targeting |
-| `app/lib/search.test.js` · `orderFilters.test.js` · `env.test.js` | Search behavior, account filters, env validation |
-| `app/tests/storefront-flows.test.js` | Route-level product / search / cart flows |
-
-The philosophy: **trust boundaries get executable contracts.** Anything that stands between the browser and Shopify is pinned by tests that fail loudly when weakened.
-
----
-
-## 🌐 SEO engine
-
-[`app/lib/seo.js`](./app/lib/seo.js) gives every public route machine-readable meaning:
-
-- **JSON-LD structured data** — `Product` (with offers + availability), `Collection`, `Article`, `BreadcrumbList`, `WebSite`
-- **OpenGraph + Twitter Card meta** on every public route
-- **Crawl surfaces** — edge-generated `robots.txt` and paginated `sitemap.xml`
-- **Index hygiene** — `noindex` on cart, search and account pages so crawl budget goes to sellable pages
-
----
-
-## 🚢 Deployment
-
-Pushes to `main` deploy automatically to **Shopify Oxygen** via the pre-configured
-GitHub workflow (requires the `OXYGEN_DEPLOYMENT_TOKEN` secret).
-
-The delivery pipeline end-to-end:
-
-```mermaid
-flowchart LR
-  PR["🔀 Pull request"] --> L["Lint"] --> A["A11y gate"] --> F["Format check"] --> T["69 tests"] --> S["Security gate"] --> B["Production build"] --> P["Bundle budgets"]
-  P --> M["✅ Merge to main"] --> O["🚀 Oxygen deploy"]
-```
-
-See [Shopify's Hydrogen deployment docs](https://shopify.dev/docs/custom-storefronts/hydrogen/deployment) for environment setup.
-
----
-
-## 📚 Documentation map
-
-| Document | What it covers |
-|----------|----------------|
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Full system + behavioral spec with per-flow sequence diagrams |
-| [`docs/AUDIT.md`](./docs/AUDIT.md) | Reverse-engineering audit — evidence, ranked findings, resolutions |
-| [`docs/ACCEPTANCE.md`](./docs/ACCEPTANCE.md) | Acceptance + regression checklist for configured stores |
-| [`guides/predictiveSearch/`](./guides/predictiveSearch) | Predictive search implementation guide |
-| [`guides/search/`](./guides/search) | Search implementation guide |
-| [`CHANGELOG.md`](./CHANGELOG.md) | Detailed release history |
-| [`SECURITY.md`](./SECURITY.md) | Security policy + responsible disclosure |
-
-**External:** [Hydrogen docs](https://shopify.dev/docs/custom-storefronts/hydrogen) · [React Router 7](https://reactrouter.com/) · [Storefront API](https://shopify.dev/docs/api/storefront) · [Customer Account API](https://shopify.dev/docs/api/customer)
-
----
-
-## 🤝 Contributing
-
-1. **Branch** from `main`.
-2. **Build** your change with tests — new trust-boundary behavior needs a co-located contract test.
-3. **Verify** locally:
-
-   ```bash
-   npm run verify   # lint + format + 69 tests + security audit + production build
-   ```
-
-4. **Open a PR** — CI runs the same gates plus bundle budgets. Zero warnings, zero advisories, budgets met — or it doesn't merge.
-
----
+Changes that weaken validation, bypass cache policy, expose sensitive diagnostics, or exceed performance budgets are not release-ready.
 
 <div align="center">
 
-**⚡ YAS Store** — engineered like infrastructure, styled like the future.
+**YAS Store** — commerce at the edge, governed like infrastructure.
 
-MIT — see [LICENSE](./LICENSE). Found a security issue? [Responsible disclosure](./SECURITY.md).
+Released under the [MIT License](./LICENSE).
 
 </div>
