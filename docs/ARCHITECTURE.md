@@ -14,6 +14,7 @@ flowchart LR
   C --> SS[Signed cookie session]
   R --> UI[Streamed React UI]
   UI --> B
+  UI --> UX[Navigation status / locale direction / sharing]
   W --> H[Security headers and request timing]
 ```
 
@@ -73,6 +74,9 @@ sequenceDiagram
 - Account, API, cart, discount, and cookie-setting responses are private and non-cacheable.
 - Footer and recommended products are non-critical deferred data: upstream failure must not turn the page into a 500.
 - Search distinguishes initial guidance, zero matches, and upstream failure; only one status message is announced.
+- Route loading/submission exposes visual progress and a polite live-region update without delaying navigation.
+- Document languages are validated and known right-to-left locales emit `dir="rtl"`; malformed locale values fall back to English/LTR.
+- Product sharing prefers the native share sheet, then clipboard, then a selectable URL without making sharing a purchase dependency.
 - Production HTTPS responses receive HSTS; all responses receive anti-sniffing, framing, referrer, permissions, request ID, and timing headers.
 
 ## Evidence map

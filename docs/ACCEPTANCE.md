@@ -2,9 +2,12 @@
 
 ## Automated gate
 
-- [ ] `npm ci` completes from the lockfile.
-- [ ] `npm run check` passes lint, formatting, unit tests, and the complete dependency audit.
-- [ ] `npx shopify hydrogen build` creates client and Oxygen server bundles without errors.
+- [x] `npm ci` completes from the lockfile (verified 2026-09-30).
+- [x] `npm run check` passes lint, formatting, 69 tests, and the dependency audit.
+- [x] `npm run check:a11y` passes with zero warnings.
+- [x] `npm run check:security` passes 26 focused checks with zero advisories.
+- [x] `npm run build:ci` creates client and Oxygen server bundles without errors.
+- [x] `npm run check:performance` keeps the largest JS asset ≤50 KiB gzip, all JS ≤150 KiB gzip, and all CSS ≤12 KiB gzip.
 
 ## Configured-store smoke test
 

@@ -12,6 +12,7 @@ import {
 import favicon from '~/assets/favicon.svg';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import {websiteJsonLd} from '~/lib/seo';
+import {getTextDirection, normalizeDocumentLanguage} from '~/lib/locale';
 import {StructuredData} from '~/components/StructuredData';
 import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
@@ -175,10 +176,11 @@ function loadDeferredData({context}) {
 export function Layout({children}) {
   const nonce = useNonce();
   const rootData = useRouteLoaderData('root');
-  const language = rootData?.locale?.language?.toLowerCase() ?? 'en';
+  const language = normalizeDocumentLanguage(rootData?.locale?.language);
+  const direction = getTextDirection(language);
 
   return (
-    <html lang={language}>
+    <html lang={language} dir={direction}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />

@@ -8,6 +8,7 @@ import {CartSkeleton} from '~/components/Skeleton';
 import {IconSearch} from '~/components/Icons';
 import {SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
+import {NavigationProgress} from '~/components/NavigationProgress';
 import {getSearchUrl} from '~/lib/search';
 
 /**
@@ -24,6 +25,7 @@ export function PageLayout({
   return (
     <Aside.Provider>
       <GlobalShortcuts />
+      <NavigationProgress />
       <a className="skip-to-content" href="#main-content">
         Skip to content
       </a>

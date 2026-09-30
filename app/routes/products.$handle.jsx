@@ -11,6 +11,7 @@ import {
 import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
+import {ShareButton} from '~/components/ShareButton';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {breadcrumbJsonLd, buildRouteMeta, productJsonLd} from '~/lib/seo';
 import {StructuredData} from '~/components/StructuredData';
@@ -160,6 +161,7 @@ export default function Product() {
           productOptions={productOptions}
           selectedVariant={selectedVariant}
         />
+        <ShareButton title={title} url={canonicalUrl} />
         <ul className="product-assurances" aria-label="Purchase assurances">
           <li>Secure Shopify checkout</li>
           <li>Encrypted session</li>

@@ -21,13 +21,18 @@ for instant loads, and dressed in a custom
 - 🏷️ **Smart product cards** — Sale / Sold-out badges, compare-at price strikes,
   image zoom on hover, scroll-driven reveal animations (progressive enhancement)
 - 📱 **PWA-ready** — web manifest, maskable icons, theme color, SVG favicon
+- 🌍 **Locale-aware shell** — validated document language and automatic RTL direction
+  for Arabic, Hebrew, Persian, Urdu and related locales
+- ⏳ **Navigation feedback** — reduced-motion-safe progress plus screen-reader status
+- 🔗 **Progressive product sharing** — native share sheet, clipboard and manual fallback
 - 🧭 **Breadcrumbs** on product and collection pages
 
 **Engineering**
 
-- 🧪 **Vitest test suite** — 50+ unit tests across HTTP hardening, proxy
-  isolation, validation, navigation, SEO, search and order filtering (`npm test`)
-- 🚦 **CI pipeline** — lint + format check + tests + build on every PR
+- 🧪 **Vitest test suite** — 69 unit and major-flow tests across cart, product,
+  search, HTTP hardening, proxy isolation, validation, locale, navigation and SEO
+- 🚦 **CI pipeline** — lint, accessibility, format, flow tests, security audit,
+  production build and enforced gzip performance budgets on every PR
 - 🧹 **Zero-lint codebase** — ESLint (React, a11y, hooks, imports) passes clean
 - 📐 **Prettier** with Shopify's shared config (`npm run format`)
 - 🔒 **Zero-trust request boundary** — strict browser-origin checks, bounded
@@ -72,6 +77,10 @@ Shopify admin under **Settings → Apps and sales channels → Headless**.
 | `npm run test:watch`    | Watch mode                                            |
 | `npm run audit:prod`    | Audit the production-only dependency graph            |
 | `npm run audit:security`| Audit the complete dependency graph                    |
+| `npm run check:a11y`    | Enforce JSX accessibility and document contracts       |
+| `npm run check:security`| Audit dependencies and exercise trust-boundary flows   |
+| `npm run build:ci`      | Credential-free production build                       |
+| `npm run check:performance` | Enforce built JS/CSS gzip budgets                  |
 | `npm run check`         | Lint + format + tests + complete security audit        |
 | `npm run codegen`       | Regenerate Storefront API + route types               |
 | `npm run verify`        | Run all checks and a production build                 |

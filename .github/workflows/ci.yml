@@ -33,14 +33,20 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Accessibility gate (JSX semantics and document contracts)
+        run: npm run check:a11y
+
       - name: Check formatting
         run: npm run format:check
 
-      - name: Unit tests
+      - name: Unit and major-flow tests
         run: npm test
 
-      - name: Audit complete dependency graph
-        run: npm run audit:security
+      - name: Security gate (dependencies and trust-boundary tests)
+        run: npm run check:security
 
       - name: Build (without codegen — no store credentials on CI)
-        run: npx shopify hydrogen build
+        run: npm run build:ci
+
+      - name: Performance gate (gzip bundle budgets)
+        run: npm run check:performance
