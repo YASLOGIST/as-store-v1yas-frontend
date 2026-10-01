@@ -1,8 +1,10 @@
 <div align="center">
 
-<img src="public/og-image.jpg" alt="YAS Store brand artwork: violet-to-cyan wordmark and an electrified hexagonal commerce emblem on a dark perspective grid" width="860">
+<img src="public/og-image-animated.gif" alt="YAS Store animated cover: violet-to-cyan wordmark, the line 'Edge-native commerce, engineered like infrastructure.', and an electrified glass hexagonal commerce emblem pulsing on a dark perspective grid, swept by a soft diagonal light beam" width="860">
 
 <sub><strong>THE VISUAL THESIS</strong> — precision infrastructure beneath an electric, conversion-led commerce experience</sub>
+<br>
+<sub>Animated on GitHub. External link previews (Slack, LinkedIn, X, iMessage) render the static frame at <a href="public/og-image.jpg"><code>public/og-image.jpg</code></a> instead — see <a href="#cover-and-og-image-revision--aligning-the-asset-with-the-whitepaper">why below</a>.</sub>
 
 # YAS Store
 
@@ -60,6 +62,46 @@ The cover is a compact expression of the system rather than decorative branding.
 | Orbital paths | Request-scoped access to Shopify commerce services | Integrated catalog, cart, checkout, and customer state |
 
 > **Design principle:** visual energy belongs at the experience layer; complexity remains contained behind explicit technical boundaries.
+
+#### Cover and OG image revision — aligning the asset with the whitepaper
+
+`public/og-image.jpg` is not a README-only decoration. `app/root.jsx` serves the identical file as the document's `og:image`, so the same pixels represent YAS Store on GitHub, in pull requests, and on every external link card — Slack, LinkedIn, X, and iMessage previews included. Because one asset carries both audiences, its copy has to be correct for whichever reader sees it first: an engineering evaluator scanning a shared link, or a shopper on-site.
+
+The prior artwork kept the architecture-grade grid, gradient, hexagon, and lightning mark, but paired them with consumer storefront copy — *"Gear from the future, shipped today."* That line is still correct as on-site shopper hero copy (`app/routes/_index.jsx`, `guides/design-preview.html`), but it undersold the system when the same file surfaced this document to a technical audience. A whitepaper whose own cover reads like an ad copy headline forces the reader to do the repositioning work the document should already be doing for them.
+
+| | Before | After |
+|---|---|---|
+| Headline copy | *"Gear from the future, shipped today."* | *"Edge-native commerce, engineered like infrastructure."* |
+| Audience fit | Shopper-facing marketing tone, reused outside its context | Matches the evaluator reading a technical whitepaper or a shared PR/link card |
+| Consistency | Diverged from the Executive Brief and System Architecture framing below it | Restates this document's thesis in one line, before the reader scrolls |
+| Visual system | Grid, violet-to-cyan gradient, hexagon, lightning, orbital rings | Unchanged — the identity is correct; only the narrative layer moved |
+| File contract | 1200×630 JPEG, Open Graph / Twitter Card compliant | Unchanged — same path, same dimensions, same embed points |
+
+This was a deliberate **narrative fix, not a rebrand**: the grid, gradient, hexagon, lightning mark, and orbital rings — every element in the table above — are untouched, because they already encode the architecture correctly. Only the headline changed, so that the first thing a reader sees matches the last thing they read. The on-site shopper hero intentionally keeps its own, separate consumer-facing line; a technical cover and a storefront hero are allowed to speak to two different audiences in two different registers, as long as neither one is asked to do both jobs at once.
+
+#### Second pass: material fidelity and a motion-aware GitHub hero
+
+The narrative fix above was correct but the render underneath it was still flat neon line-art. A second pass raised the production value of the same composition without touching the headline, layout, or color system again:
+
+| Element | First revision | Current revision |
+|---|---|---|
+| Hexagon badge | Flat neon outline | Physically shaded glass-and-metal badge with real specular highlights and depth |
+| Orbital rings | Plain thin ellipses | Fine metallic rings carrying small glowing telemetry nodes |
+| Atmosphere | Solid color blooms | Soft volumetric corner glows plus a fine scattered particle field |
+| Grid floor | Flat line grid | Grid rendered with perspective light falloff toward the horizon |
+| Format | Static JPEG only | Static JPEG **and** a motion-matched animated companion (below) |
+
+Because `og:image` has one job — render correctly as a static crawler preview — it stays a static, 1200×630, Open Graph–compliant JPEG at `public/og-image.jpg`. GitHub, however, renders animated GIFs inline, and this README is read on GitHub far more often than it's shared as a link card. So the hero at the top of this document is now **`public/og-image-animated.gif`**, a motion-matched companion built from that exact static frame:
+
+1. **One master frame, zero drift.** Every frame of the GIF starts from the identical static JPEG above — nothing is regenerated per frame — so the wordmark, grid, and badge geometry never jitters or drifts across the loop the way independently generated frames would.
+2. **Hexagon core pulse.** A radial glow centered on the badge breathes between ~10% and ~36% intensity on a sine curve, composited with a `screen` blend so it only ever brightens, never muddies, the artwork underneath.
+3. **Diagonal shine sweep.** A soft, rotated light beam ping-pongs across the full frame on a triangle wave, the same cinematic "shine pass" effect used on premium product pages, built from a precisely calibrated horizontal gradient rather than a generic diagonal render to avoid banding artifacts.
+4. **Encoded for the web.** 20 frames, palette-quantized and transparency-optimized, ship at well under 1 MB — small enough to load instantly in a README and intentionally excluded from `app/` so it never touches the storefront's runtime bundle or its [gzip budgets](#performance-budgets).
+
+| Asset | Path | Used by | Motion |
+|---|---|---|---|
+| Static cover | `public/og-image.jpg` | `app/root.jsx` `og:image`, external link previews | None — by design, for crawler compatibility |
+| Animated cover | `public/og-image-animated.gif` | This README's hero, rendered by GitHub | Looping pulse + shine sweep |
 
 ### Verified engineering baseline
 
