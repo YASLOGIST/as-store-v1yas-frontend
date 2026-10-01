@@ -1,5 +1,41 @@
 # skeleton
 
+## Unreleased — Whitepaper README and cover image revision
+
+### Added
+
+- Added `public/og-image-animated.gif`, a motion-matched companion to the
+  static cover: a looping hexagon-core glow pulse and diagonal shine sweep
+  composited (via `screen` blend) onto the exact static master frame, so
+  geometry never drifts across the loop. Embedded as the README's GitHub
+  hero; the real `og:image` in `app/root.jsx` stays the static JPEG, since
+  animated Open Graph images aren't reliably rendered by link-preview
+  crawlers. Palette-optimized to well under 1 MB and excluded from the
+  storefront runtime, so it does not affect bundle gzip budgets.
+
+### Changed
+
+- Upgraded `public/og-image.jpg` from flat neon line-art to a physically
+  shaded glass-and-metal hexagon badge with real specular highlights,
+  metallic orbit rings with glowing telemetry nodes, volumetric corner glow,
+  a scattered particle field, and perspective-lit grid falloff — same
+  headline, layout, and color system as the prior revision, now rendered
+  with materially higher production value.
+
+- Refreshed `public/og-image.jpg` (also served as `og:image` in `app/root.jsx`)
+  with a corrected headline — *"Edge-native commerce, engineered like
+  infrastructure."* — replacing the prior consumer tagline so the shared
+  social-card and document cover match the engineering positioning of this
+  README. The grid, violet-to-cyan gradient, hexagon, lightning mark, and
+  orbital rings are unchanged; only the narrative layer moved. Dimensions
+  remain the standard 1200×630 Open Graph / Twitter Card size.
+- Rewrote the README's "Reading the cover image" section into a full
+  before/after design-rationale subsection documenting why the asset changed,
+  which audiences it now serves, and why the separate on-site shopper hero
+  copy intentionally keeps its own consumer-facing line.
+- Updated the cover image's alt text to describe the new headline for
+  screen-reader and accessibility parity with the visible artwork.
+
 ## Unreleased — Verification, locale and interaction upgrade
 
 ### Added
