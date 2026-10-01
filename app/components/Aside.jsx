@@ -101,6 +101,7 @@ export function Aside({children, heading, type}) {
       aria-hidden={!expanded}
       className={`overlay ${expanded ? 'expanded' : ''}`}
       data-drawer={type}
+      inert={expanded ? undefined : ''}
     >
       <button
         aria-label={`Close ${String(heading).toLowerCase()}`}
@@ -130,17 +131,29 @@ export function Aside({children, heading, type}) {
 }
 
 const AsideContext = createContext(null);
+const AsideActionsContext = createContext(null);
 
 Aside.Provider = function AsideProvider({children}) {
   const [type, setType] = useState('closed');
   const close = useCallback(() => setType('closed'), []);
   const open = useCallback((nextType) => setType(nextType), []);
-  const value = useMemo(() => ({type, open, close}), [close, open, type]);
+  const actions = useMemo(() => ({open, close}), [close, open]);
+  const value = useMemo(() => ({type, ...actions}), [actions, type]);
 
   return (
-    <AsideContext.Provider value={value}>{children}</AsideContext.Provider>
+    <AsideActionsContext.Provider value={actions}>
+      <AsideContext.Provider value={value}>{children}</AsideContext.Provider>
+    </AsideActionsContext.Provider>
   );
 };
+
+export function useAsideActions() {
+  const actions = useContext(AsideActionsContext);
+  if (!actions) {
+    throw new Error('useAsideActions must be used within an AsideProvider');
+  }
+  return actions;
+}
 
 export function useAside() {
   const aside = useContext(AsideContext);

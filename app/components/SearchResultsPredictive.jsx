@@ -5,7 +5,7 @@ import {
   getEmptyPredictiveSearchResult,
   urlWithTrackingParams,
 } from '~/lib/search';
-import {useAside} from './Aside';
+import {useAsideActions} from './Aside';
 
 /**
  * Component that renders predictive search results
@@ -13,7 +13,7 @@ import {useAside} from './Aside';
  * @return {React.ReactNode}
  */
 export function SearchResultsPredictive({children}) {
-  const aside = useAside();
+  const aside = useAsideActions();
   const {term, inputRef, fetcher, total, items} = usePredictiveSearch();
 
   /*

@@ -55,7 +55,7 @@ export default function SearchPage() {
   if (type === 'predictive') return null;
 
   return (
-    <div className="search">
+    <div className="search" data-testid="search-page">
       <span className="eyebrow">Search</span>
       <h1>Find anything</h1>
       <SearchForm>
@@ -69,6 +69,7 @@ export default function SearchPage() {
               ref={inputRef}
               type="search"
               aria-label="Search the store"
+              data-testid="search-input"
             />
             <button className="btn btn-primary" type="submit">
               Search
@@ -76,7 +77,7 @@ export default function SearchPage() {
           </div>
         )}
       </SearchForm>
-      <div aria-live="polite" aria-atomic="true">
+      <div aria-live="polite" aria-atomic="true" data-testid="search-status">
         {error ? (
           <p className="form-error" role="alert">
             {error}
@@ -89,7 +90,7 @@ export default function SearchPage() {
       {result?.total ? (
         <SearchResults result={result} term={term}>
           {({articles, pages, products, term}) => (
-            <div>
+            <div data-testid="search-results">
               <SearchResults.Products products={products} term={term} />
               <SearchResults.Pages pages={pages} term={term} />
               <SearchResults.Articles articles={articles} term={term} />

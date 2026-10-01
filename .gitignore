@@ -6,5 +6,8 @@ node_modules
 /public/build
 /.mf
 .env
+.env.e2e
 .shopify
 .react-router
+playwright-report
+/test-results

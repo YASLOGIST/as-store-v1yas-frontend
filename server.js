@@ -81,6 +81,7 @@ export default {
       });
     } catch (error) {
       const durationMs = performance.now() - startedAt;
+      if (process.env.NODE_ENV !== 'production') console.error(error);
       console.error(
         requestLog({
           request,

@@ -1,4 +1,5 @@
-import {useLoaderData, Link} from 'react-router';
+import {Await, useLoaderData, useRouteLoaderData, Link} from 'react-router';
+import {Suspense} from 'react';
 import {
   getSelectedProductOptions,
   Analytics,
@@ -15,6 +16,10 @@ import {ShareButton} from '~/components/ShareButton';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {breadcrumbJsonLd, buildRouteMeta, productJsonLd} from '~/lib/seo';
 import {StructuredData} from '~/components/StructuredData';
+import {RecentlyViewed} from '~/components/RecentlyViewed';
+import {ProductModelViewer} from '~/components/ProductModelViewer';
+import {ProductItem} from '~/components/ProductItem';
+import {ProductGridSkeleton} from '~/components/Skeleton';
 
 /**
  * @type {Route.MetaFunction}
@@ -38,12 +43,8 @@ export const meta = ({data, matches}) => {
  * @param {Route.LoaderArgs} args
  */
 export async function loader(args) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
-
+  const deferredData = loadDeferredData(args, criticalData.product.id);
   return {...deferredData, ...criticalData};
 }
 
@@ -87,16 +88,21 @@ async function loadCriticalData({context, params, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData() {
-  // Put any API calls that is not critical to be available on first page render
-  // For example: product reviews, product recommendations, social feeds.
-
-  return {};
+function loadDeferredData({context}, productId) {
+  const recommendations = context.storefront
+    .query(PRODUCT_RECOMMENDATIONS_QUERY, {
+      cache: context.storefront.CacheShort(),
+      variables: {productId},
+    })
+    .then((result) => result.productRecommendations ?? [])
+    .catch(() => []);
+  return {recommendations};
 }
 
 export default function Product() {
   /** @type {LoaderReturnData} */
-  const {product, canonicalUrl} = useLoaderData();
+  const {product, canonicalUrl, recommendations} = useLoaderData();
+  const rootData = useRouteLoaderData('root');
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -118,7 +124,7 @@ export default function Product() {
   const nonce = useNonce();
 
   return (
-    <div className="product">
+    <div className="product" data-testid="product-page">
       <StructuredData
         nonce={nonce}
         data={productJsonLd(
@@ -134,7 +140,16 @@ export default function Product() {
           {name: product.title},
         ])}
       />
-      <ProductImage image={selectedVariant?.image} />
+      <div className="product-media-stack">
+        <ProductImage image={selectedVariant?.image} />
+        <ProductModelViewer
+          enabled={Boolean(rootData?.features?.modelViewer)}
+          image={selectedVariant?.image}
+          model={product.media?.nodes?.find(
+            (media) => media.__typename === 'Model3d',
+          )}
+        />
+      </div>
       <div className="product-main">
         <nav className="breadcrumbs" aria-label="Breadcrumb">
           <Link prefetch="intent" to="/">
@@ -157,6 +172,12 @@ export default function Product() {
           price={selectedVariant?.price}
           compareAtPrice={selectedVariant?.compareAtPrice}
         />
+        {selectedVariant?.quantityAvailable > 0 &&
+        selectedVariant.quantityAvailable <= 5 ? (
+          <p className="low-stock" role="status">
+            Only {selectedVariant.quantityAvailable} left in stock
+          </p>
+        ) : null}
         <ProductForm
           productOptions={productOptions}
           selectedVariant={selectedVariant}
@@ -172,6 +193,33 @@ export default function Product() {
           <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
         </div>
       </div>
+      <section
+        className="product-cross-sell"
+        aria-labelledby="cross-sell-heading"
+      >
+        <span className="eyebrow">Pairs well</span>
+        <h2 id="cross-sell-heading">You may also like</h2>
+        <Suspense fallback={<ProductGridSkeleton count={4} />}>
+          <Await resolve={recommendations}>
+            {(items) =>
+              items.length ? (
+                <div className="recommended-products-grid">
+                  {items.slice(0, 4).map((item, index) => (
+                    <ProductItem key={item.id} product={item} index={index} />
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-state">
+                  No related products are available yet.
+                </p>
+              )
+            }
+          </Await>
+        </Suspense>
+      </section>
+      {rootData?.features?.recentlyViewed !== false ? (
+        <RecentlyViewed product={product} />
+      ) : null}
       <Analytics.ProductView
         data={{
           products: [
@@ -194,6 +242,7 @@ export default function Product() {
 const PRODUCT_VARIANT_FRAGMENT = `#graphql
   fragment ProductVariant on ProductVariant {
     availableForSale
+    quantityAvailable
     compareAtPrice {
       amount
       currencyCode
@@ -240,6 +289,23 @@ const PRODUCT_FRAGMENT = `#graphql
       url
       altText
     }
+    media(first: 10) {
+      nodes {
+        __typename
+        alt
+        previewImage {
+          url
+        }
+        ... on Model3d {
+          sources {
+            url
+            mimeType
+            format
+            filesize
+          }
+        }
+      }
+    }
     encodedVariantExistence
     encodedVariantAvailability
     options {
@@ -271,6 +337,36 @@ const PRODUCT_FRAGMENT = `#graphql
     }
   }
   ${PRODUCT_VARIANT_FRAGMENT}
+`;
+
+const PRODUCT_RECOMMENDATIONS_QUERY = `#graphql
+  query ProductRecommendations(
+    $country: CountryCode
+    $language: LanguageCode
+    $productId: ID!
+  ) @inContext(country: $country, language: $language) {
+    productRecommendations(productId: $productId) {
+      id
+      title
+      handle
+      featuredImage {
+        id
+        url
+        altText
+        width
+        height
+      }
+      priceRange {
+        minVariantPrice { amount currencyCode }
+      }
+      compareAtPriceRange {
+        minVariantPrice { amount currencyCode }
+      }
+      variants(first: 1) {
+        nodes { id availableForSale }
+      }
+    }
+  }
 `;
 
 const PRODUCT_QUERY = `#graphql

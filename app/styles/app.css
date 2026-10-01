@@ -27,7 +27,7 @@
   --border-strong: rgba(255, 255, 255, 0.18);
   --text: #eef1fa;
   --text-muted: #9aa3ba;
-  --text-faint: #626b82;
+  --text-faint: #858da5;
 
   --accent: #7c5cff;
   --accent-2: #22d3ee;
@@ -60,13 +60,6 @@
   --font-mono:
     ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas,
     monospace;
-
-  /* Motion */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-fast: 160ms;
-  --dur: 260ms;
-  --dur-slow: 520ms;
 }
 
 /* ------------------------------------------------------------------
@@ -74,6 +67,8 @@
  * ------------------------------------------------------------------ */
 html {
   background: var(--bg);
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-height) + 1rem);
 }
 
 body {
@@ -103,8 +98,34 @@ body {
 }
 
 main {
+  position: relative;
+  z-index: 1;
   display: block;
   min-height: 60vh;
+}
+
+/* One rAF-throttled, pointer-following light. No layout or paint-heavy blur on
+ * touch/reduced-motion devices; the fixed layer is isolated from interactions. */
+html:not([data-features~='pointerEffects']) .ambient-pointer-light,
+html:not([data-features~='premiumMotion']) .ambient-pointer-light {
+  display: none;
+}
+
+.ambient-pointer-light {
+  --pointer-x: 50vw;
+  --pointer-y: 30vh;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  contain: strict;
+  background: radial-gradient(
+    28rem circle at var(--pointer-x) var(--pointer-y),
+    rgba(124, 92, 255, 0.105),
+    rgba(34, 211, 238, 0.035) 38%,
+    transparent 72%
+  );
 }
 
 h1,
@@ -127,7 +148,9 @@ h2 {
 
 a {
   text-decoration: none;
-  transition: color var(--dur-fast) var(--ease-out);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 :focus-visible {
@@ -197,7 +220,9 @@ hr {
   border-radius: 999px;
   color: var(--text);
   font-size: 0.85rem;
-  transition: top var(--dur) var(--ease-out);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .skip-to-content:focus {
@@ -268,10 +293,8 @@ hr {
   font-weight: 600;
   letter-spacing: 0.01em;
   transition:
-    transform var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .btn:hover {
@@ -397,19 +420,27 @@ hr {
 
 /* Reveal-on-scroll — progressive enhancement via scroll-driven animations.
  * Falls back to instantly-visible in engines without animation-timeline. */
-@supports (animation-timeline: view()) {
-  .reveal {
-    animation: reveal-in both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 55%;
-  }
+/* No-JS is visible by default. The runtime opts into the IO fallback; browsers
+ * with scroll timelines use the compositor-native path instead. */
+html[data-motion='ready'] .reveal:not([data-motion-visible='true']),
+html[data-motion='ready']
+  [data-motion='reveal']:not([data-motion-visible='true']) {
+  opacity: 0;
+  transform: translateY(24px) scale(0.985);
+}
 
-  @keyframes reveal-in {
-    from {
-      opacity: 0;
-      transform: translateY(34px) scale(0.985);
-    }
-  }
+.reveal[data-motion-visible='true'],
+[data-motion='reveal'][data-motion-visible='true'] {
+  opacity: 1;
+  transform: none;
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
+  transition-delay: min(var(--stagger, 0ms), 420ms);
+}
+
+[data-magnetic] {
+  transform: translate3d(var(--magnetic-x, 0), var(--magnetic-y, 0), 0);
 }
 
 /* ------------------------------------------------------------------
@@ -563,6 +594,17 @@ hr {
   min-width: fit-content;
 }
 
+.locale-switcher select {
+  max-width: 6.5rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
 .header-cta {
   display: inline-flex;
   align-items: center;
@@ -671,8 +713,8 @@ hr {
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity var(--dur) var(--ease-out),
-    visibility var(--dur);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .drawer {
@@ -688,7 +730,9 @@ hr {
   border-left: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   transform: translateX(100%);
-  transition: transform var(--dur) var(--ease-out);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .drawer header {
@@ -720,9 +764,8 @@ hr {
   font-size: 1.15rem;
   color: var(--text-muted);
   transition:
-    background var(--dur-fast),
-    color var(--dur-fast),
-    transform var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .drawer header .close:hover {
@@ -901,7 +944,9 @@ button.reset:hover:not(:has(> *)) {
   color: var(--text);
   font-size: 1rem;
   line-height: 1;
-  transition: background var(--dur-fast);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .cart-line-quantity button:hover {
@@ -994,8 +1039,8 @@ button.reset:hover:not(:has(> *)) {
   color: #05060c;
   font-weight: 700;
   transition:
-    filter var(--dur-fast),
-    box-shadow var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .cart-checkout-btn:hover {
@@ -1032,8 +1077,8 @@ button.reset:hover:not(:has(> *)) {
   color: var(--text);
   font-size: 1rem;
   transition:
-    border-color var(--dur-fast),
-    box-shadow var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .search-input::placeholder {
@@ -1076,8 +1121,8 @@ button.reset:hover:not(:has(> *)) {
   border-radius: 12px;
   border: 1px solid transparent;
   transition:
-    background var(--dur-fast),
-    border-color var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .predictive-search-result-item a:hover {
@@ -1160,9 +1205,120 @@ button.reset:hover:not(:has(> *)) {
 
 .hero-inner {
   position: relative;
+  z-index: 2;
   max-width: var(--container);
   margin-inline: auto;
   text-align: center;
+}
+
+.hero-visual {
+  position: absolute;
+  z-index: 1;
+  inset: 50% auto auto 50%;
+  width: min(82vw, 620px);
+  aspect-ratio: 1;
+  transform: translate3d(-50%, calc(-50% + var(--hero-depth, 0px)), 0)
+    perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transform-style: preserve-3d;
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
+  opacity: 0.46;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.hero-visual::before,
+.hero-visual::after {
+  content: '';
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(124, 92, 255, 0.22),
+    rgba(34, 211, 238, 0.06) 38%,
+    transparent 68%
+  );
+}
+
+.hero-visual::after {
+  inset: 28%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 12, 22, 0.3);
+  box-shadow:
+    inset 0 0 36px rgba(124, 92, 255, 0.18),
+    0 0 70px rgba(34, 211, 238, 0.09);
+}
+
+.hero-orbit {
+  position: absolute;
+  inset: 8%;
+  border: 1px solid rgba(124, 92, 255, 0.22);
+  border-radius: 50%;
+  --orbit-scale: 0.42;
+  transform: rotate(18deg) scaleY(var(--orbit-scale));
+  /* Pointer and scroll input animate the parent scene; rings stay composited
+   * without a perpetual refresh loop on battery-constrained devices. */
+  will-change: transform;
+}
+
+.hero-orbit-two {
+  inset: 18%;
+  border-color: rgba(34, 211, 238, 0.24);
+  --orbit-scale: 0.58;
+  transform: rotate(-48deg) scaleY(var(--orbit-scale));
+}
+
+.hero-orbit-node {
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 18px var(--accent-2);
+}
+
+.hero-orbit-two .hero-orbit-node {
+  inset: auto -4px 50% auto;
+  background: var(--accent);
+  box-shadow: 0 0 18px var(--accent);
+}
+
+.hero-core {
+  position: absolute;
+  z-index: 2;
+  inset: 50% auto auto 50%;
+  display: grid;
+  place-items: center;
+  width: 82px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  background: rgba(5, 6, 12, 0.84);
+  box-shadow: var(--glow);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.hero-core-mark {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 800;
+  transform: rotate(-45deg);
+}
+
+.hero-scan {
+  position: absolute;
+  z-index: 3;
+  inset: 8% 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
+  box-shadow: 0 0 12px var(--accent-2);
+  opacity: 0.55;
+  transform: translateY(220px);
 }
 
 .hero-badge {
@@ -1238,13 +1394,10 @@ button.reset:hover:not(:has(> *)) {
   display: flex;
   gap: 3.5rem;
   width: max-content;
-  animation: marquee 28s linear infinite;
-}
-
-@keyframes marquee {
-  to {
-    transform: translateX(-50%);
-  }
+  transform: translate3d(var(--marquee-depth, 0px), 0, 0);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .marquee-item {
@@ -1281,9 +1434,8 @@ button.reset:hover:not(:has(> *)) {
   border: 1px solid var(--border);
   background: var(--bg-raised);
   transition:
-    border-color var(--dur),
-    box-shadow var(--dur),
-    transform var(--dur) var(--ease-out);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .featured-collection:hover {
@@ -1313,7 +1465,9 @@ button.reset:hover:not(:has(> *)) {
   height: auto;
   max-height: 100%;
   object-fit: cover;
-  transition: transform var(--dur-slow) var(--ease-out);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .featured-collection:hover img {
@@ -1365,9 +1519,8 @@ button.reset:hover:not(:has(> *)) {
   border-radius: 18px;
   background: var(--surface);
   transition:
-    border-color var(--dur),
-    background var(--dur),
-    transform var(--dur) var(--ease-out);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .value-prop:hover {
@@ -1416,10 +1569,8 @@ button.reset:hover:not(:has(> *)) {
   padding: 0.6rem;
   border: 1px solid transparent;
   transition:
-    border-color var(--dur),
-    background var(--dur),
-    transform var(--dur) var(--ease-out),
-    box-shadow var(--dur);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .product-item:hover {
@@ -1427,6 +1578,10 @@ button.reset:hover:not(:has(> *)) {
   border-color: var(--border);
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
+}
+
+html[data-features~='productTilt'] .product-item:hover {
+  transform: perspective(900px) translateY(-4px) rotateX(1deg) rotateY(-1deg);
 }
 
 .product-item-media {
@@ -1439,7 +1594,16 @@ button.reset:hover:not(:has(> *)) {
 .product-item-media img {
   height: auto;
   width: 100%;
-  transition: transform var(--dur-slow) var(--ease-out);
+  animation: media-resolve var(--motion-base) var(--motion-ease-enter) both;
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
+}
+
+@keyframes media-resolve {
+  from {
+    opacity: 0;
+  }
 }
 
 .product-item-placeholder,
@@ -1484,8 +1648,8 @@ button.reset:hover:not(:has(> *)) {
   opacity: 0;
   transform: translateY(8px);
   transition:
-    opacity var(--dur) var(--ease-out),
-    transform var(--dur) var(--ease-out);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .product-item:hover .product-quick-add,
@@ -1513,8 +1677,8 @@ button.reset:hover:not(:has(> *)) {
   font-weight: 600;
   white-space: nowrap;
   transition:
-    background var(--dur-fast),
-    border-color var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .product-quick-add button:hover:not(:disabled) {
@@ -1591,9 +1755,8 @@ button.reset:hover:not(:has(> *)) {
   border-radius: 20px;
   border: 1px solid var(--border);
   transition:
-    border-color var(--dur),
-    transform var(--dur) var(--ease-out),
-    box-shadow var(--dur);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .collection-item:hover {
@@ -1606,7 +1769,9 @@ button.reset:hover:not(:has(> *)) {
   height: auto;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  transition: transform var(--dur-slow) var(--ease-out);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .collection-item:hover img {
@@ -1703,13 +1868,68 @@ button.reset:hover:not(:has(> *)) {
 
 .product-image {
   position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-raised);
 }
 
 .product-image img {
   height: auto;
   width: 100%;
-  border-radius: 22px;
+  border-radius: 21px;
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
+  will-change: transform;
+}
+
+.product-image-hint {
+  position: absolute;
+  inset: auto 1rem 1rem auto;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: rgba(5, 6, 12, 0.76);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .product-image-zoom:hover img {
+    transform: scale(1.75);
+  }
+
+  .product-image-zoom:hover .product-image-hint {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.product-media-stack {
+  display: grid;
+  align-self: start;
+  gap: 1rem;
+}
+
+.product-model,
+.product-model model-viewer,
+.product-model img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
   border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-raised);
+  object-fit: cover;
 }
 
 .product-main {
@@ -1787,9 +2007,8 @@ button.reset:hover:not(:has(> *)) {
   font-family: inherit;
   color: var(--text);
   transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast),
-    opacity var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .product-options-item:hover:not(:disabled) {
@@ -1897,8 +2116,8 @@ button.reset:hover:not(:has(> *)) {
   font-size: 1rem;
   font-weight: 700;
   transition:
-    filter var(--dur-fast),
-    box-shadow var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .product-form button[type='submit']:hover:not(:disabled),
@@ -1995,8 +2214,8 @@ button.reset:hover:not(:has(> *)) {
   border-radius: 18px;
   border: 1px solid var(--border);
   transition:
-    border-color var(--dur),
-    transform var(--dur) var(--ease-out);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .blog-article:hover {
@@ -2012,7 +2231,9 @@ button.reset:hover:not(:has(> *)) {
 
 .blog-article-image img {
   height: 100%;
-  transition: transform var(--dur-slow) var(--ease-out);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .blog-article:hover .blog-article-image img {
@@ -2104,14 +2325,16 @@ button.reset:hover:not(:has(> *)) {
   background: var(--surface);
   font-weight: 600;
   transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .policies-grid a::after {
   content: '→';
   color: var(--accent-2);
-  transition: transform var(--dur-fast);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .policies-grid a:hover {
@@ -2302,8 +2525,8 @@ button.reset:hover:not(:has(> *)) {
   background: var(--surface);
   font-weight: 600;
   transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .pagination a:hover {
@@ -2326,8 +2549,8 @@ button.pagination-link {
   font-size: 0.88rem;
   font-weight: 600;
   transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast);
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 a.pagination-link:hover,
@@ -2467,17 +2690,6 @@ button.pagination-link:hover {
   border-radius: 999px;
   background: var(--success);
   box-shadow: 0 0 8px var(--success);
-  animation: pulse-dot 2.2s infinite;
-}
-
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
 }
 
 /* ------------------------------------------------------------------
@@ -2544,6 +2756,273 @@ button.pagination-link:hover {
 }
 
 /* ------------------------------------------------------------------
+ * Premium commerce interactions
+ * ------------------------------------------------------------------ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: repeating-radial-gradient(
+    circle at 20% 30%,
+    #fff 0 0.5px,
+    transparent 0.7px 3px
+  );
+  background-size: 5px 5px;
+}
+
+.product-wishlist {
+  position: absolute;
+  z-index: 3;
+  inset: 0.75rem auto auto 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: rgba(5, 6, 12, 0.76);
+  color: var(--text);
+  font-size: 1.15rem;
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
+}
+
+.product-wishlist:hover,
+.product-wishlist[aria-pressed='true'] {
+  color: var(--danger);
+  transform: scale(1.1);
+}
+
+.product-quick-view {
+  position: absolute;
+  z-index: 3;
+  inset: 0.75rem 0.75rem auto auto;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: rgba(5, 6, 12, 0.76);
+  color: var(--text);
+  font-size: 0.75rem;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
+}
+
+.product-item:is(:hover, :focus-within) .product-quick-view {
+  opacity: 1;
+  transform: none;
+}
+
+.quick-view {
+  width: min(880px, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  background: rgba(10, 12, 22, 0.96);
+  color: var(--text);
+  box-shadow: var(--shadow-lg), var(--glow);
+}
+
+.quick-view[open] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  animation: quick-view-in var(--motion-base) var(--motion-ease-enter) both;
+}
+
+.quick-view::backdrop {
+  background: rgba(2, 3, 8, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.quick-view > img,
+.quick-view > .product-item-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  object-fit: cover;
+  border-radius: 23px 0 0 23px;
+}
+
+.quick-view-content {
+  align-self: center;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.quick-view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.quick-view-close {
+  position: absolute;
+  z-index: 2;
+  inset: 0.8rem 0.8rem auto auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-raised);
+  color: var(--text);
+  font-size: 1.5rem;
+}
+
+@keyframes quick-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+}
+
+.product-cross-sell,
+.recently-viewed {
+  grid-column: 1 / -1;
+  margin-top: clamp(2rem, 6vw, 5rem);
+}
+
+.product-cross-sell h2,
+.recently-viewed h2 {
+  margin-block: 0.45rem 1.5rem;
+}
+
+.recently-viewed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.recently-viewed-item {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.recently-viewed-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.low-stock {
+  color: var(--warning);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.add-to-cart,
+.product-quick-add button {
+  min-width: 8.5rem;
+}
+
+.add-succeeded {
+  background: var(--success) !important;
+  color: #041107 !important;
+  animation: add-success var(--motion-base) var(--motion-spring-pop);
+}
+
+.header-cta-cart.cart-success .cart-count,
+.header-cta-cart.cart-success svg {
+  animation: cart-success var(--motion-base) var(--motion-spring-pop);
+}
+
+.quantity-selector button:active {
+  transform: scale(0.82);
+}
+
+@keyframes add-success {
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes cart-success {
+  50% {
+    transform: scale(1.35) rotate(-8deg);
+  }
+}
+
+@media (max-width: 44.99em) {
+  .product-purchase-row {
+    position: sticky;
+    z-index: 8;
+    bottom: 0.75rem;
+    padding: 0.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    background: rgba(10, 12, 22, 0.92);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--blur);
+  }
+
+  .quick-view[open] {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-view > img,
+  .quick-view > .product-item-placeholder {
+    max-height: 45dvh;
+    min-height: 220px;
+    border-radius: 23px 23px 0 0;
+  }
+}
+
+@media (hover: none) {
+  .product-quick-view {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: rgba(255, 255, 255, 0.32);
+    --border-strong: rgba(255, 255, 255, 0.58);
+    --text-muted: #c6cce0;
+  }
+
+  .surface,
+  .product-item,
+  .value-prop,
+  .drawer {
+    backdrop-filter: none;
+  }
+}
+
+[dir='rtl'] body {
+  font-family: Tahoma, Arial, var(--font-sans);
+}
+
+[dir='rtl'] .hero-orbit,
+[dir='rtl'] .marquee-track {
+  animation-direction: reverse;
+}
+
+[dir='rtl'] .product-quick-view,
+[dir='rtl'] .quick-view-close {
+  inset: 0.8rem auto auto 0.8rem;
+}
+
+[dir='rtl'] .product-wishlist {
+  inset: 0.75rem 0.75rem auto auto;
+}
+
+[dir='rtl'] .quick-view > img {
+  border-radius: 0 23px 23px 0;
+}
+
+/* ------------------------------------------------------------------
  * Motion fine-tuning
  * ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
@@ -2560,8 +3039,18 @@ button.pagination-link:hover {
     animation: none;
   }
 
-  .reveal {
+  .reveal,
+  .hero-orbit,
+  .hero-scan {
     animation: none;
+  }
+
+  .ambient-pointer-light {
+    display: none;
+  }
+
+  .product-image img {
+    will-change: auto;
   }
 }
 
@@ -2595,8 +3084,8 @@ button.pagination-link:hover {
   background: var(--gradient);
   box-shadow: var(--glow);
   transition:
-    transform var(--dur-slow) var(--ease-out),
-    opacity var(--dur-fast) linear;
+    transform var(--motion-fast) var(--motion-ease-enter),
+    opacity var(--motion-fast) linear;
 }
 
 .navigation-progress.active {
@@ -2643,6 +3132,8 @@ button.pagination-link:hover {
   .navigation-progress,
   .navigation-progress.active {
     animation: none;
-    transition: none;
+    transition:
+      transform var(--motion-fast) var(--motion-ease-enter),
+      opacity var(--motion-fast) linear;
   }
 }

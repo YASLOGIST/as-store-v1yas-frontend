@@ -1,7 +1,8 @@
 import {createHydrogenContext} from '@shopify/hydrogen';
 import {AppSession} from '~/lib/session';
 import {CART_QUERY_FRAGMENT} from '~/lib/fragments';
-import {assertRuntimeEnv} from '~/lib/env';
+import {assertRuntimeEnv, getStoreLocale} from '~/lib/env';
+import {applyMockStorefront} from '~/lib/mock-storefront';
 
 // Define the additional context object
 const additionalContext = {
@@ -25,6 +26,7 @@ export async function createHydrogenRouterContext(
   executionContext,
 ) {
   const {sessionSecrets} = assertRuntimeEnv(env);
+  const i18n = getStoreLocale(env, request);
   const waitUntil = executionContext.waitUntil.bind(executionContext);
   const [cache, session] = await Promise.all([
     caches.open('hydrogen'),
@@ -38,8 +40,7 @@ export async function createHydrogenRouterContext(
       cache,
       waitUntil,
       session,
-      // Or detect from URL path based on locale subpath, cookies, or any other strategy
-      i18n: {language: 'EN', country: 'US'},
+      i18n,
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
       },
@@ -47,7 +48,9 @@ export async function createHydrogenRouterContext(
     additionalContext,
   );
 
-  return hydrogenContext;
+  return env.E2E_MOCK_MODE === '1'
+    ? applyMockStorefront(hydrogenContext, request)
+    : hydrogenContext;
 }
 
 /** @typedef {Class<additionalContext>} AdditionalContextType */

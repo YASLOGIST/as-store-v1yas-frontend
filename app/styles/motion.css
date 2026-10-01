@@ -1,0 +1,54 @@
+/* VOLT motion contract — the only source of timing, easing and stagger values. */
+:root {
+  --motion-instant: 100ms;
+  --motion-fast: 160ms;
+  --motion-base: 260ms;
+  --motion-slow: 520ms;
+  --motion-route: 360ms;
+  --motion-stagger: 60ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --motion-spring-soft: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --motion-spring-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Backward-compatible aliases consumed throughout the design system. */
+  --dur-fast: var(--motion-fast);
+  --dur: var(--motion-base);
+  --dur-slow: var(--motion-slow);
+  --ease-out: var(--motion-ease-enter);
+  --ease-spring: var(--motion-spring-pop);
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: motion-route-out var(--motion-route) var(--motion-ease-exit) both;
+}
+
+::view-transition-new(root) {
+  animation: motion-route-in var(--motion-route) var(--motion-ease-enter) both;
+}
+
+@keyframes motion-route-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.995);
+  }
+}
+
+@keyframes motion-route-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

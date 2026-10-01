@@ -1,6 +1,6 @@
 import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
-import {useAside} from '~/components/Aside';
+import {useAsideActions} from '~/components/Aside';
 import {CartLineItem} from '~/components/CartLineItem';
 import {IconPackage} from '~/components/Icons';
 import {CartSummary} from './CartSummary';
@@ -46,7 +46,7 @@ export function CartMain({layout, cart: originalCart}) {
   const childrenMap = getLineItemChildrenMap(cart?.lines?.nodes ?? []);
 
   return (
-    <div className={className}>
+    <div className={className} data-testid="cart">
       <CartEmpty hidden={linesCount} layout={layout} />
       <div className="cart-details">
         <p id="cart-lines" className="sr-only">
@@ -86,7 +86,7 @@ export function CartMain({layout, cart: originalCart}) {
  * }}
  */
 function CartEmpty({hidden = false}) {
-  const {close} = useAside();
+  const {close} = useAsideActions();
   return (
     <div className="cart-empty" hidden={hidden}>
       <span className="cart-empty-illustration">

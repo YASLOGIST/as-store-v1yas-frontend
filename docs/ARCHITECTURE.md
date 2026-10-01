@@ -16,6 +16,7 @@ flowchart LR
   UI --> B
   UI --> UX[Navigation status / locale direction / sharing]
   W --> H[Security headers and request timing]
+  P[Platform probe] -->|GET /health.json| W
 ```
 
 ## Primary flows
@@ -75,7 +76,10 @@ sequenceDiagram
 - Footer and recommended products are non-critical deferred data: upstream failure must not turn the page into a 500.
 - Search distinguishes initial guidance, zero matches, and upstream failure; only one status message is announced.
 - Route loading/submission exposes visual progress and a polite live-region update without delaying navigation.
-- Document languages are validated and known right-to-left locales emit `dir="rtl"`; malformed locale values fall back to English/LTR.
+- The Shopify market is selected by validated `PUBLIC_STORE_LANGUAGE` and `PUBLIC_STORE_COUNTRY` values (default EN/US); document direction follows that language.
+- Sitemaps emit only canonical routes implemented by the non-prefixed route tree; handles are URL-encoded.
+- `/health.json` proves worker context/configuration readiness, is non-cacheable, and discloses only `{"status":"ok"}`.
+- Closed drawers are removed from the focus model with `inert`; repeated navigation landmarks have unique accessible names.
 - Product sharing prefers the native share sheet, then clipboard, then a selectable URL without making sharing a purchase dependency.
 - Production HTTPS responses receive HSTS; all responses receive anti-sniffing, framing, referrer, permissions, request ID, and timing headers.
 
@@ -89,6 +93,19 @@ sequenceDiagram
 | Cart trust-boundary validation | `app/routes/cart.jsx`; `app/lib/validation.js` | Confident |
 | Search normalization and states | `app/routes/search.jsx`; `app/lib/search.js` | Confident |
 | OAuth behavior depends on Shopify configuration | account routes and runtime environment | Probable until exercised against a configured store |
+| Market configuration and direction | `app/lib/env.js`; `app/lib/context.js`; `app/lib/locale.js` | Confident |
+| Canonical sitemap output | `app/routes/sitemap.$type.$page[.xml].jsx`; readiness tests | Confident |
+| Probe contract | `app/routes/health[.json].jsx`; readiness tests | Confident |
+
+## Visual and motion layer
+
+`app/styles/motion.css` is the single motion contract: durations, easing, route timing, stagger, and spring presets. Native View Transitions are progressive enhancement. `AmbientEffects` owns one delegated rAF loop for pointer light, magnetic controls, hero tilt, scroll parallax, and marquee depth; IntersectionObserver reveals each element once and the no-JS default remains visible. CSS limits effects to transform/opacity. Reduced-motion disables decorative movement, contrast preference strengthens tokens, and coarse pointers avoid tracking.
+
+The product layer adds focal image inspection, feature-gated CSS-3D card tilt, optimistic button/cart feedback, quick view, related products, and client-only recently viewed/wishlist state. `ProductModelViewer` reads only real Shopify `Model3d` sources and lazy-loads pinned Apache-2.0 `<model-viewer>` code only when both source and opt-in feature flag exist; the Shopify image/poster is always the fallback. Continuous orbit/scan animations were removed after the frame guard failed, retaining input/scroll-driven depth at a measured 59.7 fps.
+
+## Browser test boundary
+
+`E2E_MOCK_MODE` is accepted only as an explicit runtime binding. It replaces Storefront query/cart methods after the normal Hydrogen context is created, preserving the real router, SSR, hydration, forms, CSP, sessions, optimistic cart, and components. Fixture data is deterministic and request/session scoped. Production never enters this branch unless the binding is deliberately enabled. Playwright uses this boundary for nine non-skipped browser checks, axe scans, visual regression, RTL switching, no-JS behavior, and local CWV/event/frame measurements.
 
 ## Build and delivery
 

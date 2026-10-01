@@ -13,8 +13,11 @@ import favicon from '~/assets/favicon.svg';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import {websiteJsonLd} from '~/lib/seo';
 import {getTextDirection, normalizeDocumentLanguage} from '~/lib/locale';
+import {getFeatureFlags} from '~/lib/features';
+import {getStoreMarkets} from '~/lib/env';
 import {StructuredData} from '~/components/StructuredData';
 import resetStyles from '~/styles/reset.css?url';
+import motionStyles from '~/styles/motion.css?url';
 import appStyles from '~/styles/app.css?url';
 import {PageLayout} from '~/components/PageLayout';
 import {LogoMark} from '~/components/Icons';
@@ -100,6 +103,8 @@ export async function loader(args) {
     ...deferredData,
     ...criticalData,
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
+    features: getFeatureFlags(env),
+    markets: getStoreMarkets(env),
     origin: new URL(args.request.url).origin,
     shop: getShopAnalytics({
       storefront,
@@ -179,14 +184,22 @@ export function Layout({children}) {
   const language = normalizeDocumentLanguage(rootData?.locale?.language);
   const direction = getTextDirection(language);
 
+  const enabledFeatures = rootData?.features
+    ? Object.entries(rootData.features)
+        .filter(([, enabled]) => enabled)
+        .map(([name]) => name)
+        .join(' ')
+    : '';
+
   return (
-    <html lang={language} dir={direction}>
+    <html lang={language} dir={direction} data-features={enabledFeatures}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="color-scheme" content="dark" />
         <meta name="format-detection" content="telephone=no" />
         <link rel="stylesheet" href={resetStyles}></link>
+        <link rel="stylesheet" href={motionStyles}></link>
         <link rel="stylesheet" href={appStyles}></link>
         <Meta />
         <Links />

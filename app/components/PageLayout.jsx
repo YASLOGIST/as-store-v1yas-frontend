@@ -1,6 +1,6 @@
 import {Await, Link} from 'react-router';
 import {Suspense, useEffect, useId} from 'react';
-import {Aside, useAside} from '~/components/Aside';
+import {Aside, useAsideActions} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
@@ -9,6 +9,7 @@ import {IconSearch} from '~/components/Icons';
 import {SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 import {NavigationProgress} from '~/components/NavigationProgress';
+import {AmbientEffects} from '~/components/AmbientEffects';
 import {getSearchUrl} from '~/lib/search';
 
 /**
@@ -20,10 +21,13 @@ export function PageLayout({
   footer,
   header,
   isLoggedIn,
+  locale,
+  markets,
   publicStoreDomain,
 }) {
   return (
     <Aside.Provider>
+      <AmbientEffects />
       <GlobalShortcuts />
       <NavigationProgress />
       <a className="skip-to-content" href="#main-content">
@@ -37,6 +41,8 @@ export function PageLayout({
           header={header}
           cart={cart}
           isLoggedIn={isLoggedIn}
+          locale={locale}
+          markets={markets}
           publicStoreDomain={publicStoreDomain}
         />
       )}
@@ -175,7 +181,7 @@ function MobileMenuAside({header, publicStoreDomain}) {
 }
 
 function GlobalShortcuts() {
-  const {open} = useAside();
+  const {open} = useAsideActions();
 
   useEffect(() => {
     function onKeyDown(event) {
