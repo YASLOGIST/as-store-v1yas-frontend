@@ -1,6 +1,8 @@
 <div align="center">
 
-<img src="public/og-image.jpg" alt="YAS Store storefront interface" width="860">
+<img src="public/og-image.jpg" alt="YAS Store brand artwork: violet-to-cyan wordmark and an electrified hexagonal commerce emblem on a dark perspective grid" width="860">
+
+<sub><strong>THE VISUAL THESIS</strong> — precision infrastructure beneath an electric, conversion-led commerce experience</sub>
 
 # YAS Store
 
@@ -16,7 +18,13 @@
 [![React Router](https://img.shields.io/badge/React_Router-7.18.4-22d3ee)](https://reactrouter.com)
 [![License](https://img.shields.io/badge/License-MIT-9aa3ba)](./LICENSE)
 
-[**System Architecture**](#system-architecture) · [**Feature Matrix**](#feature-matrix) · [**Core Workflows**](#core-workflows) · [**Tech Stack**](#tech-stack) · [**Run Locally**](#run-locally)
+[**Architecture**](#system-architecture) · [**Features**](#feature-matrix) · [**Workflows**](#core-workflows) · [**Stack**](#tech-stack) · [**Security**](#security-performance-and-discovery) · [**Quickstart**](#run-locally)
+
+<br>
+
+[![Production posture](https://img.shields.io/badge/Posture-Production--grade-22c55e)](#verified-engineering-baseline)
+[![Architecture](https://img.shields.io/badge/Architecture-Edge--native-8b5cf6)](#system-architecture)
+[![Delivery](https://img.shields.io/badge/Delivery-Streaming_SSR-06b6d4)](#request-lifecycle)
 
 </div>
 
@@ -38,6 +46,20 @@ YAS Store is engineered for teams that need Shopify's commerce platform without 
 | Durable acquisition | Canonicals, OpenGraph/Twitter metadata, JSON-LD, sitemaps, robots controls | Product and editorial surfaces are machine-readable and crawlable |
 | Controlled frontend growth | CI-enforced JavaScript and CSS gzip ceilings | Performance regressions become build failures, not backlog items |
 | Inclusive global UX | Semantic controls, focus-managed drawers, live regions, RTL-aware document shell | Keyboard, assistive-technology, reduced-motion, and RTL use cases are first-class |
+
+### Reading the cover image
+
+The cover is a compact expression of the system rather than decorative branding. Its **perspective grid** represents the governed platform layer: predictable routing, contracts, budgets, and observability. The **violet-to-cyan spectrum** maps the product's progression from brand expression to fast digital delivery. The **hexagonal enclosure** signals a bounded trust perimeter, while the **lightning mark** communicates edge execution and low-latency commerce. Orbital lines imply Shopify services moving through a stable request boundary—not point-to-point integrations leaking into the interface.
+
+| Visual signal | Engineering meaning | Customer value |
+|---|---|---|
+| Structured grid | Repeatable architecture and measurable quality gates | A platform that can scale without visual or operational drift |
+| Electric gradient | The Volt token system and progressive experience states | A distinctive, consistent interface across every journey |
+| Bounded hexagon | Centralized security, validation, session, and cache policy | Safer transactions and more dependable account experiences |
+| Lightning core | Oxygen edge delivery, streaming SSR, and deferred data | Faster useful rendering and a shorter path to purchase |
+| Orbital paths | Request-scoped access to Shopify commerce services | Integrated catalog, cart, checkout, and customer state |
+
+> **Design principle:** visual energy belongs at the experience layer; complexity remains contained behind explicit technical boundaries.
 
 ### Verified engineering baseline
 
