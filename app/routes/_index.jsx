@@ -95,6 +95,7 @@ export default function Homepage() {
 function Hero() {
   return (
     <section className="hero">
+      <HeroVisual />
       <div className="hero-inner">
         <span className="badge hero-badge">
           <span className="pulse" aria-hidden="true" />
@@ -110,7 +111,13 @@ function Hero() {
           explorers — rendered at the speed of light on Shopify Hydrogen.
         </p>
         <div className="hero-actions">
-          <Link className="btn btn-primary" to="/collections" prefetch="intent">
+          <Link
+            className="btn btn-primary"
+            to="/collections"
+            prefetch="intent"
+            viewTransition
+            data-magnetic
+          >
             Shop the catalog
             <IconArrowRight />
           </Link>
@@ -135,6 +142,24 @@ function Hero() {
         </dl>
       </div>
     </section>
+  );
+}
+
+/** Decorative CSS scene: composited transforms only, zero image/3D payload. */
+function HeroVisual() {
+  return (
+    <div className="hero-visual" aria-hidden="true">
+      <span className="hero-orbit hero-orbit-one">
+        <span className="hero-orbit-node" />
+      </span>
+      <span className="hero-orbit hero-orbit-two">
+        <span className="hero-orbit-node" />
+      </span>
+      <span className="hero-core">
+        <span className="hero-core-mark">Y</span>
+      </span>
+      <span className="hero-scan" />
+    </div>
   );
 }
 
@@ -189,7 +214,7 @@ function FeaturedCollection({collection}) {
           <div className="featured-collection-image">
             <Image
               data={image}
-              fetchPriority="high"
+              fetchpriority="high"
               loading="eager"
               sizes="100vw"
             />

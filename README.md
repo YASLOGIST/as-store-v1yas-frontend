@@ -463,6 +463,10 @@ The development command runs Shopify Hydrogen with GraphQL code generation and h
 | `PUBLIC_STOREFRONT_API_TOKEN` | Yes | Public Storefront API access token |
 | `PUBLIC_CHECKOUT_DOMAIN` | Yes | Validated checkout hostname |
 | `SESSION_SECRET` | Yes | Cookie signing secret, minimum 32 characters |
+| `PUBLIC_STORE_LANGUAGE` | No | Shopify language enum; defaults to `EN` (for example `AR`, `PT_BR`) |
+| `PUBLIC_STORE_COUNTRY` | No | Shopify two-letter country enum; defaults to `US` |
+| `PUBLIC_STORE_MARKETS` | No | Allow-listed `LANGUAGE-COUNTRY` values for the market switcher |
+| `PUBLIC_FEATURE_*` | No | Independent public kill switches documented in `.env.example` |
 | `PUBLIC_STOREFRONT_ID` | No | Storefront public ID for web pixel analytics |
 | `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID` | No | Enables Customer Account API flows |
 
@@ -476,6 +480,9 @@ For zero-downtime session-secret rotation, use `NEW_SECRET,PREVIOUS_SECRET`. The
 | Generate types | `npm run codegen` | Storefront, customer account, and route declarations |
 | Test | `npm test` | Full Vitest suite |
 | Test continuously | `npm run test:watch` | Vitest watch mode |
+| Browser quality gate | `npm run test:e2e` | Local mocked Hydrogen: commerce, quick view, axe, RTL, reduced-motion, no-JS, CWV and screenshots |
+| Prepare E2E browser | `npm run test:e2e:install` | Expand the pinned headless Chromium binary without a network download |
+| Refresh screenshots | `npm run test:e2e:update` | Deliberately update reviewed visual baselines |
 | Lint | `npm run lint` | ESLint across the repository |
 | Accessibility gate | `npm run check:a11y` | JSX semantics and document contracts, zero warnings |
 | Format | `npm run format` | Write Prettier formatting |
@@ -496,7 +503,9 @@ npm run build:ci
 npm run check:performance
 ```
 
-`check:performance` expects the output produced by `build:ci` or `build`.
+Browser flows run by default against the actual Hydrogen application with a deterministic, request-scoped Storefront API fixture; no credentials or network store are required and no tests skip. Set `E2E_BASE_URL` and `E2E_PRODUCT_HANDLE` to repeat the same suite against an authorized deployment. CI preserves traces and screenshots on failure, runs axe WCAG AA checks, and compares the reviewed home-page screenshot.
+
+`check:performance` expects the output produced by `build:ci` or `build`. A deployed worker exposes `GET /health.json` for readiness probes; it returns only `{"status":"ok"}` and is never cacheable. Context creation validates required environment values before that route runs, so a successful response also confirms viable runtime configuration.
 
 ---
 

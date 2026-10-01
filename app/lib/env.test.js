@@ -1,5 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {assertRuntimeEnv, getSessionSecrets} from './env';
+import {
+  assertRuntimeEnv,
+  getSessionSecrets,
+  getStoreLocale,
+  getStoreMarkets,
+} from './env';
 
 const validEnv = {
   PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
@@ -41,5 +46,46 @@ describe('runtime environment validation', () => {
     expect(() => getSessionSecrets(/** @type {any} */ ({}))).toThrow(
       /SESSION_SECRET/,
     );
+  });
+
+  it('defaults and normalizes the configured Shopify market', () => {
+    expect(getStoreLocale(/** @type {any} */ ({}))).toEqual({
+      language: 'EN',
+      country: 'US',
+    });
+    expect(
+      getStoreLocale(
+        /** @type {any} */ ({
+          PUBLIC_STORE_LANGUAGE: 'ar',
+          PUBLIC_STORE_COUNTRY: 'ae',
+        }),
+      ),
+    ).toEqual({language: 'AR', country: 'AE'});
+  });
+
+  it('allows only configured cookie-selected markets', () => {
+    const env = {
+      PUBLIC_STORE_LANGUAGE: 'EN',
+      PUBLIC_STORE_COUNTRY: 'US',
+      PUBLIC_STORE_MARKETS: 'AR-EG',
+    };
+    expect(getStoreMarkets(env)).toHaveLength(2);
+    expect(
+      getStoreLocale(
+        env,
+        new Request('https://shop.example', {
+          headers: {cookie: 'yas_locale=AR-EG'},
+        }),
+      ),
+    ).toEqual({language: 'AR', country: 'EG'});
+  });
+
+  it('rejects malformed Shopify market codes', () => {
+    expect(() =>
+      getStoreLocale(/** @type {any} */ ({PUBLIC_STORE_LANGUAGE: 'english'})),
+    ).toThrow(/PUBLIC_STORE_LANGUAGE/);
+    expect(() =>
+      getStoreLocale(/** @type {any} */ ({PUBLIC_STORE_COUNTRY: '../'})),
+    ).toThrow(/PUBLIC_STORE_COUNTRY/);
   });
 });

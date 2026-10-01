@@ -14,7 +14,9 @@ async function walk(directory) {
   const nested = await Promise.all(
     entries.map(async (entry) => {
       const location = path.join(directory.pathname, entry.name);
-      return entry.isDirectory() ? walk(new URL(`${entry.name}/`, directory)) : location;
+      return entry.isDirectory()
+        ? walk(new URL(`${entry.name}/`, directory))
+        : location;
     }),
   );
   return nested.flat();
@@ -62,6 +64,8 @@ const failures = Object.entries(results).filter(
   ([metric, bytes]) => bytes > budgets[metric],
 );
 if (failures.length) {
-  console.error(`Bundle budget exceeded: ${failures.map(([name]) => name).join(', ')}`);
+  console.error(
+    `Bundle budget exceeded: ${failures.map(([name]) => name).join(', ')}`,
+  );
   process.exit(1);
 }

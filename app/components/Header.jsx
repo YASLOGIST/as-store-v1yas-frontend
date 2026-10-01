@@ -1,7 +1,7 @@
 import {Suspense} from 'react';
-import {Await, NavLink, useAsyncValue} from 'react-router';
+import {Await, Form, NavLink, useAsyncValue, useLocation} from 'react-router';
 import {useAnalytics, useOptimisticCart} from '@shopify/hydrogen';
-import {useAside} from '~/components/Aside';
+import {useAsideActions} from '~/components/Aside';
 import {
   IconCart,
   IconMenu,
@@ -14,7 +14,14 @@ import {resolveMenuUrl} from '~/lib/navigation';
 /**
  * @param {HeaderProps}
  */
-export function Header({header, isLoggedIn, cart, publicStoreDomain}) {
+export function Header({
+  header,
+  isLoggedIn,
+  cart,
+  locale,
+  markets,
+  publicStoreDomain,
+}) {
   const {shop, menu} = header;
   return (
     <header className="header">
@@ -30,7 +37,12 @@ export function Header({header, isLoggedIn, cart, publicStoreDomain}) {
         primaryDomainUrl={header.shop.primaryDomain.url}
         publicStoreDomain={publicStoreDomain}
       />
-      <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+      <HeaderCtas
+        isLoggedIn={isLoggedIn}
+        cart={cart}
+        locale={locale}
+        markets={markets}
+      />
     </header>
   );
 }
@@ -49,10 +61,13 @@ export function HeaderMenu({
   viewport,
   publicStoreDomain,
 }) {
-  const {close} = useAside();
+  const {close} = useAsideActions();
 
   return (
-    <nav className={`header-menu-${viewport}`} role="navigation">
+    <nav
+      aria-label={viewport === 'mobile' ? 'Mobile menu' : 'Primary'}
+      className={`header-menu-${viewport}`}
+    >
       {viewport === 'mobile' && (
         <NavLink end onClick={close} prefetch="intent" to="/">
           Home
@@ -105,10 +120,11 @@ export function HeaderMenu({
 /**
  * @param {Pick<HeaderProps, 'isLoggedIn' | 'cart'>}
  */
-function HeaderCtas({isLoggedIn, cart}) {
+function HeaderCtas({isLoggedIn, cart, locale, markets}) {
   return (
-    <nav className="header-ctas" role="navigation">
+    <nav aria-label="Store tools" className="header-ctas">
       <HeaderMenuMobileToggle />
+      <LanguageSwitcher locale={locale} markets={markets} />
       <NavLink
         prefetch="intent"
         to="/account"
@@ -130,8 +146,44 @@ function HeaderCtas({isLoggedIn, cart}) {
   );
 }
 
+function LanguageSwitcher({locale, markets = []}) {
+  const location = useLocation();
+  if (markets.length < 2) return null;
+  const current = `${locale?.language || 'EN'}-${locale?.country || 'US'}`;
+  return (
+    <Form
+      className="locale-switcher"
+      method="post"
+      action="/locale"
+      reloadDocument
+    >
+      <input
+        name="redirectTo"
+        type="hidden"
+        value={`${location.pathname}${location.search}`}
+      />
+      <label className="sr-only" htmlFor="market-switcher">
+        Language and market
+      </label>
+      <select
+        aria-label="Language and market"
+        defaultValue={current}
+        id="market-switcher"
+        name="market"
+        onChange={(event) => event.currentTarget.form?.requestSubmit()}
+      >
+        {markets.map((market) => (
+          <option key={market.code} value={market.code}>
+            {market.language} · {market.country}
+          </option>
+        ))}
+      </select>
+    </Form>
+  );
+}
+
 function HeaderMenuMobileToggle() {
-  const {open} = useAside();
+  const {open} = useAsideActions();
   return (
     <button
       className="header-cta header-menu-mobile-toggle reset"
@@ -144,7 +196,7 @@ function HeaderMenuMobileToggle() {
 }
 
 function SearchToggle() {
-  const {open} = useAside();
+  const {open} = useAsideActions();
   return (
     <button
       className="header-cta reset"
@@ -164,7 +216,7 @@ function SearchToggle() {
  * @param {{count: number | null}}
  */
 function CartBadge({count}) {
-  const {open} = useAside();
+  const {open} = useAsideActions();
   const {publish, shop, cart, prevCart} = useAnalytics();
 
   return (

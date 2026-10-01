@@ -1,7 +1,7 @@
 import {useFetcher, useNavigate} from 'react-router';
 import {useEffect, useRef} from 'react';
 import {getSearchUrl} from '~/lib/search';
-import {useAside} from './Aside';
+import {useAsideActions} from './Aside';
 
 export const SEARCH_ENDPOINT = '/search';
 const SEARCH_DEBOUNCE_MS = 180;
@@ -19,7 +19,7 @@ export function SearchFormPredictive({
   const inputRef = useRef(null);
   const debounceTimer = useRef(undefined);
   const navigate = useNavigate();
-  const aside = useAside();
+  const aside = useAsideActions();
 
   function goToSearch() {
     const term = inputRef.current?.value ?? '';

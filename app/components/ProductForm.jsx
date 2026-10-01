@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {Link, useNavigate} from 'react-router';
 import {AddToCartButton} from './AddToCartButton';
-import {useAside} from './Aside';
+import {useAsideActions} from './Aside';
 
 /**
  * Variant and quantity selection with URL-synchronized options.
@@ -12,7 +12,7 @@ import {useAside} from './Aside';
  */
 export function ProductForm({productOptions, selectedVariant}) {
   const navigate = useNavigate();
-  const {open} = useAside();
+  const {open} = useAsideActions();
   const [quantity, setQuantity] = useState(1);
 
   return (

@@ -39,7 +39,7 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
 
               <div>
                 <h5 className="footer-heading">Explore</h5>
-                <nav className="footer-menu" role="navigation">
+                <nav aria-label="Explore" className="footer-menu">
                   <NavLink end prefetch="intent" to="/collections">
                     All collections
                   </NavLink>
@@ -89,7 +89,7 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
  */
 function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
   return (
-    <nav className="footer-menu" role="navigation">
+    <nav aria-label="Footer" className="footer-menu">
       {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
         const destination = resolveMenuUrl({
           url: item.url,
