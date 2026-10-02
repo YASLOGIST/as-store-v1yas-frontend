@@ -118,8 +118,13 @@ void main() {
 const HOME_X = 0.56;
 const HOME_Y = 0.52;
 
-/** CPU rasterisers: a fullscreen fragment program is genuinely expensive here,
- * so the field drops to its cheapest tier instead of competing with layout. */
+/**
+ * CPU rasterisers. A fullscreen fragment program has no GPU to run on here:
+ * every draw is rasterised on the CPU and the renderer's main thread blocks on
+ * the command buffer, which measures as hundreds of milliseconds of blocking
+ * time (locally, 0 ms with the field off against ~2 s with it on). The field is
+ * decorative, so on these machines it does not run at all.
+ */
 const SOFTWARE_RENDERER =
   /swiftshader|llvmpipe|softwarerasterizer|basic render|software adapter/i;
 
@@ -197,12 +202,14 @@ export function HeroSignalField({strength = 1}) {
         ];
 
     let tier = 0;
-    let tierFloor = 0; // best tier this device is allowed to climb back to
     let reducedMotion = motionQuery.matches;
     let gl = null;
     let program = null;
     let parallelCompile = null;
     let starting = false;
+    let inputSeen = false;
+    let unsupported = false; // terminal: this machine will not run the field
+    let released = false; // we dropped the context on purpose
     let bootHandle = 0;
     let buffer = null;
     let uniforms = null;
@@ -228,24 +235,6 @@ export function HeroSignalField({strength = 1}) {
     let aspectDirty = true;
     let strengthDirty = true;
     let uploadedStrength = -1;
-
-    // requestIdleCallback where available, with a bounded timeout so the field
-    // still appears promptly on busy pages.
-    const schedule =
-      typeof requestIdleCallback === 'function'
-        ? (callback) => requestIdleCallback(callback, {timeout: 1200})
-        : (callback) => setTimeout(callback, 240);
-    const unschedule =
-      typeof cancelIdleCallback === 'function'
-        ? (handle) => {
-            cancelIdleCallback(handle);
-            clearTimeout(handle);
-            cancelAnimationFrame(handle);
-          }
-        : (handle) => {
-            clearTimeout(handle);
-            cancelAnimationFrame(handle);
-          };
 
     const destroyProgram = () => {
       if (!gl) return;
@@ -275,7 +264,17 @@ export function HeroSignalField({strength = 1}) {
         failIfMajorPerformanceCaveat: false,
       });
       if (!gl) {
+        unsupported = true;
         canvas.dataset.renderState = 'fallback';
+        return false;
+      }
+      if (detectSoftwareRenderer(gl)) {
+        unsupported = true;
+        canvas.dataset.renderer = 'software';
+        canvas.dataset.renderState = 'fallback';
+        released = true;
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+        gl = null;
         return false;
       }
 
@@ -291,6 +290,7 @@ export function HeroSignalField({strength = 1}) {
       if (!program) {
         if (vertex) gl.deleteShader(vertex);
         if (fragment) gl.deleteShader(fragment);
+        unsupported = true;
         canvas.dataset.renderState = 'fallback';
         return false;
       }
@@ -315,6 +315,7 @@ export function HeroSignalField({strength = 1}) {
       if (!gl || !program) return false;
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         destroyProgram();
+        unsupported = true;
         canvas.dataset.renderState = 'fallback';
         return false;
       }
@@ -347,11 +348,6 @@ export function HeroSignalField({strength = 1}) {
       gl.clearColor(0, 0, 0, 0);
 
       loseContext = gl.getExtension('WEBGL_lose_context');
-      if (detectSoftwareRenderer(gl)) {
-        tierFloor = ladder.length - 1;
-        tier = tierFloor;
-        canvas.dataset.renderer = 'software';
-      }
       contextLost = false;
       aspectDirty = true;
       strengthDirty = true;
@@ -366,12 +362,42 @@ export function HeroSignalField({strength = 1}) {
     };
 
     /**
-     * Bring the field up without competing with hydration: the context is
-     * created when the main thread is idle, and the link result is polled on
-     * animation frames rather than awaited.
+     * Bring the field up off the input handler: context creation happens on the
+     * next frame and the link result is polled on animation frames rather than
+     * awaited, so no single task owns the whole bring-up.
      */
+    /**
+     * The field responds to the pointer, so it is brought up on the first real
+     * input rather than during load. Creating a WebGL context initialises the
+     * platform's GL stack, which is expensive on machines without a GPU and
+     * would otherwise land inside the page's blocking-time window for a purely
+     * decorative layer. Input and visibility can arrive in either order, so
+     * both are recorded and whichever completes the pair starts the field.
+     */
+    const INPUT_EVENTS = [
+      'pointermove',
+      'pointerdown',
+      'wheel',
+      'keydown',
+      'scroll',
+    ];
+    const releaseInputListeners = () => {
+      for (const type of INPUT_EVENTS) {
+        window.removeEventListener(type, onFirstInput);
+      }
+    };
+    function onFirstInput() {
+      inputSeen = true;
+      releaseInputListeners();
+      maybeStart();
+    }
+    function maybeStart() {
+      if (!inputSeen || !visible) return;
+      startProgram();
+    }
+
     const startProgram = () => {
-      if (disposed || starting || program) return;
+      if (disposed || unsupported || starting || program) return;
       starting = true;
       const boot = () => {
         bootHandle = 0;
@@ -395,7 +421,8 @@ export function HeroSignalField({strength = 1}) {
         };
         bootHandle = requestAnimationFrame(settle);
       };
-      bootHandle = schedule(boot);
+      // One frame later, so the input handler returns immediately.
+      bootHandle = requestAnimationFrame(boot);
     };
 
     const resize = () => {
@@ -415,7 +442,7 @@ export function HeroSignalField({strength = 1}) {
     };
 
     const applyTier = (next) => {
-      if (next === tier || next < tierFloor || next >= ladder.length) return;
+      if (next === tier || next < 0 || next >= ladder.length) return;
       tier = next;
       costAverage = 0;
       overBudget = 0;
@@ -535,6 +562,8 @@ export function HeroSignalField({strength = 1}) {
       requestRender();
     };
     const onContextLost = (event) => {
+      // A context we released ourselves must not be treated as a failure.
+      if (released || unsupported) return;
       event.preventDefault();
       contextLost = true;
       stopRender();
@@ -566,7 +595,7 @@ export function HeroSignalField({strength = 1}) {
           return;
         }
         if (!program) {
-          startProgram();
+          maybeStart();
           return;
         }
         lastFrameAt = 0;
@@ -587,6 +616,9 @@ export function HeroSignalField({strength = 1}) {
       });
     });
 
+    for (const type of INPUT_EVENTS) {
+      window.addEventListener(type, onFirstInput, {passive: true});
+    }
     intersection.observe(canvas);
     resizeObserver.observe(canvas);
     canvas.addEventListener('pointermove', onPointerMove, {passive: true});
@@ -611,7 +643,8 @@ export function HeroSignalField({strength = 1}) {
       canvas.removeEventListener('webglcontextlost', onContextLost);
       canvas.removeEventListener('webglcontextrestored', onContextRestored);
       stopRender();
-      if (bootHandle) unschedule(bootHandle);
+      releaseInputListeners();
+      if (bootHandle) cancelAnimationFrame(bootHandle);
       if (resizeFrame) cancelAnimationFrame(resizeFrame);
       destroyProgram();
       // Release the drawing buffer now instead of waiting for GC of the canvas.

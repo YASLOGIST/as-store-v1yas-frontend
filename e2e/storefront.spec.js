@@ -99,12 +99,39 @@ test.describe('storefront browser flows', () => {
     );
   });
 
-  test('hero GPU field initializes and recovers its WebGL context', async ({
+  test('hero GPU field resolves to a GPU or fallback state and recovers its context', async ({
     page,
   }) => {
     await page.goto('/');
     const canvas = page.locator('.hero-signal-field');
-    await expect(canvas).toHaveAttribute('data-render-state', 'ready');
+    // Bring-up is deliberately deferred to the first real input, so nothing
+    // happens until the pointer moves.
+    await expect(canvas).toHaveAttribute('data-render-state', 'idle');
+    // Nudge the pointer until the field reacts: the listeners are attached by
+    // the client effect, so a single move can land before hydration.
+    let nudge = 0;
+    // The field only runs where there is a GPU to run it on. CI's Chromium
+    // rasterises with SwiftShader, where a fullscreen fragment program would
+    // block the main thread, so 'fallback' is the correct outcome there and
+    // the stylesheet hides the canvas.
+    await expect
+      .poll(
+        async () => {
+          nudge += 1;
+          await page.mouse.move(400 + (nudge % 2), 400);
+          return canvas.getAttribute('data-render-state');
+        },
+        {timeout: 10_000},
+      )
+      .toMatch(/^(ready|fallback)$/);
+    const state = await canvas.getAttribute('data-render-state');
+    if (state === 'fallback') {
+      expect(await canvas.getAttribute('data-renderer')).toBe('software');
+      await expect(canvas).toHaveCSS('display', 'none');
+      await expect(page.locator('.hero-visual-frame')).toBeVisible();
+      return;
+    }
+
     const recovery = await canvas.evaluate(
       (node) =>
         new Promise((resolve) => {
