@@ -190,18 +190,39 @@ const BLOGS = [
   },
 ];
 
+// Long multi-block bodies on purpose: policy pages are the storefront's
+// densest merchant-authored HTML, so the fixture must exercise paragraph
+// rhythm, headings, lists and reading measure rather than a single line.
+const policyBody = (name) =>
+  [
+    `<p>This is deterministic ${name} fixture text used by local and CI`,
+    ' browser checks. It is not a legal document and carries no obligations.',
+    ' It exists so the rendered reading measure, paragraph rhythm and list',
+    ' styling can be verified against realistic block structure.</p>',
+    '<h2>What this covers</h2>',
+    '<p>Each section below stands in for the structure a merchant-authored',
+    ' policy normally uses: a short preamble, named sections, and an',
+    ' enumerated list of specific terms a shopper may need to cite.</p>',
+    '<ul><li>Scope of the fixture content.</li>',
+    '<li>Structure the real document is expected to follow.</li>',
+    '<li>Contact route for questions about the policy.</li></ul>',
+    '<h2>Questions</h2>',
+    '<p>Replace this fixture with the published policy from Shopify admin',
+    ' before the storefront serves real traffic.</p>',
+  ].join('');
+
 const POLICIES = [
   {
     id: 'gid://shopify/ShopPolicy/1',
     handle: 'privacy-policy',
     title: 'Privacy policy',
-    body: '<p>Deterministic privacy policy fixture.</p>',
+    body: policyBody('privacy policy'),
   },
   {
     id: 'gid://shopify/ShopPolicy/2',
     handle: 'refund-policy',
     title: 'Refund policy',
-    body: '<p>Deterministic refund policy fixture.</p>',
+    body: policyBody('refund policy'),
   },
 ];
 

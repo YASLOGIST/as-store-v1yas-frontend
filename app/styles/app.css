@@ -195,12 +195,6 @@ hr {
 /* ------------------------------------------------------------------
  * Utilities
  * ------------------------------------------------------------------ */
-.page {
-  padding: clamp(1.5rem, 4vw, 3.5rem) var(--gutter);
-  max-width: var(--container);
-  margin-inline: auto;
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1083,12 +1077,7 @@ button.reset:hover:not(:has(> *)) {
   color: var(--text-faint);
 }
 
-.search-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(255, 138, 61, 0.18);
-}
-
+.search-input:focus,
 .search-input::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
@@ -1524,7 +1513,9 @@ html[data-features~='productTilt'] .product-item:hover {
   background: linear-gradient(to top, rgba(5, 6, 12, 0.9), transparent);
 }
 
-.collection {
+.collection,
+.blogs,
+.blog {
   padding: clamp(1.5rem, 4vw, 3rem) var(--gutter) 2rem;
   max-width: var(--container);
   margin-inline: auto;
@@ -2264,26 +2255,9 @@ html[data-features~='productTilt'] .product-item:hover {
   color: var(--text-faint);
 }
 
-.product-description > div {
-  color: var(--text-muted);
-  line-height: 1.75;
-}
-
-.product-description img {
-  border-radius: 14px;
-  margin-block: 0.75rem;
-}
-
 /* ------------------------------------------------------------------
  * Blogs & articles
  * ------------------------------------------------------------------ */
-.blogs,
-.blog {
-  padding: clamp(1.5rem, 4vw, 3rem) var(--gutter) 2rem;
-  max-width: var(--container);
-  margin-inline: auto;
-}
-
 .blog-grid,
 .blogs-grid {
   display: grid;
@@ -2296,7 +2270,8 @@ html[data-features~='productTilt'] .product-item:hover {
 }
 
 .blog-article,
-.blog-channel {
+.blog-channel,
+.policy-link {
   position: relative;
   display: block;
   overflow: hidden;
@@ -2309,7 +2284,9 @@ html[data-features~='productTilt'] .product-item:hover {
 
 .blog-article:hover,
 .blog-channel:hover,
-.blog-channel:focus-visible {
+.blog-channel:focus-visible,
+.policy-link:hover,
+.policy-link:focus-visible {
   border-color: var(--accent);
   transform: translateY(-4px);
 }
@@ -2358,7 +2335,10 @@ html[data-features~='productTilt'] .product-item:hover {
   font-size: clamp(1.1rem, 2.4vw, 1.35rem);
 }
 
-.article {
+/* Long-form reading column: ~65–75 characters at body size. */
+.article,
+.page,
+.policy {
   max-width: 760px;
   margin-inline: auto;
   padding: clamp(1.5rem, 4vw, 3rem) var(--gutter) 3rem;
@@ -2384,21 +2364,32 @@ html[data-features~='productTilt'] .product-item:hover {
   color: var(--text-faint);
 }
 
+/* Merchant-authored HTML: articles, pages, policies, product descriptions.
+   The reset zeroes margins, so block rhythm is set here, once. */
 .article-content {
   color: var(--text-muted);
-  line-height: 1.8;
+  line-height: 1.75;
+}
+
+.article-content > * + * {
+  margin-top: 0.9rem;
+}
+
+.article-content :is(h2, h3) {
+  margin-top: 2rem;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--text);
 }
 
 .article-content img {
   border-radius: 14px;
+  margin-block: 0.75rem;
 }
 
 /* ------------------------------------------------------------------
  * Pages, policies, search page
  * ------------------------------------------------------------------ */
-.page,
 .policies,
-.policy,
 .cart,
 .search {
   padding: clamp(1.5rem, 4vw, 3rem) var(--gutter) 3rem;
@@ -2412,13 +2403,16 @@ html[data-features~='productTilt'] .product-item:hover {
   margin-bottom: 1.5rem;
 }
 
-.page p,
-.policy p,
-.policy li,
-.page li {
-  color: var(--text-muted);
-  margin-bottom: 0.9rem;
-  line-height: 1.75;
+.policy-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+
+.policy-link {
+  padding: 1.1rem 1.35rem;
+  font-weight: 550;
 }
 
 /* ------------------------------------------------------------------
@@ -2559,12 +2553,6 @@ html[data-features~='productTilt'] .product-item:hover {
   background: var(--bg-raised);
   color: var(--text);
   font-size: 1rem;
-}
-
-.order-search-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(255, 138, 61, 0.18);
 }
 
 .order-search-buttons {

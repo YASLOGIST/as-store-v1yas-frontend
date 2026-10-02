@@ -38,14 +38,23 @@ export default function Policies() {
 
   return (
     <div className="policies">
-      <h1>Policies</h1>
-      <div>
-        {policies.map((policy) => (
-          <fieldset key={policy.id}>
-            <Link to={`/policies/${policy.handle}`}>{policy.title}</Link>
-          </fieldset>
-        ))}
+      <div className="collection-header">
+        <span className="eyebrow">Store policies</span>
+        <h1>The terms behind every order</h1>
+        <p className="collection-description">
+          Published by the store and applied at checkout. Each document below is
+          the authoritative version.
+        </p>
       </div>
+      <ul className="policy-list">
+        {policies.map((policy) => (
+          <li key={policy.id}>
+            <Link className="policy-link" to={`/policies/${policy.handle}`}>
+              {policy.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

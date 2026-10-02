@@ -380,6 +380,32 @@ test.describe('storefront browser flows', () => {
     await expectA11y(page);
   });
 
+  test('policies read as documents and keep a path back', async ({page}) => {
+    await page.goto('/policies');
+    await expect(
+      page.getByRole('heading', {name: 'The terms behind every order'}),
+    ).toBeVisible();
+
+    await page.getByRole('link', {name: 'Privacy policy'}).click();
+    await expect(page).toHaveURL(/\/policies\/privacy-policy$/);
+    await expect(
+      page.getByRole('heading', {name: 'Privacy policy'}),
+    ).toBeVisible();
+
+    // Long-form merchant HTML must stay inside a readable measure.
+    const width = await page
+      .locator('.article-content')
+      .evaluate((node) => node.getBoundingClientRect().width);
+    expect(width).toBeLessThanOrEqual(760);
+
+    await page
+      .getByRole('navigation', {name: 'Breadcrumb'})
+      .getByRole('link', {name: 'Policies'})
+      .click();
+    await expect(page).toHaveURL(/\/policies$/);
+    await expectA11y(page);
+  });
+
   test('home visual regression', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'});
     await page.goto('/');

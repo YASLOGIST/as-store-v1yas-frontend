@@ -190,7 +190,10 @@ export default function Product() {
         </ul>
         <div className="product-description">
           <h5>Description</h5>
-          <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
+          <div
+            className="article-content"
+            dangerouslySetInnerHTML={{__html: descriptionHtml}}
+          />
         </div>
       </div>
       <section
