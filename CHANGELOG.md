@@ -1,5 +1,54 @@
 # skeleton
 
+## Unreleased — Hero signal field: second pass (band-gated shader, tiered frame caps, mock fidelity)
+
+### Changed
+
+- Rewrote the hero WebGL fragment shader around spatial bands: the polar group
+  rings, arc, and head now evaluate only inside `radius < 0.46`, the grid only
+  inside `radius < 0.55` (with a smooth fade), and the measurement ruler only
+  inside its horizontal band. A top-level `atan` was eliminated. All pixels
+  outside every band early-out, which cut per-frame fragment work enough to
+  restore the Core Web Vitals guardrail margin on software-rendered e2e
+  runners (final-frame fps 53–60 across runs, vs ~47 in the first pass and
+  52–54 on the pre-hero baseline).
+- Frame-rate caps are now tiered at runtime: `0` under
+  `prefers-reduced-motion`, `24` on constrained viewports, `40` otherwise —
+  and `15` with `dataset.quality = 'efficient'` when
+  `WEBGL_debug_renderer_info` reports a software renderer
+  (SwiftShader/llvmpipe/Basic Rendering). Real GPUs keep the full caps; the
+  test environment no longer taxes the fps guardrails.
+- The e2e mock Storefront API now answers the `ShopData` analytics query, so
+  the Hydrogen analytics stack boots in local testing exactly as it does in
+  production instead of surfacing a client-side TypeError from a rejected
+  deferred promise.
+- In mock mode, the `/api/unstable/graphql.json` proxy now answers `200` with
+  a GraphQL `errors` body (the shape the real Storefront API returns) instead
+  of `501`. A transport-level `501` made the browser hold the consent fetch
+  connection open forever, which permanently broke `networkidle` and with it
+  the quick-view and visual-regression tests.
+- The quick-view e2e test waits for `networkidle` before interacting:
+  keyboard input during the deferred-data hydration window races React
+  Suspense boundaries (they flip to client rendering and discard the
+  interaction). Real users interact after boot; the test now matches that.
+
+### Added
+
+- E2E palette lock for the hero: the test samples the WebGL drawing buffer
+  (with `preserveDrawingBuffer` injected for readback only) and asserts the
+  drawn pixels are red-dominant, so a violet/cyan regression fails CI.
+- `docs/ASSET-PROVENANCE.md` now declares a measured / live / illustrative
+  data-truthfulness taxonomy and records the hero shaders as project-owned
+  original GLSL with zero network payload.
+- Regenerated the home visual-regression baseline to include the amber hero
+  signal field.
+
+### Fixed
+
+- Home visual regression and quick-view tests no longer intermittently fail
+  in the mock environment (root causes above: the 501 hanging connection and
+  the hydration-window interaction race).
+
 ## Unreleased — Whitepaper README and cover image revision
 
 ### Added
