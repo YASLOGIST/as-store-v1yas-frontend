@@ -3,6 +3,7 @@ import {Fragment, Suspense} from 'react';
 import {Image} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
 import {ProductGridSkeleton} from '~/components/Skeleton';
+import {HeroSignalField} from '~/components/HeroSignalField';
 import {
   IconArrowRight,
   IconBolt,
@@ -185,6 +186,7 @@ function HeroVisual({collection, collectionUrl}) {
             <span className="hero-core-mark">Y</span>
           </span>
         )}
+        <HeroSignalField strength={collection?.image ? 0.72 : 1} />
         <span className="hero-visual-shade" />
         <span className="hero-visual-label">
           <span>Featured / 01</span>

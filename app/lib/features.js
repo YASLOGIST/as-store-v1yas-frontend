@@ -1,6 +1,7 @@
 const DEFAULTS = {
   premiumMotion: true,
   pointerEffects: true,
+  webglHero: true,
   productTilt: true,
   modelViewer: false,
   quickView: true,

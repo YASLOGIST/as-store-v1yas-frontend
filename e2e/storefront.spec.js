@@ -99,6 +99,44 @@ test.describe('storefront browser flows', () => {
     );
   });
 
+  test('hero GPU field initializes and recovers its WebGL context', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const canvas = page.locator('.hero-signal-field');
+    await expect(canvas).toHaveAttribute('data-render-state', 'ready');
+    const recovery = await canvas.evaluate(
+      (node) =>
+        new Promise((resolve) => {
+          const gl = node.getContext('webgl');
+          const extension = gl?.getExtension('WEBGL_lose_context');
+          if (!extension) {
+            resolve({supported: false, recovered: false});
+            return;
+          }
+          let lost = false;
+          node.addEventListener(
+            'webglcontextlost',
+            () => {
+              lost = true;
+              setTimeout(() => extension.restoreContext(), 80);
+            },
+            {once: true},
+          );
+          node.addEventListener(
+            'webglcontextrestored',
+            () => resolve({supported: true, recovered: lost}),
+            {once: true},
+          );
+          extension.loseContext();
+        }),
+    );
+    if (recovery.supported) {
+      expect(recovery.recovered).toBe(true);
+      await expect(canvas).toHaveAttribute('data-render-state', 'ready');
+    }
+  });
+
   test('no-JS baseline keeps product content and purchase destination readable', async ({
     browser,
   }) => {

@@ -6,6 +6,7 @@ describe('public visual feature flags', () => {
     expect(getFeatureFlags({})).toMatchObject({
       premiumMotion: true,
       pointerEffects: true,
+      webglHero: true,
       productTilt: true,
       modelViewer: false,
       quickView: true,
@@ -17,11 +18,13 @@ describe('public visual feature flags', () => {
     expect(
       getFeatureFlags({
         PUBLIC_FEATURE_PREMIUM_MOTION: 'false',
+        PUBLIC_FEATURE_WEBGL_HERO: 'false',
         PUBLIC_FEATURE_QUICK_VIEW: 'false',
         PUBLIC_FEATURE_MODEL_VIEWER: 'true',
       }),
     ).toMatchObject({
       premiumMotion: false,
+      webglHero: false,
       quickView: false,
       modelViewer: true,
     });
