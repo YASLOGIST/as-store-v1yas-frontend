@@ -129,7 +129,7 @@ function HeaderCtas({isLoggedIn, cart, locale, markets}) {
         prefetch="intent"
         to="/account"
         className={({isActive}) => `header-cta${isActive ? ' active' : ''}`}
-        aria-label="Account"
+        aria-label="Account or sign in"
       >
         <IconUser />
         <span className="header-cta-label" aria-hidden="true">
@@ -207,7 +207,7 @@ function SearchToggle() {
       <span className="header-cta-label" aria-hidden="true">
         Search
       </span>
-      <kbd aria-hidden="true">⌘K</kbd>
+      <kbd aria-hidden="true">Ctrl/⌘ K</kbd>
     </button>
   );
 }

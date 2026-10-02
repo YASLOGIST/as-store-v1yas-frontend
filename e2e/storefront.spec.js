@@ -12,6 +12,19 @@ async function expectA11y(page) {
 }
 
 test.describe('storefront browser flows', () => {
+  test('global search shortcut works across operating systems', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.keyboard.press('Control+k');
+
+    const drawer = page.getByRole('dialog', {name: 'Search'});
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole('searchbox')).toBeFocused();
+    await expect(page.getByLabel('Account or sign in')).toBeVisible();
+  });
+
   test('search submits and renders the API result', async ({page}) => {
     await page.goto('/search');
     const input = page.getByTestId('search-input');

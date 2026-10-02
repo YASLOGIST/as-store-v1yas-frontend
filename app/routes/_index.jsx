@@ -354,7 +354,7 @@ function ValueProps() {
     {
       icon: <IconBolt />,
       title: 'Find it in two keystrokes',
-      body: 'Press ⌘K, start typing, and products, collections and articles appear as you go.',
+      body: 'Press Ctrl/⌘ K, start typing, and products, collections and articles appear as you go.',
     },
     {
       icon: <IconGlobe />,
