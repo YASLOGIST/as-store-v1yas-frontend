@@ -135,15 +135,16 @@ function detectSoftwareRenderer(gl) {
   }
 }
 
+/**
+ * Start a shader compile. The COMPILE_STATUS query is deliberately omitted: it
+ * blocks until the driver finishes. Failures surface at the single LINK_STATUS
+ * check, which runs after the link has already completed.
+ */
 function compileShader(gl, type, source) {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    gl.deleteShader(shader);
-    return null;
-  }
   return shader;
 }
 
@@ -200,6 +201,9 @@ export function HeroSignalField({strength = 1}) {
     let reducedMotion = motionQuery.matches;
     let gl = null;
     let program = null;
+    let parallelCompile = null;
+    let starting = false;
+    let bootHandle = 0;
     let buffer = null;
     let uniforms = null;
     let loseContext = null;
@@ -225,6 +229,24 @@ export function HeroSignalField({strength = 1}) {
     let strengthDirty = true;
     let uploadedStrength = -1;
 
+    // requestIdleCallback where available, with a bounded timeout so the field
+    // still appears promptly on busy pages.
+    const schedule =
+      typeof requestIdleCallback === 'function'
+        ? (callback) => requestIdleCallback(callback, {timeout: 1200})
+        : (callback) => setTimeout(callback, 240);
+    const unschedule =
+      typeof cancelIdleCallback === 'function'
+        ? (handle) => {
+            cancelIdleCallback(handle);
+            clearTimeout(handle);
+            cancelAnimationFrame(handle);
+          }
+        : (handle) => {
+            clearTimeout(handle);
+            cancelAnimationFrame(handle);
+          };
+
     const destroyProgram = () => {
       if (!gl) return;
       if (buffer) gl.deleteBuffer(buffer);
@@ -232,9 +254,16 @@ export function HeroSignalField({strength = 1}) {
       buffer = null;
       program = null;
       uniforms = null;
+      parallelCompile = null;
     };
 
-    const createProgram = () => {
+    /**
+     * Phase 1 — create the context and start the compile. Nothing here queries
+     * compile or link status: those queries block the main thread until the
+     * driver finishes, which on a software rasteriser is long enough to show up
+     * as Total Blocking Time during page load.
+     */
+    const beginProgram = () => {
       gl = canvas.getContext('webgl', {
         alpha: true,
         antialias: false,
@@ -258,19 +287,32 @@ export function HeroSignalField({strength = 1}) {
 
       const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
       const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
-      if (!vertex || !fragment) {
+      program = vertex && fragment ? gl.createProgram() : null;
+      if (!program) {
         if (vertex) gl.deleteShader(vertex);
         if (fragment) gl.deleteShader(fragment);
         canvas.dataset.renderState = 'fallback';
         return false;
       }
-
-      program = gl.createProgram();
       gl.attachShader(program, vertex);
       gl.attachShader(program, fragment);
       gl.linkProgram(program);
       gl.deleteShader(vertex);
       gl.deleteShader(fragment);
+
+      parallelCompile = gl.getExtension('KHR_parallel_shader_compile');
+      return true;
+    };
+
+    /** True once the driver has finished linking, without ever blocking on it. */
+    const programIsLinked = () =>
+      parallelCompile
+        ? gl.getProgramParameter(program, parallelCompile.COMPLETION_STATUS_KHR)
+        : true;
+
+    /** Phase 2 — bind state and publish the program. Runs off the load path. */
+    const finishProgram = () => {
+      if (!gl || !program) return false;
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         destroyProgram();
         canvas.dataset.renderState = 'fallback';
@@ -323,6 +365,39 @@ export function HeroSignalField({strength = 1}) {
       return true;
     };
 
+    /**
+     * Bring the field up without competing with hydration: the context is
+     * created when the main thread is idle, and the link result is polled on
+     * animation frames rather than awaited.
+     */
+    const startProgram = () => {
+      if (disposed || starting || program) return;
+      starting = true;
+      const boot = () => {
+        bootHandle = 0;
+        if (disposed) {
+          starting = false;
+          return;
+        }
+        if (!beginProgram()) {
+          starting = false;
+          return;
+        }
+        const settle = () => {
+          bootHandle = 0;
+          if (disposed) return;
+          if (!programIsLinked()) {
+            bootHandle = requestAnimationFrame(settle);
+            return;
+          }
+          starting = false;
+          if (finishProgram()) requestRender();
+        };
+        bootHandle = requestAnimationFrame(settle);
+      };
+      bootHandle = schedule(boot);
+    };
+
     const resize = () => {
       if (!gl || contextLost) return;
       const rect = canvas.getBoundingClientRect();
@@ -352,7 +427,7 @@ export function HeroSignalField({strength = 1}) {
     const render = (time) => {
       frame = 0;
       if (disposed || contextLost || !visible || document.hidden) return;
-      if (!gl || !program) return;
+      if (!gl || !program || !uniforms) return;
 
       const fpsCap = reducedMotion ? 0 : ladder[tier].fps;
       const interval = fpsCap ? 1000 / fpsCap : Infinity;
@@ -471,13 +546,16 @@ export function HeroSignalField({strength = 1}) {
     };
     const onContextRestored = () => {
       if (disposed) return;
+      // Leave the 'lost' state immediately: the stylesheet hides a lost canvas,
+      // and a hidden canvas reports itself as off-screen.
+      canvas.dataset.renderState = 'idle';
+      visible = true;
       gl = null;
+      program = null;
+      starting = false;
       startedAt = 0;
       lastFrameAt = 0;
-      if (createProgram()) {
-        resize();
-        requestRender();
-      }
+      startProgram();
     };
 
     const intersection = new IntersectionObserver(
@@ -487,7 +565,10 @@ export function HeroSignalField({strength = 1}) {
           stopRender();
           return;
         }
-        if (!gl && !createProgram()) return;
+        if (!program) {
+          startProgram();
+          return;
+        }
         lastFrameAt = 0;
         resize();
         requestRender();
@@ -530,6 +611,7 @@ export function HeroSignalField({strength = 1}) {
       canvas.removeEventListener('webglcontextlost', onContextLost);
       canvas.removeEventListener('webglcontextrestored', onContextRestored);
       stopRender();
+      if (bootHandle) unschedule(bootHandle);
       if (resizeFrame) cancelAnimationFrame(resizeFrame);
       destroyProgram();
       // Release the drawing buffer now instead of waiting for GC of the canvas.
