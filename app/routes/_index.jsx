@@ -104,7 +104,7 @@ function Hero() {
         <h1>
           Equipment for people
           <br />
-          who <span className="gradient-text">build things</span>.
+          who <span className="gradient-text">build things</span>
         </h1>
         <p className="hero-sub">
           A tight catalog of power, networking and workshop gear — filterable by
