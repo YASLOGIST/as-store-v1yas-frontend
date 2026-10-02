@@ -3,6 +3,12 @@ import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
 import {buildRouteMeta} from '~/lib/seo';
+import {CollectionControls} from '~/components/CollectionControls';
+import {
+  CATALOG_SORT_OPTIONS,
+  describeResults,
+  getCatalogSortOption,
+} from '~/lib/collectionFilters';
 
 /**
  * @type {Route.MetaFunction}
@@ -35,17 +41,31 @@ export async function loader(args) {
 async function loadCriticalData({context, request}) {
   const {storefront} = context;
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
+    pageBy: 12,
   });
+  const sort = getCatalogSortOption(new URL(request.url).searchParams);
 
   const [{products}] = await Promise.all([
     storefront.query(CATALOG_QUERY, {
       cache: storefront.CacheShort(),
-      variables: {...paginationVariables},
+      variables: {
+        ...paginationVariables,
+        sortKey: sort.sortKey,
+        reverse: sort.reverse,
+      },
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
-  return {products};
+  return {
+    products,
+    sortId: sort.id,
+    summary: describeResults({
+      count: products.nodes.length,
+      hasNextPage: products.pageInfo.hasNextPage,
+      scope: 'in the catalog',
+      emptyMessage: 'No published products yet.',
+    }),
+  };
 }
 
 /**
@@ -60,7 +80,7 @@ function loadDeferredData() {
 
 export default function Collection() {
   /** @type {LoaderReturnData} */
-  const {products} = useLoaderData();
+  const {products, sortId, summary} = useLoaderData();
 
   return (
     <div className="collection">
@@ -68,9 +88,14 @@ export default function Collection() {
         <span className="eyebrow">Catalog</span>
         <h1>All products</h1>
         <p className="collection-description">
-          Everything in the store, in one place.
+          Every published product, newest changes first.
         </p>
       </div>
+      <CollectionControls
+        options={CATALOG_SORT_OPTIONS}
+        sortId={sortId}
+        summary={summary}
+      />
       <PaginatedResourceSection
         connection={products}
         resourcesClassName="products-grid"
@@ -135,8 +160,17 @@ const CATALOG_QUERY = `#graphql
     $last: Int
     $startCursor: String
     $endCursor: String
+    $sortKey: ProductSortKeys
+    $reverse: Boolean
   ) @inContext(country: $country, language: $language) {
-    products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
+    products(
+      first: $first,
+      last: $last,
+      before: $startCursor,
+      after: $endCursor,
+      sortKey: $sortKey,
+      reverse: $reverse
+    ) {
       nodes {
         ...CollectionItem
       }

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/og-image-animated.gif" alt="YAS Store animated cover: violet-to-cyan wordmark, the line 'Edge-native commerce, engineered like infrastructure.', and an electrified glass hexagonal commerce emblem pulsing on a dark perspective grid, swept by a soft diagonal light beam" width="860">
+<img src="public/og-image-animated.gif" alt="YAS Store animated cover: amber hexagon lightning mark and the YAS STORE wordmark on graphite, with the line 'Power, networking and workshop gear.' and a slow diagonal light sweep" width="860">
 
 <sub><strong>THE VISUAL THESIS</strong> — precision infrastructure beneath an electric, conversion-led commerce experience</sub>
 <br>
@@ -16,8 +16,8 @@
 
 [![CI](https://github.com/YASLOGIST/as-store-v1yas-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/YASLOGIST/as-store-v1yas-frontend/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/Node.js-%E2%89%A5_22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![Hydrogen](https://img.shields.io/badge/Hydrogen-2026.4.5-7c5cff?logo=shopify&logoColor=white)](https://shopify.dev/docs/custom-storefronts/hydrogen)
-[![React Router](https://img.shields.io/badge/React_Router-7.18.4-22d3ee)](https://reactrouter.com)
+[![Hydrogen](https://img.shields.io/badge/Hydrogen-2026.4.5-ff8a3d?logo=shopify&logoColor=white)](https://shopify.dev/docs/custom-storefronts/hydrogen)
+[![React Router](https://img.shields.io/badge/React_Router-7.18.4-ffc46b)](https://reactrouter.com)
 [![License](https://img.shields.io/badge/License-MIT-9aa3ba)](./LICENSE)
 
 [**Architecture**](#system-architecture) · [**Features**](#feature-matrix) · [**Workflows**](#core-workflows) · [**Stack**](#tech-stack) · [**Security**](#security-performance-and-discovery) · [**Quickstart**](#run-locally)
@@ -51,7 +51,7 @@ YAS Store is engineered for teams that need Shopify's commerce platform without 
 
 ### Reading the cover image
 
-The cover is a compact expression of the system rather than decorative branding. Its **perspective grid** represents the governed platform layer: predictable routing, contracts, budgets, and observability. The **violet-to-cyan spectrum** maps the product's progression from brand expression to fast digital delivery. The **hexagonal enclosure** signals a bounded trust perimeter, while the **lightning mark** communicates edge execution and low-latency commerce. Orbital lines imply Shopify services moving through a stable request boundary—not point-to-point integrations leaking into the interface.
+The cover is a compact expression of the system rather than decorative branding. Its **perspective grid** represents the governed platform layer: predictable routing, contracts, budgets, and observability. The **single amber signal** is the one saturated colour in the system, reserved for the live, the actionable and the in-stock. The **hexagonal enclosure** signals a bounded trust perimeter, while the **lightning mark** communicates edge execution and low-latency commerce. Orbital lines imply Shopify services moving through a stable request boundary—not point-to-point integrations leaking into the interface.
 
 | Visual signal | Engineering meaning | Customer value |
 |---|---|---|
@@ -71,10 +71,10 @@ The prior artwork kept the architecture-grade grid, gradient, hexagon, and light
 
 | | Before | After |
 |---|---|---|
-| Headline copy | *"Gear from the future, shipped today."* | *"Edge-native commerce, engineered like infrastructure."* |
+| Headline copy | *"Equipment for people who build things."* | *"Power, networking and workshop gear."* |
 | Audience fit | Shopper-facing marketing tone, reused outside its context | Matches the evaluator reading a technical whitepaper or a shared PR/link card |
 | Consistency | Diverged from the Executive Brief and System Architecture framing below it | Restates this document's thesis in one line, before the reader scrolls |
-| Visual system | Grid, violet-to-cyan gradient, hexagon, lightning, orbital rings | Unchanged — the identity is correct; only the narrative layer moved |
+| Visual system | Graphite canvas, single amber signal accent, hexagon, lightning, orbital rings | Accent retuned from violet/cyan to amber; geometry unchanged |
 | File contract | 1200×630 JPEG, Open Graph / Twitter Card compliant | Unchanged — same path, same dimensions, same embed points |
 
 This was a deliberate **narrative fix, not a rebrand**: the grid, gradient, hexagon, lightning mark, and orbital rings — every element in the table above — are untouched, because they already encode the architecture correctly. Only the headline changed, so that the first thing a reader sees matches the last thing they read. The on-site shopper hero intentionally keeps its own, separate consumer-facing line; a technical cover and a storefront hero are allowed to speak to two different audiences in two different registers, as long as neither one is asked to do both jobs at once.
@@ -221,6 +221,7 @@ For the behavioral specification and evidence map, see [`docs/ARCHITECTURE.md`](
 |---|---|---|
 | Product discovery | Full and predictive search across products, collections, pages, articles, and query suggestions | Faster paths from intent to inventory |
 | Product merchandising | Variant selection, availability, compare-at pricing, sale/sold-out states, image treatment, breadcrumbs | Decision-critical product data remains visible and actionable |
+| Collection merchandising | Server-side sort plus Storefront faceted filters (availability, price, type, vendor) with chips, counts, and a dedicated empty state | Shoppers narrow a grid without losing shareability — every state is a URL and works without client JavaScript |
 | Quick add | Product-card add-to-cart with optimistic interaction and valid non-nested controls | Lower-friction conversion from listing surfaces |
 | Cart management | Add, update, remove, discount, gift card, buyer identity, cart permalinks | Complete cart lifecycle without abandoning the storefront shell |
 | Customer accounts | OAuth login, profile, addresses, order history, order detail, logout | Shopify-managed identity with a first-party frontend experience |
@@ -296,6 +297,8 @@ sequenceDiagram
 ```
 
 **Conversion property:** the buy path depends on product and variant truth, not on footer content or other deferred data.
+
+**Filter contract:** sort and facets live only in the query string (`?sort=`, repeated `?filter=` inputs). The loader parses them, hands them to Shopify, and drops pagination cursors whenever the result set changes, so a cursor can never outlive the set it indexed. Malformed filter tokens are ignored rather than thrown.
 
 ### 2. Search and discovery
 
@@ -381,7 +384,7 @@ Volt is a dark, high-contrast commerce system implemented in native CSS. It uses
 
 | Contract | Implementation |
 |---|---|
-| Brand | Violet-to-cyan accent system on a deep neutral canvas |
+| Brand | Single amber signal accent on a graphite canvas |
 | Payload | Complete CSS ceiling of **12 KiB gzip**, enforced in CI |
 | Motion | Three duration tiers, spring easing, reduced-motion fallbacks |
 | Layout | Fluid gutters and containers from mobile through ultrawide |

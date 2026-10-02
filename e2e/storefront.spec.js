@@ -181,6 +181,50 @@ test.describe('storefront browser flows', () => {
     expect(metrics.event).toBeLessThanOrEqual(200);
   });
 
+  test('collection filters and sort stay in the url and narrow the grid', async ({
+    page,
+  }) => {
+    await page.goto('/collections/volt-essentials');
+    await expect(page.getByText('6 products in this collection')).toBeVisible();
+
+    await page.getByRole('link', {name: /^In stock/}).click();
+    await expect(page).toHaveURL((url) =>
+      url.searchParams.getAll('filter').includes('{"available":true}'),
+    );
+    await expect(page.getByText('5 products match')).toBeVisible();
+    await expect(
+      page.getByRole('link', {name: /remove Availability filter/}),
+    ).toBeVisible();
+
+    await page.getByLabel('Sort').selectOption('price-desc');
+    await expect(page).toHaveURL(
+      (url) => url.searchParams.get('sort') === 'price-desc',
+    );
+    await expect(page.locator('.product-item-title').first()).toContainText(
+      'SIGNAL USB Analyzer',
+    );
+    await expectA11y(page);
+
+    await page.getByRole('link', {name: 'Clear all'}).click();
+    await expect(page.getByText('6 products in this collection')).toBeVisible();
+    await expect(page).toHaveURL(
+      (url) => url.searchParams.getAll('filter').length === 0,
+    );
+  });
+
+  test('collection filters work without client javascript', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({javaScriptEnabled: false});
+    const page = await context.newPage();
+    await page.goto('/collections/volt-essentials');
+    await page.getByRole('link', {name: /^Out of stock/}).click();
+    await expect(page.getByText('1 product matches')).toBeVisible({
+      timeout: 10_000,
+    });
+    await context.close();
+  });
+
   test('home visual regression', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'});
     await page.goto('/');

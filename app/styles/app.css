@@ -16,42 +16,44 @@
   --container: 1320px;
   --gutter: clamp(1rem, 4vw, 2.5rem);
 
-  /* Palette */
-  --bg: #05060c;
-  --bg-raised: #0a0c16;
-  --bg-glass: rgba(13, 16, 28, 0.72);
-  --surface: rgba(255, 255, 255, 0.04);
-  --surface-2: rgba(255, 255, 255, 0.07);
-  --surface-3: rgba(255, 255, 255, 0.11);
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.18);
-  --text: #eef1fa;
-  --text-muted: #9aa3ba;
-  --text-faint: #858da5;
+  /* Palette — graphite instrument panel + a single signal accent */
+  --bg: #08090c;
+  --bg-raised: #0d0f13;
+  --bg-glass: rgba(14, 16, 20, 0.78);
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-2: rgba(255, 255, 255, 0.065);
+  --surface-3: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #f2f3f5;
+  --text-muted: #a0a4ad;
+  --text-faint: #7f848e;
 
-  --accent: #7c5cff;
-  --accent-2: #22d3ee;
-  --accent-soft: rgba(124, 92, 255, 0.16);
-  --accent-2-soft: rgba(34, 211, 238, 0.14);
-  --success: #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.14);
-  --danger: #fb7185;
-  --danger-soft: rgba(251, 113, 133, 0.14);
-  --warning: #fbbf24;
+  --accent: #ff8a3d;
+  --accent-2: #ffc46b;
+  --accent-soft: rgba(255, 138, 61, 0.12);
+  --accent-2-soft: rgba(255, 196, 107, 0.12);
+  --accent-line: rgba(255, 138, 61, 0.38);
+  --accent-contrast: #140b04;
+  --success: #5ddba0;
+  --success-soft: rgba(93, 219, 160, 0.12);
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, 0.12);
+  --warning: #f5b544;
 
-  --gradient: linear-gradient(120deg, #7c5cff 0%, #4b7bff 48%, #22d3ee 100%);
+  --gradient: linear-gradient(104deg, #ff8a3d 0%, #ffa75c 52%, #ffc46b 100%);
   --gradient-soft: linear-gradient(
-    120deg,
-    rgba(124, 92, 255, 0.22),
-    rgba(34, 211, 238, 0.18)
+    104deg,
+    rgba(255, 138, 61, 0.16),
+    rgba(255, 196, 107, 0.1)
   );
 
-  /* Effects */
-  --glow: 0 0 24px rgba(124, 92, 255, 0.45), 0 0 64px rgba(34, 211, 238, 0.18);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 12px 32px -8px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 32px 64px -16px rgba(0, 0, 0, 0.65);
-  --blur: saturate(160%) blur(18px);
+  /* Effects — light, not neon: short falloff and honest shadows */
+  --glow: 0 6px 20px -6px rgba(255, 138, 61, 0.42);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 10px 28px -12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 28px 56px -20px rgba(0, 0, 0, 0.75);
+  --blur: saturate(140%) blur(16px);
 
   /* Type */
   --font-sans:
@@ -80,18 +82,18 @@ body {
   /* Ambient aurora field */
   background-image:
     radial-gradient(
-      52rem 34rem at 85% -12%,
-      rgba(124, 92, 255, 0.16),
-      transparent 60%
+      52rem 34rem at 85% -14%,
+      rgba(255, 138, 61, 0.09),
+      transparent 62%
     ),
     radial-gradient(
       44rem 30rem at -10% 22%,
-      rgba(34, 211, 238, 0.1),
+      rgba(140, 170, 255, 0.055),
       transparent 60%
     ),
     radial-gradient(
       60rem 42rem at 50% 118%,
-      rgba(75, 123, 255, 0.08),
+      rgba(255, 167, 92, 0.05),
       transparent 65%
     );
   background-attachment: scroll;
@@ -122,8 +124,8 @@ html:not([data-features~='premiumMotion']) .ambient-pointer-light {
   contain: strict;
   background: radial-gradient(
     28rem circle at var(--pointer-x) var(--pointer-y),
-    rgba(124, 92, 255, 0.105),
-    rgba(34, 211, 238, 0.035) 38%,
+    rgba(255, 138, 61, 0.105),
+    rgba(255, 196, 107, 0.035) 38%,
     transparent 72%
   );
 }
@@ -301,7 +303,7 @@ hr {
   background: var(--surface-2);
   border-color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.5);
+  box-shadow: 0 8px 24px -8px rgba(255, 138, 61, 0.5);
 }
 
 .btn:active {
@@ -311,7 +313,7 @@ hr {
 .btn-primary {
   border: 0;
   background: var(--gradient);
-  color: #05060c;
+  color: var(--accent-contrast);
 }
 
 .btn-primary:hover {
@@ -352,7 +354,7 @@ hr {
 .badge-sale {
   border-color: transparent;
   background: var(--gradient);
-  color: #05060c;
+  color: var(--accent-contrast);
 }
 
 .badge-soldout {
@@ -469,8 +471,8 @@ html[data-motion='ready']
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(124, 92, 255, 0.7),
-    rgba(34, 211, 238, 0.7),
+    rgba(255, 138, 61, 0.7),
+    rgba(255, 196, 107, 0.7),
     transparent
   );
 }
@@ -492,7 +494,7 @@ html[data-motion='ready']
   border-radius: 10px;
   background: var(--bg-raised);
   border: 1px solid var(--border-strong);
-  box-shadow: inset 0 0 12px rgba(124, 92, 255, 0.25);
+  box-shadow: inset 0 0 12px rgba(255, 138, 61, 0.25);
 }
 
 .header-brand-logo svg {
@@ -651,7 +653,7 @@ html[data-motion='ready']
   padding: 0 5px;
   border-radius: 999px;
   background: var(--gradient);
-  color: #05060c;
+  color: var(--accent-contrast);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 700;
@@ -1036,7 +1038,7 @@ button.reset:hover:not(:has(> *)) {
   border: 0;
   border-radius: 999px;
   background: var(--gradient);
-  color: #05060c;
+  color: var(--accent-contrast);
   font-weight: 700;
   transition:
     transform var(--motion-fast) var(--motion-ease-enter),
@@ -1088,7 +1090,7 @@ button.reset:hover:not(:has(> *)) {
 .search-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.18);
+  box-shadow: 0 0 0 4px rgba(255, 138, 61, 0.18);
 }
 
 .search-input::-webkit-search-cancel-button {
@@ -1236,8 +1238,8 @@ button.reset:hover:not(:has(> *)) {
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(124, 92, 255, 0.22),
-    rgba(34, 211, 238, 0.06) 38%,
+    rgba(255, 138, 61, 0.22),
+    rgba(255, 196, 107, 0.06) 38%,
     transparent 68%
   );
 }
@@ -1247,14 +1249,14 @@ button.reset:hover:not(:has(> *)) {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(10, 12, 22, 0.3);
   box-shadow:
-    inset 0 0 36px rgba(124, 92, 255, 0.18),
-    0 0 70px rgba(34, 211, 238, 0.09);
+    inset 0 0 36px rgba(255, 138, 61, 0.18),
+    0 0 70px rgba(255, 196, 107, 0.09);
 }
 
 .hero-orbit {
   position: absolute;
   inset: 8%;
-  border: 1px solid rgba(124, 92, 255, 0.22);
+  border: 1px solid rgba(255, 138, 61, 0.22);
   border-radius: 50%;
   --orbit-scale: 0.42;
   transform: rotate(18deg) scaleY(var(--orbit-scale));
@@ -1265,7 +1267,7 @@ button.reset:hover:not(:has(> *)) {
 
 .hero-orbit-two {
   inset: 18%;
-  border-color: rgba(34, 211, 238, 0.24);
+  border-color: rgba(255, 196, 107, 0.24);
   --orbit-scale: 0.58;
   transform: rotate(-48deg) scaleY(var(--orbit-scale));
 }
@@ -1684,7 +1686,7 @@ html[data-features~='productTilt'] .product-item:hover {
 .product-quick-add button:hover:not(:disabled) {
   background: var(--gradient);
   border-color: transparent;
-  color: #05060c;
+  color: var(--accent-contrast);
 }
 
 .product-quick-add button:disabled {
@@ -1816,6 +1818,334 @@ html[data-features~='productTilt'] .product-item:hover {
     minmax(min(var(--grid-item-width), 100%), 1fr)
   );
   margin-bottom: 2.5rem;
+}
+
+/* ------------------------------------------------------------------
+ * Collection merchandising — sort, facets, active filters
+ * ------------------------------------------------------------------ */
+.collection-controls {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  transition: opacity var(--motion-fast) linear;
+}
+
+.collection-controls[data-busy] {
+  opacity: 0.55;
+}
+
+.collection-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.collection-count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.collection-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.collection-sort label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.collection-sort select {
+  appearance: none;
+  padding: 0.5rem 2rem 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent 50%,
+      currentcolor 50%,
+      currentcolor 58%,
+      transparent 58%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 42%,
+      currentcolor 42%,
+      currentcolor 50%,
+      transparent 50%
+    );
+  background-position:
+    right 1.1rem center,
+    right 0.75rem center;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.collection-sort select:hover {
+  border-color: var(--border-strong);
+}
+
+/* Visible only to keyboard/no-JS users; the select auto-submits otherwise. */
+.sort-apply {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sort-apply:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.45rem 0.9rem;
+  overflow: visible;
+  clip-path: none;
+  font-size: 0.82rem;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.filter-chips-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.filter-chips ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.filter-chip:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.filter-chip span[aria-hidden] {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.filter-clear {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.filter-clear:hover {
+  color: var(--text);
+}
+
+.filter-panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.filter-panel > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  list-style: none;
+}
+
+.filter-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.filter-panel > summary::after {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-inline-start: auto;
+  border-right: 1.5px solid currentcolor;
+  border-bottom: 1.5px solid currentcolor;
+  transform: rotate(45deg);
+  transition: transform var(--motion-fast) var(--motion-ease-enter);
+}
+
+.filter-panel[open] > summary::after {
+  transform: rotate(-135deg);
+}
+
+.filter-panel-count:not(:empty) {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 0.68rem;
+}
+
+.filter-groups {
+  display: grid;
+  gap: 1.25rem 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  padding: 0.25rem 1rem 1.1rem;
+  border-top: 1px solid var(--border);
+}
+
+.filter-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0.9rem 0 0;
+  border: 0;
+}
+
+.filter-group legend {
+  padding: 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.filter-group ul {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.filter-option:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.filter-option-box {
+  display: grid;
+  place-items: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.filter-option[data-active] {
+  color: var(--text);
+}
+
+.filter-option[data-active] .filter-option-box {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.filter-option-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-option-count {
+  margin-inline-start: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.collection-empty {
+  max-width: 460px;
+  margin: clamp(2rem, 7vw, 4.5rem) auto;
+  text-align: center;
+}
+
+.collection-empty h2 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+}
+
+.collection-empty p {
+  margin: 0 0 1.5rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 45em) {
+  .collection-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .collection-sort {
+    width: 100%;
+  }
+
+  .collection-sort select {
+    flex: 1;
+  }
 }
 
 /* Breadcrumbs */
@@ -2019,7 +2349,7 @@ html[data-features~='productTilt'] .product-item:hover {
 .product-options-item.selected {
   border-color: transparent;
   background: var(--gradient);
-  color: #05060c;
+  color: var(--accent-contrast);
   font-weight: 700;
 }
 
@@ -2112,7 +2442,7 @@ html[data-features~='productTilt'] .product-item:hover {
   border: 0;
   border-radius: 999px;
   background: var(--gradient);
-  color: #05060c;
+  color: var(--accent-contrast);
   font-size: 1rem;
   font-weight: 700;
   transition:
@@ -2496,7 +2826,7 @@ html[data-features~='productTilt'] .product-item:hover {
 .order-search-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.18);
+  box-shadow: 0 0 0 4px rgba(255, 138, 61, 0.18);
 }
 
 .order-search-buttons {
@@ -2579,8 +2909,8 @@ button.pagination-link:hover {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(124, 92, 255, 0.6),
-    rgba(34, 211, 238, 0.6),
+    rgba(255, 138, 61, 0.6),
+    rgba(255, 196, 107, 0.6),
     transparent
   );
 }

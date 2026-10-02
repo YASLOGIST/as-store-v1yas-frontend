@@ -1,10 +1,19 @@
-import {redirect, useLoaderData, Link} from 'react-router';
+import {redirect, useLoaderData, useLocation, Link} from 'react-router';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
 import {buildRouteMeta, collectionJsonLd} from '~/lib/seo';
 import {StructuredData} from '~/components/StructuredData';
+import {CollectionControls} from '~/components/CollectionControls';
+import {
+  buildFilterGroups,
+  clearFiltersSearch,
+  describeResults,
+  getActiveChips,
+  getActiveFilters,
+  getSortOption,
+} from '~/lib/collectionFilters';
 
 /**
  * @type {Route.MetaFunction}
@@ -46,18 +55,28 @@ export async function loader(args) {
 async function loadCriticalData({context, params, request}) {
   const {handle} = params;
   const {storefront} = context;
+  const url = new URL(request.url);
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
+    pageBy: 12,
   });
 
   if (!handle) {
     throw redirect('/collections');
   }
 
+  const sort = getSortOption(url.searchParams);
+  const {filters, tokens} = getActiveFilters(url.searchParams);
+
   const [{collection}] = await Promise.all([
     storefront.query(COLLECTION_QUERY, {
       cache: storefront.CacheShort(),
-      variables: {handle, ...paginationVariables},
+      variables: {
+        handle,
+        filters,
+        sortKey: sort.sortKey,
+        reverse: sort.reverse,
+        ...paginationVariables,
+      },
       // Add other queries here, so that they are loaded in parallel
     }),
   ]);
@@ -71,9 +90,19 @@ async function loadCriticalData({context, params, request}) {
   // The API handle might be localized, so redirect to the localized handle
   redirectIfHandleIsLocalized(request, {handle, data: collection});
 
+  const groups = buildFilterGroups(collection.products.filters, tokens);
+
   return {
     collection,
-    canonicalUrl: `${new URL(request.url).origin}/collections/${collection.handle}`,
+    filterGroups: groups,
+    activeChips: getActiveChips(groups),
+    sortId: sort.id,
+    summary: describeResults({
+      count: collection.products.nodes.length,
+      hasNextPage: collection.products.pageInfo.hasNextPage,
+      filtered: filters.length > 0,
+    }),
+    canonicalUrl: `${url.origin}/collections/${collection.handle}`,
   };
 }
 
@@ -89,7 +118,11 @@ function loadDeferredData() {
 
 export default function Collection() {
   /** @type {LoaderReturnData} */
-  const {collection, canonicalUrl} = useLoaderData();
+  const {activeChips, canonicalUrl, collection, filterGroups, sortId, summary} =
+    useLoaderData();
+  const location = useLocation();
+  const isFiltered = activeChips.length > 0;
+  const isEmpty = collection.products.nodes.length === 0;
 
   return (
     <div className="collection">
@@ -114,21 +147,58 @@ export default function Collection() {
       <div className="collection-header">
         <span className="eyebrow">Collection</span>
         <h1>{collection.title}</h1>
-        <p className="collection-description">{collection.description}</p>
+        {collection.description ? (
+          <p className="collection-description">{collection.description}</p>
+        ) : null}
       </div>
-      <PaginatedResourceSection
-        connection={collection.products}
-        resourcesClassName="products-grid"
-      >
-        {({node: product, index}) => (
-          <ProductItem
-            key={product.id}
-            product={product}
-            index={index}
-            loading={index < 4 ? 'eager' : 'lazy'}
-          />
-        )}
-      </PaginatedResourceSection>
+
+      <CollectionControls
+        chips={activeChips}
+        groups={filterGroups}
+        sortId={sortId}
+        summary={summary}
+      />
+
+      {isEmpty ? (
+        <div className="collection-empty">
+          <h2>
+            {isFiltered ? 'Nothing matches that mix' : 'Nothing here yet'}
+          </h2>
+          <p>
+            {isFiltered
+              ? 'Try removing a filter — price and availability narrow results fastest.'
+              : 'This collection has no published products right now.'}
+          </p>
+          {isFiltered ? (
+            <Link
+              className="btn btn-primary"
+              preventScrollReset
+              to={`${location.pathname}${clearFiltersSearch(location.search)}`}
+            >
+              Clear filters
+            </Link>
+          ) : (
+            <Link className="btn btn-primary" to="/collections">
+              Browse all collections
+            </Link>
+          )}
+        </div>
+      ) : (
+        <PaginatedResourceSection
+          connection={collection.products}
+          resourcesClassName="products-grid"
+        >
+          {({node: product, index}) => (
+            <ProductItem
+              key={product.id}
+              product={product}
+              index={index}
+              loading={index < 4 ? 'eager' : 'lazy'}
+            />
+          )}
+        </PaginatedResourceSection>
+      )}
+
       <Analytics.CollectionView
         data={{
           collection: {
@@ -179,13 +249,16 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
   }
 `;
 
-// NOTE: https://shopify.dev/docs/api/storefront/2022-04/objects/collection
+// NOTE: https://shopify.dev/docs/api/storefront/latest/objects/collection
 const COLLECTION_QUERY = `#graphql
   ${PRODUCT_ITEM_FRAGMENT}
   query Collection(
     $handle: String!
     $country: CountryCode
     $language: LanguageCode
+    $filters: [ProductFilter!]
+    $sortKey: ProductCollectionSortKeys
+    $reverse: Boolean
     $first: Int
     $last: Int
     $startCursor: String
@@ -206,8 +279,22 @@ const COLLECTION_QUERY = `#graphql
         first: $first,
         last: $last,
         before: $startCursor,
-        after: $endCursor
+        after: $endCursor,
+        filters: $filters,
+        sortKey: $sortKey,
+        reverse: $reverse
       ) {
+        filters {
+          id
+          label
+          type
+          values {
+            id
+            label
+            count
+            input
+          }
+        }
         nodes {
           ...ProductItem
         }

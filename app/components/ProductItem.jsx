@@ -8,6 +8,8 @@ import {LogoMark} from '~/components/Icons';
 
 /**
  * Product card with hover states, status badges and one-tap quick add.
+ * The quick-view dialog mounts on demand so a 24-card grid does not ship
+ * 24 hidden dialogs worth of markup.
  * Quick-add only renders when variant data is present in the fragment.
  * Uses a “stretched link” pattern so the whole card is clickable while
  * keeping valid HTML (no nested interactive elements).
@@ -165,7 +167,7 @@ export function ProductItem({product, loading, index}) {
           ) : null}
         </small>
       </div>
-      {quickViewEnabled ? (
+      {quickViewEnabled && quickViewOpen ? (
         <ProductQuickView
           image={image}
           onClose={() => setQuickViewOpen(false)}

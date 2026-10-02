@@ -2,7 +2,6 @@ import {createHydrogenContext} from '@shopify/hydrogen';
 import {AppSession} from '~/lib/session';
 import {CART_QUERY_FRAGMENT} from '~/lib/fragments';
 import {assertRuntimeEnv, getStoreLocale} from '~/lib/env';
-import {applyMockStorefront} from '~/lib/mock-storefront';
 
 // Define the additional context object
 const additionalContext = {
@@ -48,9 +47,14 @@ export async function createHydrogenRouterContext(
     additionalContext,
   );
 
-  return env.E2E_MOCK_MODE === '1'
-    ? applyMockStorefront(hydrogenContext, request)
-    : hydrogenContext;
+  // The fixture is loaded lazily so the deterministic test catalog never ships
+  // in the production request path.
+  if (env.E2E_MOCK_MODE === '1') {
+    const {applyMockStorefront} = await import('~/lib/mock-storefront');
+    return applyMockStorefront(hydrogenContext, request);
+  }
+
+  return hydrogenContext;
 }
 
 /** @typedef {Class<additionalContext>} AdditionalContextType */

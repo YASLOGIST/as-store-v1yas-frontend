@@ -26,9 +26,9 @@ export function LogoMark({size = 24, className}) {
     >
       <defs>
         <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#7c5cff" />
-          <stop offset="0.55" stopColor="#4b7bff" />
-          <stop offset="1" stopColor="#22d3ee" />
+          <stop offset="0" stopColor="#ff8a3d" />
+          <stop offset="0.55" stopColor="#ffa75c" />
+          <stop offset="1" stopColor="#ffc46b" />
         </linearGradient>
       </defs>
       <path

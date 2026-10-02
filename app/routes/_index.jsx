@@ -20,7 +20,7 @@ export const meta = ({matches}) => {
   return buildRouteMeta({
     title: 'YAS Store',
     description:
-      'High-tech gear, engineered for tomorrow. Discover the catalog — built on Shopify Hydrogen.',
+      'Power, networking and workshop gear. Live stock counts, instant search and Shopify checkout.',
     canonical: origin ? `${origin}/` : undefined,
   });
 };
@@ -99,16 +99,16 @@ function Hero() {
       <div className="hero-inner">
         <span className="badge hero-badge">
           <span className="pulse" aria-hidden="true" />
-          Next-generation storefront
+          Stock updates live
         </span>
         <h1>
-          Gear from the <span className="gradient-text">future</span>,
+          Equipment for people
           <br />
-          shipped today.
+          who <span className="gradient-text">build things</span>.
         </h1>
         <p className="hero-sub">
-          A curated catalog of high-tech essentials for builders, makers and
-          explorers — rendered at the speed of light on Shopify Hydrogen.
+          A tight catalog of power, networking and workshop gear — filterable by
+          price, brand and what is actually in stock right now.
         </p>
         <div className="hero-actions">
           <Link
@@ -118,26 +118,26 @@ function Hero() {
             viewTransition
             data-magnetic
           >
-            Shop the catalog
+            Browse collections
             <IconArrowRight />
           </Link>
           <Link className="btn btn-ghost" to="/search" prefetch="intent">
             <IconBolt />
-            Explore everything
+            Search the catalog
           </Link>
         </div>
         <dl className="hero-stats">
           <div className="hero-stat">
-            <dd>Edge</dd>
-            <dt>Global delivery</dt>
-          </div>
-          <div className="hero-stat">
-            <dd>100%</dd>
-            <dt>Server rendered</dt>
+            <dd>Shopify</dd>
+            <dt>Checkout and payments</dt>
           </div>
           <div className="hero-stat">
             <dd>Live</dd>
-            <dt>Streamed pages</dt>
+            <dt>Inventory counts</dt>
+          </div>
+          <div className="hero-stat">
+            <dd>Instant</dd>
+            <dt>Search as you type</dt>
           </div>
         </dl>
       </div>
@@ -166,12 +166,12 @@ function HeroVisual() {
 /** Scrolling tech-values strip between hero and catalog. */
 function TechMarquee() {
   const items = [
-    'Secure Shopify checkout',
-    'Edge-rendered pages',
-    'Predictive discovery',
-    'Optimized media',
-    'Accessible interactions',
-    'Private sessions',
+    'Shopify checkout',
+    'Live stock counts',
+    'Filter by price and brand',
+    'Search as you type',
+    'Keyboard navigable',
+    'Order history in your account',
   ];
   return (
     <div className="marquee" aria-hidden="true">
@@ -202,8 +202,8 @@ function FeaturedCollection({collection}) {
     <section className="home-section">
       <div className="section-head">
         <div>
-          <span className="eyebrow">Featured drop</span>
-          <h2>Fresh off the line</h2>
+          <span className="eyebrow">Featured</span>
+          <h2>Start here</h2>
         </div>
       </div>
       <Link
@@ -245,11 +245,11 @@ function RecommendedProducts({products}) {
     <section className="home-section">
       <div className="section-head">
         <div>
-          <span className="eyebrow">Top picks</span>
-          <h2>Recommended products</h2>
+          <span className="eyebrow">Catalog</span>
+          <h2>Recently updated</h2>
         </div>
         <Link className="btn btn-ghost section-cta" to="/collections">
-          View all
+          All collections
           <IconArrowRight />
         </Link>
       </div>
@@ -279,31 +279,31 @@ function ValueProps() {
   const props = [
     {
       icon: <IconRocket />,
-      title: 'Fast, everywhere',
-      body: 'Streamed edge rendering and optimized media keep every interaction responsive.',
+      title: 'Pages load before you finish clicking',
+      body: 'Links prefetch on hover and pages stream in, so the grid is there when you arrive.',
     },
     {
       icon: <IconShield />,
-      title: 'Secure by default',
-      body: 'Shopify checkout, hardened cookies, origin checks and strict CSP headers.',
+      title: 'Payment stays with Shopify',
+      body: 'Card details never touch this storefront. Checkout, refunds and receipts run on Shopify.',
     },
     {
       icon: <IconBolt />,
-      title: 'Instant search',
-      body: 'Predictive results as you type — products, collections and articles.',
+      title: 'Find it in two keystrokes',
+      body: 'Press ⌘K, start typing, and products, collections and articles appear as you go.',
     },
     {
       icon: <IconGlobe />,
-      title: 'Accessible by design',
-      body: 'Keyboard-first navigation, clear focus states and reduced-motion support.',
+      title: 'Works without a mouse',
+      body: 'Every control is reachable by keyboard, with visible focus and reduced-motion support.',
     },
   ];
   return (
     <section className="home-section">
       <div className="section-head">
         <div>
-          <span className="eyebrow">Why us</span>
-          <h2>Built like the future</h2>
+          <span className="eyebrow">How it works</span>
+          <h2>What to expect</h2>
         </div>
       </div>
       <div className="value-props">

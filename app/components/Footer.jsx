@@ -21,8 +21,8 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
                   </span>
                 </span>
                 <p>
-                  High-tech gear, engineered for tomorrow. Every product in the
-                  catalog is curated for people who build the future.
+                  Power, networking and workshop gear — a small catalog kept
+                  current, with stock counts straight from the shelf.
                 </p>
               </div>
 
