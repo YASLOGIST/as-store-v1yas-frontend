@@ -68,11 +68,25 @@ jobs:
         run: npm ci
 
       - name: Run local mocked browser flows
-        run: npm run test:e2e
+        run: |
+          set -o pipefail
+          npm run test:e2e 2>&1 | tee /tmp/e2e.log
         env:
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
           E2E_PRODUCT_HANDLE: ${{ vars.E2E_PRODUCT_HANDLE }}
           E2E_SEARCH_TERM: ${{ vars.E2E_SEARCH_TERM }}
+
+      # Artifact downloads are not always reachable from every environment, so
+      # the failing assertions are also written into the job summary.
+      - name: Summarize browser failures
+        if: ${{ failure() }}
+        run: |
+          {
+            echo '### Playwright output (tail)'
+            echo '```'
+            tail -n 250 /tmp/e2e.log || echo 'no log captured'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload browser failure evidence
         if: ${{ failure() }}
