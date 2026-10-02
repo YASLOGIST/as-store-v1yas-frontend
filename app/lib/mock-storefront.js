@@ -177,6 +177,8 @@ function emptyCart() {
   return {
     id: 'gid://shopify/Cart/mock',
     checkoutUrl: '/cart',
+    // CartAnalytics requires updatedAt; keep the shape the real API returns.
+    updatedAt: '2026-01-01T00:00:00Z',
     totalQuantity: 0,
     lines: {nodes: []},
     cost: {subtotalAmount: money(129), totalAmount: money(129)},
@@ -349,6 +351,18 @@ export function applyMockStorefront(context, request) {
           brand: {logo: null},
         },
         menu: null,
+      };
+    }
+    // Serves getShopAnalytics (Analytics.Provider/PerfKit). Without it the
+    // shop promise rejects and surfaces as a client-side TypeError, and the
+    // analytics stack never boots in local testing.
+    if (query.includes('query ShopData')) {
+      return {
+        shop: {id: 'gid://shopify/Shop/1'},
+        localization: {
+          country: {currency: {isoCode: 'USD'}},
+          language: {isoCode: 'EN'},
+        },
       };
     }
     if (query.includes('query Footer')) return {menu: null};

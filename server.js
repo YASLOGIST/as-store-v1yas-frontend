@@ -3,6 +3,12 @@ import {createRequestHandler, storefrontRedirect} from '@shopify/hydrogen';
 import {createHydrogenRouterContext} from '~/lib/context';
 import {getRequestId, hardenResponse, requestLog} from '~/lib/http';
 
+// Hydrogen's request handler forwards /api/:version/graphql.json straight to
+// the Storefront API before route handling. The mocked e2e environment has no
+// upstream, so that forward would surface as an unhandled 500 on every
+// analytics bootstrap; answer intentionally instead.
+const STOREFRONT_API_RE = /^\/api\/(unstable|2\d{3}-\d{2})\/graphql\.json$/;
+
 /**
  * Oxygen worker entry. The request boundary owns correlation, security policy,
  * privacy-safe diagnostics, session persistence, and Shopify redirects.
@@ -22,6 +28,35 @@ export default {
     if (contentLength > 1024 * 1024) {
       return hardenResponse(
         new Response('Request body too large', {status: 413}),
+        {
+          request,
+          requestId,
+          durationMs: performance.now() - startedAt,
+          isProduction: process.env.NODE_ENV === 'production',
+        },
+      );
+    }
+
+    if (
+      env.E2E_MOCK_MODE === '1' &&
+      STOREFRONT_API_RE.test(new URL(request.url).pathname)
+    ) {
+      // Answer with the GraphQL error shape (HTTP 200, like the real API)
+      // so client SDKs treat it as a graceful query failure instead of a
+      // transport failure they keep a connection open for.
+      return hardenResponse(
+        new Response(
+          JSON.stringify({
+            errors: [{message: 'Mock mode: Storefront API proxy disabled'}],
+          }),
+          {
+            status: 200,
+            headers: {
+              'content-type': 'application/json',
+              'cache-control': 'no-store',
+            },
+          },
+        ),
         {
           request,
           requestId,
