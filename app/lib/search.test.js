@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   getEmptyPredictiveSearchResult,
   getSearchEmptyMessage,
+  getSearchEmptyState,
   getSearchUrl,
   urlWithTrackingParams,
 } from './search';
@@ -72,5 +73,27 @@ describe('search URLs', () => {
         term: 'headset',
       }),
     ).toBe('/products/headset?Color=Black&q=headset');
+  });
+});
+
+describe('getSearchEmptyState', () => {
+  it('stays quiet before the first query', () => {
+    const state = getSearchEmptyState({term: ''});
+
+    expect(state).toMatchObject({kind: 'initial'});
+    expect(state.message).toBe(getSearchEmptyMessage());
+    expect(state.title).toBeUndefined();
+  });
+
+  it('names the failed term and offers a way forward', () => {
+    const state = getSearchEmptyState({term: 'zzzznothing'});
+
+    expect(state.kind).toBe('nomatch');
+    expect(state.title).toContain('zzzznothing');
+    expect(state.message).toMatch(/spelling/i);
+  });
+
+  it('defers to the error branch so one failure is not reported twice', () => {
+    expect(getSearchEmptyState({term: 'x', error: 'Boom'})).toBeNull();
   });
 });

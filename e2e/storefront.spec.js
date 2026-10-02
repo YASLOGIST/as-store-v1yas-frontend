@@ -26,6 +26,19 @@ test.describe('storefront browser flows', () => {
     await expectA11y(page);
   });
 
+  test('a search that matches nothing offers a way out', async ({page}) => {
+    await page.goto('/search?q=zzzznothing');
+
+    await expect(page.getByTestId('search-results')).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', {name: /No results for/i}),
+    ).toBeVisible();
+
+    await page.getByRole('link', {name: 'Browse the catalog'}).click();
+    await expect(page).toHaveURL(/\/collections\/all/);
+    await expectA11y(page);
+  });
+
   test('product renders real API states and static media fallback', async ({
     page,
   }) => {

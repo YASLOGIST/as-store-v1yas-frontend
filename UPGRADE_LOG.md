@@ -141,3 +141,59 @@ viewport edge. Found in the render pass, fixed before verification (X4/I4).
 
 Budget note: the new styles were again paid for by removing duplicate and dead
 CSS, not by relaxing `scripts/check-bundle.mjs` (T1).
+
+---
+
+# Wave 3 — search: make the dead end recoverable
+
+## Defect found first (W0/W2)
+
+The mock storefront answered **every** search term with the whole catalog, so
+the no-result branch had never rendered in local or CI testing — and
+`.search-empty`, the class that branch uses, had **no rule anywhere in
+`app/styles/app.css`**. The store's main discovery failure state was both
+unreachable in testing and unstyled. The existing e2e search assertion passed
+trivially because any term "matched".
+
+Same failure mode as the single-paragraph policy fixture in the previous wave:
+*a fixture that is too permissive hides states instead of exercising them.*
+
+## Changes
+
+- `app/lib/mock-storefront.js` — `matchCatalog()` does a case-insensitive
+  substring match over title / vendor / productType / description, wired into
+  both `RegularSearch` and `PredictiveSearch`. A blank term matches nothing
+  rather than everything. Exported so the behaviour is testable.
+- `app/lib/search.js` — `getSearchEmptyState()` splits the one empty string into
+  two situations: *nothing searched yet* (a quiet hint) and *searched, matched
+  nothing* (a titled recovery state). The error branch returns `null` so one
+  failure is never reported twice. `getSearchEmptyMessage()` keeps its contract.
+- `app/routes/search.jsx` — renders that state: heading naming the failed term,
+  one line of concrete advice (spelling, fewer words, brand or product type),
+  and a primary link to `/collections/all`. It reuses `.collection-empty` /
+  `.collection-description`, so it costs **zero new CSS bytes**. A result count
+  (`1 result for "charger"`) now matches the catalog's counter.
+- `app/components/SearchResults.jsx` — removed four `<br />` spacers (spacing
+  already comes from `.search-result`) and gave the pagination controls the same
+  `.pagination-link` affordance used by every other paginated list.
+
+## Constraint honoured
+
+`totalJavaScriptGzip` hit 150.3/150.0 KiB when the count sentence imported
+`describeResults` from `collectionFilters`. The budget was **not** raised; the
+import was dropped for a local two-branch string, returning to 150.0/150.0.
+Headroom is now zero — the next wave must reclaim JS before adding any.
+
+## Verification (W7, MEASURED 2026-10-02)
+
+| Gate                  | Result                                                      |
+| --------------------- | ----------------------------------------------------------- |
+| lint · format         | PASSED                                                      |
+| `npm test`            | PASSED — **122 passed / 18 files** (116 → 122)              |
+| `npm run build:ci`    | PASSED                                                      |
+| bundle budgets        | PASSED — JS 44.6/50.0, 150.0/150.0; CSS 12.0/12.0 KiB gz    |
+| `npx playwright test` | PASSED — **16/16**, incl. axe on the no-results recovery    |
+
+New tests: `app/lib/mock-storefront.test.js` (the fixture must discriminate),
+three `getSearchEmptyState` cases, and an e2e test that follows the recovery
+link from a zero-match search to the catalog.

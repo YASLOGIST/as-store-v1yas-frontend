@@ -46,7 +46,6 @@ function SearchResultsArticles({term, articles}) {
           );
         })}
       </div>
-      <br />
     </div>
   );
 }
@@ -79,7 +78,6 @@ function SearchResultsPages({term, pages}) {
           );
         })}
       </div>
-      <br />
     </div>
   );
 }
@@ -125,24 +123,20 @@ function SearchResultsProducts({term, products}) {
           return (
             <div>
               <div>
-                <PreviousLink>
-                  {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
+                <PreviousLink className="pagination-link">
+                  {isLoading ? 'Loading…' : <span>↑ Load previous</span>}
                 </PreviousLink>
               </div>
+              <div>{ItemsMarkup}</div>
               <div>
-                {ItemsMarkup}
-                <br />
-              </div>
-              <div>
-                <NextLink>
-                  {isLoading ? 'Loading...' : <span>Load more ↓</span>}
+                <NextLink className="pagination-link">
+                  {isLoading ? 'Loading…' : <span>Load more ↓</span>}
                 </NextLink>
               </div>
             </div>
           );
         }}
       </Pagination>
-      <br />
     </div>
   );
 }

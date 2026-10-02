@@ -410,6 +410,27 @@ function article(origin, blog, item) {
   };
 }
 
+/**
+ * Text match over the fixture, mirroring how the real search behaves well
+ * enough to exercise both the result and the no-result paths. Returning the
+ * whole catalog for every term made the empty state unreachable in testing.
+ * @param {Array<{title: string, vendor: string, productType: string, description: string}>} items
+ * @param {unknown} term
+ */
+export function matchCatalog(items, term) {
+  const needle = String(term ?? '')
+    .trim()
+    .toLowerCase();
+  if (!needle) return [];
+
+  return items.filter((item) =>
+    [item.title, item.vendor, item.productType, item.description]
+      .join(' ')
+      .toLowerCase()
+      .includes(needle),
+  );
+}
+
 /** Resource handles for the typed child sitemaps Hydrogen requests. */
 function sitemapItems(query) {
   const updatedAt = '2026-02-04T09:00:00Z';
@@ -636,8 +657,9 @@ export function applyMockStorefront(context, request) {
       return {sitemap: {resources: {items: sitemapItems(query)}}};
     }
     if (query.includes('query RegularSearch')) {
+      const matched = matchCatalog(nodes, variables.term);
       return {
-        products: {nodes, pageInfo: PAGE_INFO},
+        products: {nodes: matched, pageInfo: PAGE_INFO},
         pages: {nodes: []},
         articles: {nodes: []},
       };
@@ -645,7 +667,7 @@ export function applyMockStorefront(context, request) {
     if (query.includes('query PredictiveSearch')) {
       return {
         predictiveSearch: {
-          products: nodes.slice(0, 4),
+          products: matchCatalog(nodes, variables.term).slice(0, 4),
           collections: [],
           pages: [],
           articles: [],
