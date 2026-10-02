@@ -20,7 +20,7 @@ export const meta = ({matches}) => {
   return buildRouteMeta({
     title: 'YAS Store',
     description:
-      'High-tech gear, engineered for tomorrow. Discover the catalog — built on Shopify Hydrogen.',
+      'Power, networking and workshop gear. Live stock counts, instant search and Shopify checkout.',
     canonical: origin ? `${origin}/` : undefined,
   });
 };
@@ -208,12 +208,12 @@ function HeroVisual({collection, collectionUrl}) {
 /** Scrolling tech-values strip between hero and catalog. */
 function TechMarquee() {
   const items = [
-    'Secure Shopify checkout',
-    'Edge-rendered pages',
-    'Predictive discovery',
-    'Optimized media',
-    'Accessible interactions',
-    'Private sessions',
+    'Shopify checkout',
+    'Live stock counts',
+    'Filter by price and brand',
+    'Search as you type',
+    'Keyboard navigable',
+    'Order history in your account',
   ];
   return (
     <div className="marquee" aria-hidden="true">
@@ -341,23 +341,23 @@ function ValueProps() {
   const props = [
     {
       icon: <IconRocket />,
-      title: 'Fast, everywhere',
-      body: 'Streamed edge rendering and optimized media keep every interaction responsive.',
+      title: 'Pages load before you finish clicking',
+      body: 'Links prefetch on hover and pages stream in, so the grid is there when you arrive.',
     },
     {
       icon: <IconShield />,
-      title: 'Secure by default',
-      body: 'Shopify checkout, hardened cookies, origin checks and strict CSP headers.',
+      title: 'Payment stays with Shopify',
+      body: 'Card details never touch this storefront. Checkout, refunds and receipts run on Shopify.',
     },
     {
       icon: <IconBolt />,
-      title: 'Instant search',
-      body: 'Predictive results as you type — products, collections and articles.',
+      title: 'Find it in two keystrokes',
+      body: 'Press ⌘K, start typing, and products, collections and articles appear as you go.',
     },
     {
       icon: <IconGlobe />,
-      title: 'Accessible by design',
-      body: 'Keyboard-first navigation, clear focus states and reduced-motion support.',
+      title: 'Works without a mouse',
+      body: 'Every control is reachable by keyboard, with visible focus and reduced-motion support.',
     },
   ];
   return (

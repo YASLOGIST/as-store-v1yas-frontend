@@ -1,5 +1,6 @@
 import {Link, useRouteLoaderData} from 'react-router';
 import {useEffect, useRef, useState} from 'react';
+import {toggleWishlist, useIsWishlisted} from '~/lib/wishlist';
 import {Image, Money} from '@shopify/hydrogen';
 import {useVariantUrl} from '~/lib/variants';
 import {AddToCartButton} from '~/components/AddToCartButton';
@@ -8,6 +9,8 @@ import {LogoMark} from '~/components/Icons';
 
 /**
  * Product card with hover states, status badges and one-tap quick add.
+ * The quick-view dialog mounts on demand so a 24-card grid does not ship
+ * 24 hidden dialogs worth of markup.
  * Quick-add only renders when variant data is present in the fragment.
  * Uses a “stretched link” pattern so the whole card is clickable while
  * keeping valid HTML (no nested interactive elements).
@@ -27,36 +30,7 @@ export function ProductItem({product, loading, index}) {
   const rootData = useRouteLoaderData('root');
   const quickViewEnabled = rootData?.features?.quickView !== false;
   const [quickViewOpen, setQuickViewOpen] = useState(false);
-  const [wished, setWished] = useState(false);
-
-  useEffect(() => {
-    try {
-      const values = JSON.parse(
-        localStorage.getItem('yas:wishlist:v1') || '[]',
-      );
-      setWished(Array.isArray(values) && values.includes(product.id));
-    } catch {
-      setWished(false);
-    }
-  }, [product.id]);
-
-  const toggleWishlist = () => {
-    setWished((current) => {
-      const next = !current;
-      try {
-        const values = JSON.parse(
-          localStorage.getItem('yas:wishlist:v1') || '[]',
-        );
-        const items = new Set(Array.isArray(values) ? values : []);
-        if (next) items.add(product.id);
-        else items.delete(product.id);
-        localStorage.setItem('yas:wishlist:v1', JSON.stringify([...items]));
-      } catch {
-        // Storage is optional; preserve the in-session state.
-      }
-      return next;
-    });
-  };
+  const wished = useIsWishlisted(product.id);
 
   const variant = product.variants?.nodes?.[0];
   const price = product.priceRange?.minVariantPrice;
@@ -105,7 +79,7 @@ export function ProductItem({product, loading, index}) {
           aria-label={`${wished ? 'Remove' : 'Add'} ${product.title} ${wished ? 'from' : 'to'} wishlist`}
           aria-pressed={wished}
           className="product-wishlist reset"
-          onClick={toggleWishlist}
+          onClick={() => toggleWishlist(product.id)}
           type="button"
         >
           <span aria-hidden="true">{wished ? '♥' : '♡'}</span>
@@ -165,7 +139,7 @@ export function ProductItem({product, loading, index}) {
           ) : null}
         </small>
       </div>
-      {quickViewEnabled ? (
+      {quickViewEnabled && quickViewOpen ? (
         <ProductQuickView
           image={image}
           onClose={() => setQuickViewOpen(false)}

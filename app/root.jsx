@@ -79,7 +79,7 @@ export const meta = ({data}) => {
   const shopName = data?.header?.shop?.name ?? 'YAS Store';
   const origin = data?.origin;
   return [
-    {name: 'theme-color', content: '#05060c'},
+    {name: 'theme-color', content: '#08090c'},
     {property: 'og:site_name', content: shopName},
     ...(origin
       ? [{property: 'og:image', content: `${origin}/og-image.jpg`}]
