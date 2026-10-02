@@ -113,17 +113,25 @@ html:not([data-features~='premiumMotion']) .ambient-pointer-light {
   display: none;
 }
 
+/* The light is a fixed-size, compositor-only layer. Moving it with a transform
+ * keeps pointer tracking off the raster path; animating the gradient's centre
+ * instead would repaint the whole viewport on every pointer frame. */
 .ambient-pointer-light {
   --pointer-x: 50vw;
   --pointer-y: 30vh;
   position: fixed;
-  inset: 0;
+  top: -28rem;
+  left: -28rem;
   z-index: 0;
+  width: 56rem;
+  height: 56rem;
   pointer-events: none;
   opacity: 0.55;
   contain: strict;
+  will-change: transform;
+  transform: translate3d(var(--pointer-x), var(--pointer-y), 0);
   background: radial-gradient(
-    28rem circle at var(--pointer-x) var(--pointer-y),
+    28rem circle at center,
     rgba(255, 138, 61, 0.105),
     rgba(255, 196, 107, 0.035) 38%,
     transparent 72%
@@ -361,12 +369,6 @@ hr {
   border-color: rgba(251, 113, 133, 0.4);
   background: var(--danger-soft);
   color: var(--danger);
-}
-
-.badge-new {
-  border-color: rgba(74, 222, 128, 0.35);
-  background: var(--success-soft);
-  color: var(--success);
 }
 
 /* Skeleton shimmer for suspense fallbacks */
@@ -2010,6 +2012,38 @@ html[data-features~='productTilt'] .product-item:hover {
   object-fit: cover;
 }
 
+.product-model {
+  position: relative;
+}
+
+.product-model model-viewer {
+  cursor: grab;
+}
+
+/* Camera reset: an orbit control is only safe UX if the user can get back to
+ * the canonical view in one action. */
+.product-model-reset {
+  position: absolute;
+  z-index: 2;
+  inset-block-end: 0.85rem;
+  inset-inline-end: 0.85rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg-glass);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--motion-base, 220ms) ease;
+}
+
+.product-model:hover .product-model-reset,
+.product-model:focus-within .product-model-reset {
+  opacity: 1;
+}
+
 .product-main {
   align-self: start;
   position: sticky;
@@ -2386,44 +2420,6 @@ html[data-features~='productTilt'] .product-item:hover {
   line-height: 1.75;
 }
 
-.policies-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.policies-grid a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface);
-  font-weight: 600;
-  transition:
-    transform var(--motion-fast) var(--motion-ease-enter),
-    opacity var(--motion-fast) linear;
-}
-
-.policies-grid a::after {
-  content: '→';
-  color: var(--accent-2);
-  transition:
-    transform var(--motion-fast) var(--motion-ease-enter),
-    opacity var(--motion-fast) linear;
-}
-
-.policies-grid a:hover {
-  border-color: var(--accent);
-  background: var(--surface-2);
-}
-
-.policies-grid a:hover::after {
-  transform: translateX(4px);
-}
-
 /* ------------------------------------------------------------------
  * Account
  * ------------------------------------------------------------------ */
@@ -2540,12 +2536,6 @@ html[data-features~='productTilt'] .product-item:hover {
   text-transform: uppercase;
   color: var(--text-faint);
   padding: 0 0.5rem;
-}
-
-.order-search-active {
-  font-weight: normal;
-  opacity: 0.7;
-  margin-left: 0.5rem;
 }
 
 .order-search-inputs {
@@ -3118,8 +3108,7 @@ body::before {
   }
 
   .reveal,
-  .hero-orbit,
-  .hero-scan {
+  .hero-orbit {
     animation: none;
   }
 
@@ -3351,22 +3340,14 @@ body::before {
 
 .hero-visual {
   position: relative;
-  inset: auto;
   display: block;
   width: min(100%, 620px);
-  aspect-ratio: auto;
   margin-inline: auto;
   color: var(--text);
-  opacity: 1;
   contain: layout paint;
   transform: translate3d(0, var(--hero-depth, 0px), 0) perspective(1000px)
     rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
   isolation: isolate;
-}
-
-.hero-visual::before,
-.hero-visual::after {
-  content: none;
 }
 
 .hero-visual-frame {
