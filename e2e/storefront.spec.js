@@ -184,8 +184,19 @@ test.describe('storefront browser flows', () => {
   test('home visual regression', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'});
     await page.goto('/');
+    // Capture the English fixture in its matching document direction; RTL is
+    // covered independently above.
+    await page.getByLabel('Language and market').selectOption('EN-US');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await page.waitForLoadState('networkidle');
     await page.evaluate(() => document.fonts.ready);
     await expect(page.locator('.product-item').first()).toBeAttached();
+    // Full-page captures need every lazy-rendered section painted; production
+    // still keeps content-visibility for real viewport performance.
+    await page.addStyleTag({
+      content:
+        '.home-section, .footer { content-visibility: visible !important; }',
+    });
     await expect(page).toHaveScreenshot('home-desktop.png', {fullPage: true});
   });
 });
