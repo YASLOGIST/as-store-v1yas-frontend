@@ -60,6 +60,11 @@ test.describe('storefront browser flows', () => {
     page,
   }) => {
     await page.goto('/');
+    // Let deferred data and the analytics bootstrap settle: interacting
+    // mid-hydration flips React Suspense boundaries to client rendering and
+    // discards the interaction. Real users land after boot; the test must
+    // match that or it races the framework, not the feature.
+    await page.waitForLoadState('networkidle');
     const open = page.getByTestId('quick-view-open').first();
     await open.focus();
     await open.press('Enter');
@@ -102,9 +107,58 @@ test.describe('storefront browser flows', () => {
   test('hero GPU field initializes and recovers its WebGL context', async ({
     page,
   }) => {
+    // Keep the drawing buffer readable so the palette can be sampled after
+    // compositing; production behavior is unchanged (preserveDrawingBuffer
+    // only affects readback).
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, options) {
+        return original.call(this, type, {
+          ...options,
+          preserveDrawingBuffer: true,
+        });
+      };
+    });
     await page.goto('/');
     const canvas = page.locator('.hero-signal-field');
     await expect(canvas).toHaveAttribute('data-render-state', 'ready');
+    // Let the first visible frame land before sampling the buffer.
+    await page.waitForTimeout(400);
+
+    // The field must draw in the store's amber accent system: average drawn
+    // color red-dominant. This locks the WebGL layer to the VOLT palette; a
+    // violet/cyan regression fails here.
+    const palette = await canvas.evaluate((node) => {
+      const gl = node.getContext('webgl');
+      if (!gl) return {supported: false};
+      const {width, height} = node;
+      const pixels = new Uint8Array(width * height * 4);
+      gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+      let drawn = 0;
+      for (let i = 0; i < width * height; i++) {
+        const alpha = pixels[i * 4 + 3];
+        if (alpha <= 8) continue;
+        red += pixels[i * 4];
+        green += pixels[i * 4 + 1];
+        blue += pixels[i * 4 + 2];
+        drawn += 1;
+      }
+      return {
+        supported: true,
+        drawn,
+        red: drawn ? red / drawn : 0,
+        green: drawn ? green / drawn : 0,
+        blue: drawn ? blue / drawn : 0,
+      };
+    });
+    expect(palette.supported).toBe(true);
+    expect(palette.drawn).toBeGreaterThan(1000);
+    expect(palette.red).toBeGreaterThan(palette.blue * 1.5);
+    expect(palette.red).toBeGreaterThan(palette.green);
+
     const recovery = await canvas.evaluate(
       (node) =>
         new Promise((resolve) => {
