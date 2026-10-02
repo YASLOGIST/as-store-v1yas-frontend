@@ -197,3 +197,40 @@ Headroom is now zero — the next wave must reclaim JS before adding any.
 New tests: `app/lib/mock-storefront.test.js` (the fixture must discriminate),
 three `getSearchEmptyState` cases, and an e2e test that follows the recovery
 link from a zero-match search to the catalog.
+
+---
+
+# Wave 4 — one cross-platform search command
+
+## Recon / defect
+
+Search keyboard handling had split ownership. `PageLayout` opened the predictive
+search drawer with Ctrl/Command K or `/`, while the standalone `SearchForm`
+installed a second document listener that understood Command K only and focused
+its local input. The interface and homepage copy advertised only `⌘K`. That made
+the feature look macOS-only despite its actual cross-platform capability, added
+a redundant global listener on the search route, and labeled the account control
+only as “Account” to assistive technology even when its visible state said “Sign
+in”.
+
+## Upgrade
+
+- Kept keyboard ownership in `GlobalShortcuts`; removed the duplicate route-level
+  document listener and its effect lifecycle.
+- Updated the visible shortcut and homepage product copy to `Ctrl/⌘ K`.
+- Changed the account control's stable accessible name to “Account or sign in”,
+  which remains present when the responsive visible label is hidden.
+- Added a browser regression that executes `Control+K`, verifies the search
+  dialog opens and autofocuses its searchbox, and checks the account name.
+
+## Verification (MEASURED 2026-10-02)
+
+| Gate | Result |
+| --- | --- |
+| lint · format | PASSED |
+| `npm test` | PASSED — 122 / 122 |
+| production build | PASSED |
+| bundle budgets | PASSED — largest JS 44.6/50.0 KiB; total JS 149.9/150.0 KiB; CSS 12.0/12.0 KiB |
+| full Playwright suite | PASSED — 17 / 17 (including the new cross-platform shortcut regression) |
+
+No dependency, asset, CSS, API, data, or merchant behavior changes.
