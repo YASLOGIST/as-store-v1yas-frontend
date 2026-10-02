@@ -3407,6 +3407,28 @@ body::before {
   transform: scale(1.06);
 }
 
+.hero-signal-field {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  opacity: 0;
+  touch-action: pan-y;
+  transition: opacity var(--motion-slow) var(--motion-ease-enter);
+}
+
+.hero-signal-field[data-render-state='ready'] {
+  opacity: 0.9;
+}
+
+.hero-signal-field[data-render-state='fallback'],
+.hero-signal-field[data-render-state='lost'],
+html:not([data-features~='webglHero']) .hero-signal-field {
+  display: none;
+}
+
 .hero-visual-shade {
   position: absolute;
   z-index: 1;
