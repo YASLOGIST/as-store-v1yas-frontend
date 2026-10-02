@@ -76,8 +76,8 @@ jobs:
           E2E_PRODUCT_HANDLE: ${{ vars.E2E_PRODUCT_HANDLE }}
           E2E_SEARCH_TERM: ${{ vars.E2E_SEARCH_TERM }}
 
-      # Artifact downloads are not always reachable from every environment, so
-      # the failing assertions are also written into the job summary.
+      # Artifact downloads are not reachable from every environment, so the
+      # failing assertions are republished as a job summary and an annotation.
       - name: Summarize browser failures
         if: ${{ failure() }}
         run: |
@@ -87,6 +87,10 @@ jobs:
             tail -n 250 /tmp/e2e.log || echo 'no log captured'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          tail -n 80 /tmp/e2e.log \
+            | sed -e 's/%/%25/g' -e 's/\r/%0D/g' \
+            | awk '{printf "%s%%0A", $0}' \
+            | xargs -0 -I {} echo "::error title=Playwright failure::{}"
 
       - name: Upload browser failure evidence
         if: ${{ failure() }}
