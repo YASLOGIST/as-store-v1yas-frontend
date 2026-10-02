@@ -360,7 +360,7 @@ export function applyMockStorefront(context, request) {
       };
     }
     if (query.includes('query RecommendedProducts')) {
-      return {products: {nodes}};
+      return {products: {nodes: nodes.slice(0, 4)}};
     }
     if (query.includes('query ProductRecommendations')) {
       return {productRecommendations: nodes.slice(1, 5)};

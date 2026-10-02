@@ -239,13 +239,15 @@ test.describe('storefront browser flows', () => {
     await page.evaluate(() => document.fonts.ready);
     await expect(page.locator('.product-item').first()).toBeAttached();
 
-    // Decode every image that is already requested, so a slow runner cannot
-    // capture the page mid-decode.
+    // Decode the images that have already loaded, so a slow runner cannot
+    // capture the page mid-decode. Lazy images further down the document are
+    // deliberately skipped: they never load at this scroll position, and
+    // awaiting their decode would hang.
     await page.evaluate(() =>
       Promise.all(
-        Array.from(document.images).map((image) =>
-          image.decode().catch(() => undefined),
-        ),
+        Array.from(document.images)
+          .filter((image) => image.complete)
+          .map((image) => image.decode().catch(() => undefined)),
       ),
     );
 

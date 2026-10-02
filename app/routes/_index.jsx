@@ -253,7 +253,7 @@ function RecommendedProducts({products}) {
           <IconArrowRight />
         </Link>
       </div>
-      <Suspense fallback={<ProductGridSkeleton count={8} />}>
+      <Suspense fallback={<ProductGridSkeleton count={4} />}>
         <Await resolve={products}>
           {(response) => (
             <div className="recommended-products-grid">
@@ -375,7 +375,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
   query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    products(first: 8, sortKey: UPDATED_AT, reverse: true) {
+    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
       nodes {
         ...RecommendedProduct
       }
