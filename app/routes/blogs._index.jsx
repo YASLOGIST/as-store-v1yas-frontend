@@ -13,6 +13,16 @@ export const meta = () => {
   });
 };
 
+const EMPTY_BLOGS = {
+  nodes: [],
+  pageInfo: {
+    hasNextPage: false,
+    hasPreviousPage: false,
+    startCursor: null,
+    endCursor: null,
+  },
+};
+
 /**
  * @param {Route.LoaderArgs} args
  */
@@ -36,7 +46,7 @@ async function loadCriticalData({context, request}) {
     pageBy: 10,
   });
 
-  const [{blogs}] = await Promise.all([
+  const [data] = await Promise.all([
     context.storefront.query(BLOGS_QUERY, {
       cache: context.storefront.CacheShort(),
       variables: {
@@ -46,7 +56,9 @@ async function loadCriticalData({context, request}) {
     // Add other queries here, so that they are loaded in parallel
   ]);
 
-  return {blogs};
+  // A store with no blog resource returns no connection. That is an empty
+  // journal, not a server fault, so render the empty state instead of 500ing.
+  return {blogs: data?.blogs ?? EMPTY_BLOGS};
 }
 
 /**
@@ -62,24 +74,49 @@ function loadDeferredData() {
 export default function Blogs() {
   /** @type {LoaderReturnData} */
   const {blogs} = useLoaderData();
+  const hasBlogs = Boolean(blogs?.nodes?.length);
 
   return (
     <div className="blogs">
-      <h1>Blogs</h1>
-      <div className="blogs-grid">
-        <PaginatedResourceSection connection={blogs}>
+      <div className="collection-header">
+        <span className="eyebrow">Journal</span>
+        <h1>Field notes</h1>
+        <p className="collection-description">
+          Teardowns, bench measurements and release notes from the people who
+          build and test the catalog.
+        </p>
+      </div>
+      {hasBlogs ? (
+        <PaginatedResourceSection
+          connection={blogs}
+          resourcesClassName="blogs-grid"
+        >
           {({node: blog}) => (
             <Link
-              className="blog"
+              className="blog-channel"
               key={blog.handle}
               prefetch="intent"
               to={`/blogs/${blog.handle}`}
             >
               <h2>{blog.title}</h2>
+              {blog.seo?.description ? (
+                <p className="collection-description">{blog.seo.description}</p>
+              ) : null}
             </Link>
           )}
         </PaginatedResourceSection>
-      </div>
+      ) : (
+        <div className="collection-empty">
+          <h2>Nothing published yet</h2>
+          <p>
+            The journal is empty for now. In the meantime, the catalog is where
+            the work shows up first.
+          </p>
+          <Link className="btn btn-primary" to="/collections/all">
+            Browse the catalog
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

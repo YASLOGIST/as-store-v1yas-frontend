@@ -11,6 +11,25 @@ export function getSearchEmptyMessage({term = '', error} = {}) {
     : 'Enter a product, collection, page or article to start searching.';
 }
 
+/**
+ * Describe the empty search state so the UI can render a quiet hint before the
+ * first query and a real recovery path after a query that matched nothing.
+ * @param {{term?: string, error?: string}} state
+ */
+export function getSearchEmptyState({term = '', error} = {}) {
+  if (error) return null;
+  if (!term) {
+    return {kind: 'initial', message: getSearchEmptyMessage()};
+  }
+
+  return {
+    kind: 'nomatch',
+    title: `No results for \u201c${term}\u201d`,
+    message:
+      'Check the spelling, try fewer words, or search by brand or product type.',
+  };
+}
+
 /** Returns the empty state of a regular search response. */
 export function getEmptyRegularSearchResult() {
   return {

@@ -3,6 +3,8 @@ import {Image, getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {buildRouteMeta} from '~/lib/seo';
+import {formatPublishedDate} from '~/lib/locale';
+import {useDocumentLanguage} from '~/lib/useDocumentLanguage';
 
 /**
  * @type {Route.MetaFunction}
@@ -78,7 +80,13 @@ export default function Blog() {
 
   return (
     <div className="blog">
-      <h1>{blog.title}</h1>
+      <div className="collection-header">
+        <span className="eyebrow">Journal</span>
+        <h1>{blog.title}</h1>
+        {blog.seo?.description ? (
+          <p className="collection-description">{blog.seo.description}</p>
+        ) : null}
+      </div>
       <div className="blog-grid">
         <PaginatedResourceSection connection={articles}>
           {({node: article, index}) => (
@@ -101,11 +109,8 @@ export default function Blog() {
  * }}
  */
 function ArticleItem({article, loading}) {
-  const publishedAt = new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(article.publishedAt));
+  const language = useDocumentLanguage();
+  const publishedAt = formatPublishedDate(article.publishedAt, language);
   return (
     <div className="blog-article" key={article.id}>
       <Link to={`/blogs/${article.blog.handle}/${article.handle}`}>

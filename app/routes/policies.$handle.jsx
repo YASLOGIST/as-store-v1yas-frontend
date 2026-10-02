@@ -50,14 +50,26 @@ export default function Policy() {
 
   return (
     <div className="policy">
-      <br />
-      <br />
-      <div>
-        <Link to="/policies">← Back to Policies</Link>
-      </div>
-      <br />
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link prefetch="intent" to="/">
+          Home
+        </Link>
+        <span className="crumb-sep" aria-hidden="true">
+          /
+        </span>
+        <Link prefetch="intent" to="/policies">
+          Policies
+        </Link>
+        <span className="crumb-sep" aria-hidden="true">
+          /
+        </span>
+        <span aria-current="page">{policy.title}</span>
+      </nav>
       <h1>{policy.title}</h1>
-      <div dangerouslySetInnerHTML={{__html: policy.body}} />
+      <div
+        className="article-content"
+        dangerouslySetInnerHTML={{__html: policy.body}}
+      />
     </div>
   );
 }

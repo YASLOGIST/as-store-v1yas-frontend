@@ -1,11 +1,11 @@
-import {useLoaderData} from 'react-router';
+import {Link, useLoaderData} from 'react-router';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {SearchForm} from '~/components/SearchForm';
 import {SearchResults} from '~/components/SearchResults';
 import {
   getEmptyPredictiveSearchResult,
   getEmptyRegularSearchResult,
-  getSearchEmptyMessage,
+  getSearchEmptyState,
 } from '~/lib/search';
 import {buildRouteMeta} from '~/lib/seo';
 import {clampSearchLimit, normalizeSearchTerm} from '~/lib/validation';
@@ -83,8 +83,13 @@ export default function SearchPage() {
             {error}
           </p>
         ) : null}
-        {!result?.total ? (
-          <SearchResults.Empty message={getSearchEmptyMessage({term, error})} />
+        {!result?.total ? <SearchEmptyState term={term} error={error} /> : null}
+        {result?.total ? (
+          <p className="collection-count">
+            {`${result.total} ${
+              result.total === 1 ? 'result' : 'results'
+            } for \u201c${term}\u201d`}
+          </p>
         ) : null}
       </div>
       {result?.total ? (
@@ -99,6 +104,31 @@ export default function SearchPage() {
         </SearchResults>
       ) : null}
       <Analytics.SearchView data={{searchTerm: term, searchResults: result}} />
+    </div>
+  );
+}
+
+/**
+ * The two no-result situations need different answers: a visitor who has not
+ * searched yet gets a quiet hint, a visitor whose query matched nothing gets a
+ * way out of the dead end.
+ * @param {{term?: string, error?: string}}
+ */
+function SearchEmptyState({term, error}) {
+  const state = getSearchEmptyState({term, error});
+  if (!state) return null;
+
+  if (state.kind === 'initial') {
+    return <p className="collection-description">{state.message}</p>;
+  }
+
+  return (
+    <div className="collection-empty">
+      <h2>{state.title}</h2>
+      <p>{state.message}</p>
+      <Link className="btn btn-primary" to="/collections/all">
+        Browse the catalog
+      </Link>
     </div>
   );
 }

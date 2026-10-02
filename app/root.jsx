@@ -14,6 +14,7 @@ import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import {websiteJsonLd} from '~/lib/seo';
 import {getTextDirection, normalizeDocumentLanguage} from '~/lib/locale';
 import {getFeatureFlags} from '~/lib/features';
+import {errorState} from '~/lib/errorStates';
 import {getStoreMarkets} from '~/lib/env';
 import {StructuredData} from '~/components/StructuredData';
 import resetStyles from '~/styles/reset.css?url';
@@ -257,24 +258,26 @@ export function ErrorBoundary() {
     errorMessage = error.message;
   }
 
-  const isNotFound = errorStatus === 404;
+  const {title, body, action} = errorState(errorStatus);
   const showDetails = import.meta.env.DEV && Boolean(errorMessage);
 
   return (
     <div className="route-error">
       <LogoMark size={56} />
       <h2>{errorStatus}</h2>
-      <h1>{isNotFound ? 'Page not found' : 'Something went sideways'}</h1>
-      <p>
-        {isNotFound
-          ? "The page you're looking for doesn't exist or has been moved."
-          : 'We could not complete that request. Please try again in a moment.'}
-      </p>
+      <h1>{title}</h1>
+      <p>{body}</p>
       <div className="route-error-actions">
-        <a className="btn btn-primary" href="/">
-          Return home
-        </a>
-        {!isNotFound ? (
+        {action === 'signin' ? (
+          <a className="btn btn-primary" href="/account">
+            Sign in
+          </a>
+        ) : (
+          <a className="btn btn-primary" href="/">
+            Return home
+          </a>
+        )}
+        {action === 'retry' ? (
           <button
             className="btn btn-ghost"
             onClick={() => window.location.reload()}
@@ -282,7 +285,11 @@ export function ErrorBoundary() {
           >
             Try again
           </button>
-        ) : null}
+        ) : (
+          <a className="btn btn-ghost" href="/collections/all">
+            Browse the catalog
+          </a>
+        )}
       </div>
       {showDetails ? (
         <details>

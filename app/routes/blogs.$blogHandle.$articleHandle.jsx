@@ -3,6 +3,8 @@ import {Image, useNonce} from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {articleJsonLd, buildRouteMeta} from '~/lib/seo';
 import {StructuredData} from '~/components/StructuredData';
+import {formatPublishedDate} from '~/lib/locale';
+import {useDocumentLanguage} from '~/lib/useDocumentLanguage';
 
 /**
  * @type {Route.MetaFunction}
@@ -88,12 +90,9 @@ export default function Article() {
   const {article} = useLoaderData();
   const {title, image, contentHtml, author} = article;
   const nonce = useNonce();
+  const language = useDocumentLanguage();
 
-  const publishedDate = new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(article.publishedAt));
+  const publishedDate = formatPublishedDate(article.publishedAt, language);
 
   return (
     <div className="article">

@@ -1,24 +1,40 @@
 import {parseGid} from '@shopify/hydrogen';
+import {
+  CRAWLER_CACHE_SECONDS,
+  CRAWLER_DEGRADED_CACHE_SECONDS,
+} from '~/lib/crawlers';
 
 /**
  * @param {Route.LoaderArgs}
  */
 export async function loader({request, context}) {
   const url = new URL(request.url);
+  let shopId;
+  let degraded = false;
 
-  const {shop} = await context.storefront.query(ROBOTS_QUERY, {
-    cache: context.storefront.CacheLong(),
-  });
+  // robots.txt must answer 200 even when the Storefront API is unhappy: a 5xx
+  // here tells crawlers to back off the whole host. The shop-scoped checkout
+  // rules are an enhancement, so drop them rather than the document.
+  try {
+    const {shop} = await context.storefront.query(ROBOTS_QUERY, {
+      cache: context.storefront.CacheLong(),
+    });
+    shopId = shop?.id ? parseGid(shop.id).id : undefined;
+    degraded = !shopId;
+  } catch (error) {
+    console.error('[crawler:robots.txt] shop lookup failed', error);
+    degraded = true;
+  }
 
-  const shopId = parseGid(shop.id).id;
   const body = robotsTxtData({url: url.origin, shopId});
 
   return new Response(body, {
     status: 200,
     headers: {
       'Content-Type': 'text/plain',
-
-      'Cache-Control': `max-age=${60 * 60 * 24}`,
+      'Cache-Control': `max-age=${
+        degraded ? CRAWLER_DEGRADED_CACHE_SECONDS : CRAWLER_CACHE_SECONDS
+      }`,
     },
   });
 }
@@ -26,7 +42,7 @@ export async function loader({request, context}) {
 /**
  * @param {{shopId?: string; url?: string}}
  */
-function robotsTxtData({url, shopId}) {
+export function robotsTxtData({url, shopId}) {
   const sitemapUrl = url ? `${url}/sitemap.xml` : undefined;
 
   return `
