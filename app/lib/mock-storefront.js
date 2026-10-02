@@ -158,6 +158,53 @@ function product(origin, item, index = 0) {
   };
 }
 
+/** Editorial fixture. Keeps `/blogs`, blog and article routes exercisable. */
+const ARTICLES = [
+  {
+    handle: 'bench-power-notes',
+    title: 'Bench power, measured',
+    publishedAt: '2026-02-04T09:00:00Z',
+    author: 'Mara Okonjo',
+    excerpt:
+      'What a 100W GaN brick actually delivers once three devices share the pass-through.',
+  },
+  {
+    handle: 'mesh-coverage-field-test',
+    title: 'Mesh coverage, three floors deep',
+    publishedAt: '2026-01-18T09:00:00Z',
+    author: 'Ilya Berg',
+    excerpt:
+      'Throughput and roam times for a tri-band node in a concrete stairwell.',
+  },
+];
+
+const BLOGS = [
+  {
+    id: 'gid://shopify/Blog/1',
+    handle: 'journal',
+    title: 'Journal',
+    seo: {
+      title: 'Journal',
+      description: 'Field notes from the bench.',
+    },
+  },
+];
+
+const POLICIES = [
+  {
+    id: 'gid://shopify/ShopPolicy/1',
+    handle: 'privacy-policy',
+    title: 'Privacy policy',
+    body: '<p>Deterministic privacy policy fixture.</p>',
+  },
+  {
+    id: 'gid://shopify/ShopPolicy/2',
+    handle: 'refund-policy',
+    title: 'Refund policy',
+    body: '<p>Deterministic refund policy fixture.</p>',
+  },
+];
+
 const COLLECTIONS = [
   {
     id: 'gid://shopify/Collection/1',
@@ -318,6 +365,51 @@ function facetsFor(items) {
   ];
 }
 
+/** `privacy-policy` → `privacyPolicy`, matching the Storefront shop fields. */
+function policyField(handle) {
+  return handle.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+}
+
+function article(origin, blog, item) {
+  return {
+    id: `gid://shopify/Article/${item.handle}`,
+    handle: item.handle,
+    title: item.title,
+    publishedAt: item.publishedAt,
+    contentHtml: `<p>${item.excerpt}</p>`,
+    author: {name: item.author},
+    image: {
+      id: `gid://shopify/MediaImage/${item.handle}`,
+      url: `${origin}/og-image.jpg`,
+      altText: `${item.title} cover image`,
+      width: 1200,
+      height: 630,
+    },
+    blog: {handle: blog.handle},
+  };
+}
+
+/** Resource handles for the typed child sitemaps Hydrogen requests. */
+function sitemapItems(query) {
+  const updatedAt = '2026-02-04T09:00:00Z';
+  const items = (handles) => handles.map((handle) => ({handle, updatedAt}));
+
+  if (query.includes('SitemapProducts')) {
+    return items(CATALOG.map((item) => item.handle));
+  }
+  if (query.includes('SitemapCollections')) {
+    return items(COLLECTIONS.map((item) => item.handle));
+  }
+  if (query.includes('SitemapArticles')) {
+    return items(ARTICLES.map((item) => item.handle));
+  }
+  if (query.includes('SitemapBlogs')) {
+    return items(BLOGS.map((item) => item.handle));
+  }
+  if (query.includes('SitemapPages')) return items(['about']);
+  return [];
+}
+
 const PAGE_INFO = {
   hasNextPage: false,
   hasPreviousPage: false,
@@ -429,6 +521,99 @@ export function applyMockStorefront(context, request) {
         nodes.find((node) => node.handle === variables.handle) || fixture;
       return {product: match};
     }
+    if (query.includes('query Blogs(')) {
+      return {
+        blogs: {
+          nodes: BLOGS.map((blog) => ({
+            title: blog.title,
+            handle: blog.handle,
+            seo: blog.seo,
+          })),
+          pageInfo: PAGE_INFO,
+        },
+      };
+    }
+    if (query.includes('query Blog(')) {
+      const blog = BLOGS.find((item) => item.handle === variables.blogHandle);
+      if (!blog) return {blog: null};
+      return {
+        blog: {
+          title: blog.title,
+          handle: blog.handle,
+          seo: blog.seo,
+          articles: {
+            nodes: ARTICLES.map((item) => article(origin, blog, item)),
+            pageInfo: PAGE_INFO,
+          },
+        },
+      };
+    }
+    if (query.includes('query Article(')) {
+      const blog = BLOGS.find((item) => item.handle === variables.blogHandle);
+      const match = ARTICLES.find(
+        (item) => item.handle === variables.articleHandle,
+      );
+      if (!blog || !match) return {blog: blog ? {handle: blog.handle} : null};
+      return {
+        blog: {
+          handle: blog.handle,
+          articleByHandle: {
+            ...article(origin, blog, match),
+            excerpt: match.excerpt,
+            seo: {title: match.title, description: match.excerpt},
+          },
+        },
+      };
+    }
+    if (query.includes('query Policies')) {
+      return {
+        shop: {
+          privacyPolicy: POLICIES[0],
+          shippingPolicy: null,
+          termsOfService: null,
+          refundPolicy: POLICIES[1],
+          subscriptionPolicy: null,
+        },
+      };
+    }
+    if (query.includes('query Policy')) {
+      // The policy route selects a single field through boolean @include flags.
+      const requested = Object.keys(variables).find(
+        (key) => variables[key] === true,
+      );
+      const policy = POLICIES.find(
+        (item) => policyField(item.handle) === requested,
+      );
+      return {shop: policy ? {[requested]: policy} : {}};
+    }
+    if (query.includes('query Page(')) {
+      return {
+        page: {
+          handle: variables.handle,
+          id: `gid://shopify/Page/${variables.handle}`,
+          title: 'About the bench',
+          body: '<p>Deterministic page fixture for authorized browser testing.</p>',
+          seo: {title: 'About the bench', description: 'Page fixture.'},
+        },
+      };
+    }
+    if (query.includes('query StoreRobots')) {
+      return {shop: {id: 'gid://shopify/Shop/1'}};
+    }
+    if (query.includes('query SitemapIndex')) {
+      const pages = (count) => ({pagesCount: {count}});
+      return {
+        products: pages(1),
+        collections: pages(1),
+        articles: pages(1),
+        pages: pages(1),
+        blogs: pages(1),
+        metaObjects: pages(0),
+      };
+    }
+    if (query.includes('query Sitemap')) {
+      return {sitemap: {resources: {items: sitemapItems(query)}}};
+    }
     if (query.includes('query RegularSearch')) {
       return {
         products: {nodes, pageInfo: PAGE_INFO},
@@ -447,6 +632,13 @@ export function applyMockStorefront(context, request) {
         },
       };
     }
+    // A silent `{}` makes an unmodelled query look like an upstream outage and
+    // hides fixture gaps behind route-level 500s. Name it instead.
+    console.warn(
+      `[mock-storefront] unhandled query: ${
+        /query\s+(\w+)/.exec(query)?.[1] ?? 'anonymous'
+      }`,
+    );
     return {};
   };
 

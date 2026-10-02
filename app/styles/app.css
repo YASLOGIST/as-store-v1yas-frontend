@@ -195,12 +195,6 @@ hr {
 /* ------------------------------------------------------------------
  * Utilities
  * ------------------------------------------------------------------ */
-.container {
-  width: min(var(--container), 100%);
-  margin-inline: auto;
-  padding-inline: var(--gutter);
-}
-
 .page {
   padding: clamp(1.5rem, 4vw, 3.5rem) var(--gutter);
   max-width: var(--container);
@@ -1490,16 +1484,8 @@ html[data-features~='productTilt'] .product-item:hover {
 /* ------------------------------------------------------------------
  * Collections
  * ------------------------------------------------------------------ */
-.collections-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(var(--grid-item-width), 100%), 1fr)
-  );
-  margin-bottom: 2rem;
-}
-
+.collections-grid,
+.products-grid,
 .collection-item {
   position: relative;
   display: block;
@@ -1561,12 +1547,6 @@ html[data-features~='productTilt'] .product-item:hover {
 }
 
 .products-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(var(--grid-item-width), 100%), 1fr)
-  );
   margin-bottom: 2.5rem;
 }
 
@@ -2076,10 +2056,6 @@ html[data-features~='productTilt'] .product-item:hover {
   font-weight: 500;
 }
 
-.product-price-on-sale .sale-price {
-  color: var(--accent-2);
-}
-
 .product-form {
   display: grid;
   gap: 1.4rem;
@@ -2319,7 +2295,8 @@ html[data-features~='productTilt'] .product-item:hover {
   margin-bottom: 2rem;
 }
 
-.blog-article {
+.blog-article,
+.blog-channel {
   position: relative;
   display: block;
   overflow: hidden;
@@ -2330,7 +2307,9 @@ html[data-features~='productTilt'] .product-item:hover {
     opacity var(--motion-fast) linear;
 }
 
-.blog-article:hover {
+.blog-article:hover,
+.blog-channel:hover,
+.blog-channel:focus-visible {
   border-color: var(--accent);
   transform: translateY(-4px);
 }
@@ -2352,9 +2331,31 @@ html[data-features~='productTilt'] .product-item:hover {
   transform: scale(1.06);
 }
 
-.blog-article h5 {
-  padding: 1.1rem 1.25rem;
+.blog-article h3 {
+  margin: 0;
+  padding: 1.1rem 1.25rem 0.35rem;
   font-size: 0.98rem;
+}
+
+.blog-article small {
+  display: block;
+  padding: 0 1.25rem 1.15rem;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+/* Blog channel cards on the journal index. */
+.blog-channel {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 1.5rem;
+}
+
+.blog-channel h2 {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
 }
 
 .article {
@@ -2504,8 +2505,7 @@ html[data-features~='productTilt'] .product-item:hover {
 .account-profile,
 .account-addresses,
 .account-orders,
-.account-order,
-.acccount-orders {
+.account-order {
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: clamp(1.25rem, 3vw, 2rem);

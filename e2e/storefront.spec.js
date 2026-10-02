@@ -345,6 +345,41 @@ test.describe('storefront browser flows', () => {
     await context.close();
   });
 
+  test('crawler surfaces answer with usable documents', async ({request}) => {
+    const robots = await request.get('/robots.txt');
+    expect(robots.status()).toBe(200);
+    const robotsBody = await robots.text();
+    expect(robotsBody).toContain('User-agent: *');
+    expect(robotsBody).toContain('/sitemap.xml');
+    expect(robotsBody).not.toContain('undefined');
+
+    const index = await request.get('/sitemap.xml');
+    expect(index.status()).toBe(200);
+    expect(await index.text()).toContain('<sitemapindex');
+
+    const products = await request.get('/sitemap/products/1.xml');
+    expect(products.status()).toBe(200);
+    expect(await products.text()).toContain('/products/volt-prototype');
+  });
+
+  test('journal lists channels and opens an article', async ({page}) => {
+    await page.goto('/blogs');
+    await expect(
+      page.getByRole('heading', {name: 'Field notes'}),
+    ).toBeVisible();
+    await page
+      .getByRole('link', {name: /Journal/})
+      .first()
+      .click();
+
+    await expect(page).toHaveURL(/\/blogs\/journal$/);
+    await page.getByRole('link', {name: /Bench power, measured/}).click();
+    await expect(
+      page.getByRole('heading', {name: 'Bench power, measured'}),
+    ).toBeVisible();
+    await expectA11y(page);
+  });
+
   test('home visual regression', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'});
     await page.goto('/');

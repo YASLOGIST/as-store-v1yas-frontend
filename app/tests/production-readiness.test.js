@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {loader as healthLoader} from '../routes/health[.json]';
 import {buildSitemapLink} from '../routes/sitemap.$type.$page[.xml]';
+import {loader as blogsLoader} from '../routes/blogs._index.jsx';
 
 describe('production readiness contracts', () => {
   it('serves a minimal, non-cacheable health response without environment data', async () => {
@@ -19,5 +20,21 @@ describe('production readiness contracts', () => {
         handle: 'future gear',
       }),
     ).toBe('https://shop.example/products/future%20gear');
+  });
+
+  it('renders an empty journal instead of failing when no blog resource exists', async () => {
+    const data = await blogsLoader({
+      request: new Request('https://shop.example/blogs'),
+      context: {
+        storefront: {
+          // A store without a blog returns no `blogs` connection at all.
+          query: async () => ({}),
+          CacheShort: () => ({}),
+        },
+      },
+    });
+
+    expect(data.blogs.nodes).toEqual([]);
+    expect(data.blogs.pageInfo.hasNextPage).toBe(false);
   });
 });

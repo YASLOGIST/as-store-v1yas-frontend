@@ -20,7 +20,7 @@ Success means a newcomer can install, test, build, and safely extend the Hydroge
 
 **Motion/3D decision:** Use input/scroll-driven CSS depth and centralized transform/opacity motion; perpetual orbit/scan loops were removed after they missed the frame guard. True 3D remains off by default, but real Shopify `Model3d` media now activates a lazy pinned `<model-viewer>` integration behind an independent kill switch with the merchant image as fallback.
 
-## Ranked top 10 audit
+## Ranked audit
 
 Impact/effort are scored 1–5. “Resolved” means implemented and covered by this repository’s gates.
 
@@ -34,8 +34,10 @@ Impact/effort are scored 1–5. “Resolved” means implemented and covered by 
 | 6 | Browser gates previously skipped without live credentials | 5/3 | former conditional Playwright suite | **Resolved:** deterministic local Storefront/cart adapter executes nine real Hydrogen browser checks, axe, screenshot, RTL, reduced-motion, no-JS, and metrics in CI |
 | 7 | Merchant rich HTML is rendered intentionally and relies on Shopify sanitation plus CSP | 4/3 | product/page/blog/policy routes; nonce CSP in `app/entry.server.jsx` | **Accepted/monitor:** retain CSP; validate merchant authoring policy in staging |
 | 8 | Full locale-prefixed URLs and locale switching are not implemented | 4/4 | flat route tree has no locale prefix | **Open:** add only when multiple indexed markets are a product requirement |
-| 9 | Upstream latency/error rates are logged only at coarse request boundaries | 3/3 | `server.js`, route `console.error` calls | **Open:** connect Oxygen logs to the selected observability vendor before launch |
-| 10 | Runtime/browser performance needs production RUM, not only bundle budgets | 4/3 | `scripts/check-bundle.mjs`; no authorized production traffic | **Open:** monitor LCP/INP/CLS by route after deployment |
+| 9 | Crawler-facing routes returned HTML 500s when shop/sitemap data was missing | 5/1 | `/robots.txt`, `/sitemap.xml` 500 in local mock sweep, 2026-10-02 | **Resolved:** `app/lib/crawlers.js` contract — robots degrades to a valid 200, sitemaps answer a retryable 503; unit + browser tests added |
+| 10 | The journal index threw on stores with no blog connection, and article dates were pinned to `en-US` inside RTL documents | 4/1 | `/blogs` 500 in local sweep; `Intl.DateTimeFormat('en-US', …)` in blog routes | **Resolved:** empty-state loader guard and `formatPublishedDate` following the document language |
+| 11 | Upstream latency/error rates are logged only at coarse request boundaries | 3/3 | `server.js`, route `console.error` calls | **Open:** connect Oxygen logs to the selected observability vendor before launch |
+| 12 | Runtime/browser performance needs production RUM, not only bundle budgets | 4/3 | `scripts/check-bundle.mjs`; no authorized production traffic | **Open:** monitor LCP/INP/CLS by route after deployment |
 
 ## Evidence and unknowns
 
