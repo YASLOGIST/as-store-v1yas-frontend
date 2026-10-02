@@ -17,6 +17,9 @@ await page.addInitScript(() => {
   };
 });
 await page.goto(BASE + '/', {waitUntil: 'networkidle'}).catch(() => {});
+// The field is brought up on first input, so give it one.
+await page.mouse.move(700, 500);
+await page.mouse.move(702, 502);
 await page.waitForTimeout(2500);
 
 const probe = await page.evaluate(() => {

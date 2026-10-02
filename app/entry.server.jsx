@@ -17,7 +17,6 @@ export default async function handleRequest(
   reactRouterContext,
   context,
 ) {
-  const isMockMode = context.env.E2E_MOCK_MODE === '1';
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     shop: {
       checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
@@ -25,12 +24,15 @@ export default async function handleRequest(
     },
     // `'self'` keeps the app's own route modules preloadable (browsers blank
     // nonce attributes after parsing, so a nonce-only policy refuses Link
-    // prefetch modulepreloads). cdn.shopify.com serves the consent/web-pixel
-    // bootstrap scripts analytics loads — but only against a real store: the
-    // mocked e2e environment stays free of that network churn.
-    scriptSrc: isMockMode
-      ? ["'self'", 'https://cdn.jsdelivr.net']
-      : ["'self'", 'https://cdn.shopify.com', 'https://cdn.jsdelivr.net'],
+    // prefetch modulepreloads). cdn.shopify.com serves the consent-tracking
+    // bootstrap the analytics stack loads; it is requested in every mode the
+    // provider boots in, including the mocked e2e environment, so refusing it
+    // there only produces a CSP violation and a console error.
+    scriptSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://cdn.jsdelivr.net',
+    ],
   });
 
   const body = await renderToReadableStream(

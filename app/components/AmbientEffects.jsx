@@ -68,27 +68,44 @@ export function AmbientEffects() {
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 3;
     let target = null;
+    let targetCenterX = 0;
+    let targetCenterY = 0;
+    // Hot-loop discipline: DOM queries and layout reads are hoisted out of the
+    // frame callback. The loop now only writes custom properties.
+    const hero = document.querySelector('.hero-visual');
+    const marquee = document.querySelector('.marquee-track');
+    let viewportWidth = window.innerWidth;
+    let viewportHeight = window.innerHeight;
+
+    const measureTarget = () => {
+      if (!target) return;
+      const bounds = target.getBoundingClientRect();
+      targetCenterX = bounds.left + bounds.width / 2;
+      targetCenterY = bounds.top + bounds.height / 2;
+    };
+
     const paint = () => {
       frame = 0;
       light.style.setProperty('--pointer-x', `${x}px`);
       light.style.setProperty('--pointer-y', `${y}px`);
-      const hero = document.querySelector('.hero-visual');
       if (hero) {
         hero.style.setProperty(
           '--tilt-x',
-          `${(y / innerHeight - 0.5) * -5}deg`,
+          `${(y / viewportHeight - 0.5) * -5}deg`,
         );
-        hero.style.setProperty('--tilt-y', `${(x / innerWidth - 0.5) * 7}deg`);
+        hero.style.setProperty(
+          '--tilt-y',
+          `${(x / viewportWidth - 0.5) * 7}deg`,
+        );
       }
       if (target) {
-        const bounds = target.getBoundingClientRect();
         target.style.setProperty(
           '--magnetic-x',
-          `${(x - bounds.left - bounds.width / 2) * 0.12}px`,
+          `${(x - targetCenterX) * 0.12}px`,
         );
         target.style.setProperty(
           '--magnetic-y',
-          `${(y - bounds.top - bounds.height / 2) * 0.12}px`,
+          `${(y - targetCenterY) * 0.12}px`,
         );
       }
     };
@@ -99,37 +116,53 @@ export function AmbientEffects() {
       x = event.clientX;
       y = event.clientY;
       const next = event.target.closest?.('[data-magnetic]') ?? null;
-      if (target && target !== next) {
-        target.style.removeProperty('--magnetic-x');
-        target.style.removeProperty('--magnetic-y');
+      if (target !== next) {
+        if (target) {
+          target.style.removeProperty('--magnetic-x');
+          target.style.removeProperty('--magnetic-y');
+        }
+        target = next;
+        // One layout read per hover, not one per frame.
+        measureTarget();
       }
-      target = next;
       requestPaint();
     };
+
+    // Scroll parallax is written from a rAF so a fast wheel cannot queue more
+    // style writes than the compositor can consume.
+    let scrollFrame = 0;
+    const paintScroll = () => {
+      scrollFrame = 0;
+      hero?.style.setProperty(
+        '--hero-depth',
+        `${Math.min(window.scrollY, viewportHeight) * 0.08}px`,
+      );
+      marquee?.style.setProperty(
+        '--marquee-depth',
+        `${Math.max(-300, window.scrollY * -0.18)}px`,
+      );
+    };
     const onScroll = () => {
-      document
-        .querySelector('.hero-visual')
-        ?.style.setProperty(
-          '--hero-depth',
-          `${Math.min(scrollY, innerHeight) * 0.08}px`,
-        );
-      document
-        .querySelector('.marquee-track')
-        ?.style.setProperty(
-          '--marquee-depth',
-          `${Math.max(-300, scrollY * -0.18)}px`,
-        );
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(paintScroll);
+    };
+    const onResize = () => {
+      viewportWidth = window.innerWidth;
+      viewportHeight = window.innerHeight;
+      measureTarget();
     };
 
     window.addEventListener('pointermove', onPointerMove, {passive: true});
     window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onResize, {passive: true});
     paint();
     return () => {
       mutations.disconnect();
       observer.disconnect();
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
       if (frame) cancelAnimationFrame(frame);
+      if (scrollFrame) cancelAnimationFrame(scrollFrame);
     };
   }, [location.key]);
 

@@ -10,239 +10,231 @@ void main() {
 `;
 
 /**
- * VOLT instrument field.
+ * Fragment program for the hero "instrument viewport".
  *
- * The hero card reads as a precision measurement instrument observing the
- * product: calibrated rings locked on the subject, one live arc revolving on
- * the outer ring, a faint sweep, a fine grid for scale, a ruler along the
- * bottom edge, and a reticle that answers the pointer. Palette is the store
- * accent system (amber #ff8a3d -> gold #ffc46b) so the layer belongs to the
- * same visual world as the rest of the UI. Nothing here implies telemetry:
- * it is spatial composition, not data.
+ * Art direction: the storefront accent is amber (#ff8a3d -> #ffc46b) on
+ * graphite. The field reads as calibrated optics sitting in front of merchant
+ * photography — selection contours, a calibration lattice, one travelling
+ * measurement band and a rim that ignites near the pointer. No second hue is
+ * introduced, so the layer never competes with the product.
+ *
+ * Cost control: one fullscreen triangle, no textures, no loops, no dynamic
+ * branching. `SMOOTH_LINES` is injected at compile time when
+ * OES_standard_derivatives is present, so line widths resolve in screen space
+ * instead of UV space (crisp at any DPR) without a runtime branch.
  */
 const FRAGMENT_SHADER = `
 precision mediump float;
+
 varying vec2 v_uv;
-uniform vec2 u_resolution;
-uniform vec2 u_pointer;
-uniform float u_time;
-uniform float u_motion;
-uniform float u_strength;
-uniform float u_activity;
-uniform float u_scroll;
 
-// Store accent tokens (app.css --accent / --accent-2), kept in sync by hand.
-const vec3 AMBER = vec3(1.0, 0.541, 0.239);
-const vec3 GOLD  = vec3(1.0, 0.769, 0.420);
-const vec3 EMBER = vec3(1.0, 0.388, 0.180);
-const vec3 FLARE = vec3(1.0, 0.890, 0.720);
+uniform vec2 u_aspect;    // (width/height, 1.0), computed once per resize
+uniform vec2 u_pointer;   // smoothed pointer, 0..1
+uniform float u_time;     // seconds, already multiplied by motion on the CPU
+uniform float u_focus;    // 0 = pointer away, 1 = pointer engaged
+uniform float u_strength; // art-direction gain from the route
 
-const float TAU = 6.28318530718;
+const vec2 SWEEP_AXIS = vec2(0.8211, 0.5708); // normalize(vec2(0.82, 0.57))
+const vec3 EMBER = vec3(1.0, 0.541, 0.239);   // #ff8a3d
+const vec3 FLARE = vec3(1.0, 0.769, 0.420);   // #ffc46b
 
-float lineAt(float x, float radius, float width) {
-  return 1.0 - smoothstep(width, width * 2.4, abs(x - radius));
+#ifdef SMOOTH_LINES
+// Screen-space line: constant apparent weight regardless of resolution.
+float lineMask(float field, float weight) {
+  float w = fwidth(field) * weight;
+  return 1.0 - smoothstep(0.0, w, abs(field));
 }
-
-// Wrapped angular distance to an angle.
-float angDist(float a, float b) {
-  return abs(atan(sin(a - b), cos(a - b)));
+#else
+float lineMask(float field, float weight) {
+  return 1.0 - smoothstep(0.0, weight * 0.011, abs(field));
 }
+#endif
 
+// Cheap, well-distributed hash (no transcendentals) used only for dithering.
 float hash(vec2 p) {
-  return fract(p.x * 1913.7 + p.y * 913.37);
+  p = fract(p * vec2(443.897, 441.423));
+  p += dot(p, p + 19.19);
+  return fract(p.x * p.y);
 }
 
 void main() {
   vec2 uv = v_uv;
-  float aspect = u_resolution.x / max(u_resolution.y, 1.0);
-  vec2 toAspect = vec2(aspect, 1.0);
 
-  // Early-out for regions no element can reach: keeps the quiet parts of the
-  // frame free on fill-rate-limited (including software-rendered) devices.
-  float pointerDist = length((uv - u_pointer) * toAspect);
-  bool nearPointer = pointerDist < 0.34;
-  bool inRulerBand = uv.y < 0.13;
-  vec2 focal = vec2(0.5, 0.56);
-  vec2 delta = (uv - focal) * toAspect;
+  // The focal point leans toward the pointer but never fully tracks it: the
+  // field keeps its composition instead of chasing the cursor.
+  vec2 focal = mix(vec2(0.56, 0.52), u_pointer, 0.22 + 0.10 * u_focus);
+  vec2 delta = (uv - focal) * u_aspect;
   float radius = length(delta);
-  bool inField = radius < 0.62;
-  if (!inField && !inRulerBand && !nearPointer) {
-    gl_FragColor = vec4(0.0);
-    return;
-  }
+  float t = u_time;
 
-  // The product is the measured subject: rings lock to the frame, not to
-  // the pointer. The pointer gets its own reticle further down.
-  float phase = u_time * u_motion;
-  float parallax = u_scroll * 0.045 * u_motion;
+  // 1. Selection contours — concentric rings that tighten around the pointer.
+  // Mostly dormant until the pointer engages: the ring is a response, not decor.
+  float rings = sin(radius * 26.0 - t * 1.6);
+  float contour = lineMask(rings, 1.3);
+  contour *= smoothstep(0.58, 0.10, radius) * smoothstep(0.03, 0.14, radius);
+  contour *= 0.34 + 0.66 * u_focus;
 
-  // Vertical edge masks: keep the frame borders quiet.
-  float edgeMask = smoothstep(0.015, 0.14, uv.y) * smoothstep(0.985, 0.86, uv.y);
-  float radialMask = smoothstep(0.60, 0.12, radius) * smoothstep(0.03, 0.10, radius);
+  // 2. Calibration lattice — pushed to the periphery so the product centre
+  // stays optically clean.
+  vec2 cell = uv * vec2(13.0, 17.0) + vec2(t * 0.045, 0.0);
+  vec2 g = abs(fract(cell) - 0.5);
+  float lattice = lineMask(0.5 - max(g.x, g.y), 1.0);
+  lattice *= smoothstep(0.30, 0.86, radius) * 0.085;
 
-  vec3 signal = vec3(0.0);
-  float weight = 0.0;
-  vec3 col;
-  float a;
+  // 3. Measurement band — one slow raking highlight along a fixed diagonal.
+  float axis = dot(uv, SWEEP_AXIS);
+  float sweepPos = fract(t * 0.045) * 2.0 - 0.45;
+  float band = exp2(-abs(axis - sweepPos) * 48.0);
+  band *= smoothstep(0.02, 0.38, uv.y) * smoothstep(1.0, 0.62, uv.y);
 
-  // -- Calibrated rings, live arc and its head marker -------------------
-  // Radii stay inside 0.5 * aspect so every ring clears the frame on the
-  // horizontal axis (portrait card, aspect ~0.81). The whole polar group is
-  // band-gated: pixels outside the ring field skip the atan entirely.
-  if (radius < 0.46) {
-    float rings =
-      lineAt(radius, 0.16, 0.0035) * 0.34 +
-      lineAt(radius, 0.27, 0.0035) * 0.22 +
-      lineAt(radius, 0.38, 0.0035) * 0.15;
-    col = mix(AMBER, GOLD, 0.35);
-    a = rings * radialMask * edgeMask;
-    signal += col * a;
-    weight += a;
+  // 4. Rim ignition — the frame edge warms where the pointer approaches it.
+  vec2 edge = min(uv, 1.0 - uv);
+  float rim = exp2(-min(edge.x, edge.y) * 86.0);
+  rim *= smoothstep(0.92, 0.18, radius) * (0.35 + 0.65 * u_focus);
 
-    float angle = atan(delta.y, delta.x);
-    float arcCenter = phase * 0.40;
-    float arc = 1.0 - smoothstep(0.85, 1.30, angDist(angle, arcCenter));
-    a = arc * lineAt(radius, 0.38, 0.0035) * 0.50 * radialMask * edgeMask;
-    col = EMBER;
-    signal += col * a;
-    weight += a;
+  // 5. Presence bloom — short-falloff warmth, only while engaged.
+  float bloom = exp2(-radius * 3.4) * 0.085 * u_focus;
 
-    // Arc head: a small bright marker riding the outer ring.
-    vec2 headPos =
-      focal + vec2(cos(arcCenter), sin(arcCenter)) * 0.38 / toAspect;
-    float headDist = length((uv - headPos) * toAspect);
-    a = (1.0 - smoothstep(0.004, 0.020, headDist)) * 0.55 * edgeMask;
-    col = GOLD;
-    signal += col * a;
-    weight += a;
-  }
+  float energy = clamp(band + contour * 0.55 + rim, 0.0, 1.0);
+  vec3 color = mix(EMBER, FLARE, energy);
 
-  // -- Fine grid: square cells, fades with distance, drifts on scroll --
-  if (radius < 0.55) {
-    vec2 guv = (uv - vec2(0.0, parallax)) * toAspect * 17.0;
-    vec2 g = abs(fract(guv) - 0.5);
-    float grid = 1.0 - smoothstep(0.435, 0.47, max(g.x, g.y));
-    a = grid * smoothstep(0.55, 0.10, radius) * 0.085
-        * smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.95, uv.x) * edgeMask;
-    col = AMBER;
-    signal += col * a;
-    weight += a;
-  }
+  float alpha = contour * 0.12 + band * 0.095 + lattice + rim * 0.075 + bloom;
 
-  // -- Ruler along the bottom edge: the instrument signature -----------
-  if (inRulerBand) {
-    float rulerX = uv.x * 34.0;
-    float tickIndex = floor(rulerX + 0.5);
-    float k = abs(fract(rulerX) - 0.5);
-    float tick = 1.0 - smoothstep(0.40, 0.46, k);
-    float major = step(mod(tickIndex, 4.0), 0.5);
-    float rulerTop = mix(0.062, 0.105, major);
-    a = tick
-        * smoothstep(rulerTop + 0.012, rulerTop - 0.012, uv.y)
-        * smoothstep(0.0, 0.018, uv.y)
-        * smoothstep(0.0, 0.04, uv.x) * smoothstep(1.0, 0.96, uv.x)
-        * 0.20;
-    col = mix(AMBER, GOLD, 0.5);
-    signal += col * a;
-    weight += a;
-  }
+  // Legibility guard: the caption plate sits in the lower band of the frame,
+  // so the field steps back there instead of layering texture under type.
+  alpha *= mix(0.22, 1.0, smoothstep(0.04, 0.34, uv.y));
 
-  // -- Pointer reticle: the operator's mark ----------------------------
-  vec2 pd = (uv - u_pointer) * toAspect;
-  float ax = abs(pd.x);
-  float ay = abs(pd.y);
-  float armH = (1.0 - smoothstep(0.004, 0.009, abs(ay - 0.050)))
-      * step(0.045, ax) * (1.0 - smoothstep(0.071, 0.076, ax));
-  float armV = (1.0 - smoothstep(0.004, 0.009, abs(ax - 0.050)))
-      * step(0.045, ay) * (1.0 - smoothstep(0.071, 0.076, ay));
-  float reticle = clamp(armH + armV, 0.0, 1.0) * (0.30 + 0.55 * u_activity);
-  a = reticle;
-  col = GOLD;
-  signal += col * a;
-  weight += a;
+  // Temporal dither: kills 8-bit banding in the soft falloffs.
+  alpha += (hash(floor(gl_FragCoord.xy) + floor(t * 8.0)) - 0.5) * 0.02;
 
-  // Center dot of the reticle.
-  a = (1.0 - smoothstep(0.0035, 0.0090, length(pd))) * 0.65;
-  col = FLARE;
-  signal += col * a;
-  weight += a;
+  // Only the outermost sliver is faded, so the rim survives.
+  alpha *= smoothstep(0.0, 0.035, uv.y) * smoothstep(0.0, 0.03, 1.0 - uv.y);
+  alpha = clamp(alpha * u_strength, 0.0, 1.0);
 
-  // Entry pulse: one ring expands from the pointer as activity decays.
-  float pulseRadius = (1.0 - u_activity) * 0.30;
-  a = (1.0 - smoothstep(0.004, 0.014, abs(length(pd) - pulseRadius)))
-      * u_activity * 0.40;
-  col = GOLD;
-  signal += col * a;
-  weight += a;
-
-  // Static dither inside signal areas only: kills gradient banding without
-  // the shimmer or full-coverage noise of a temporal grain.
-  float dither = (hash(floor(gl_FragCoord.xy * 0.5)) - 0.5) * 0.024;
-  weight += dither * smoothstep(0.0, 0.06, weight);
-
-  float alpha = clamp(weight, 0.0, 0.9) * u_strength;
-  vec3 color = weight > 0.001 ? signal / weight : vec3(0.0);
-  gl_FragColor = vec4(color * alpha, alpha);
+  gl_FragColor = vec4(color * alpha, alpha); // premultiplied
 }
 `;
 
+const HOME_X = 0.56;
+const HOME_Y = 0.52;
+
+/**
+ * CPU rasterisers. A fullscreen fragment program has no GPU to run on here:
+ * every draw is rasterised on the CPU and the renderer's main thread blocks on
+ * the command buffer, which measures as hundreds of milliseconds of blocking
+ * time (locally, 0 ms with the field off against ~2 s with it on). The field is
+ * decorative, so on these machines it does not run at all.
+ */
+const SOFTWARE_RENDERER =
+  /swiftshader|llvmpipe|softwarerasterizer|basic render|software adapter/i;
+
+function detectSoftwareRenderer(gl) {
+  try {
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = info
+      ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL)
+      : gl.getParameter(gl.RENDERER);
+    return SOFTWARE_RENDERER.test(String(renderer));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Start a shader compile. The COMPILE_STATUS query is deliberately omitted: it
+ * blocks until the driver finishes. Failures surface at the single LINK_STATUS
+ * check, which runs after the link has already completed.
+ */
 function compileShader(gl, type, source) {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    gl.deleteShader(shader);
-    return null;
-  }
   return shader;
 }
 
-const FOCAL = {x: 0.5, y: 0.56};
-
 /**
- * Tiny purpose-built WebGL layer for the homepage product composition. It uses
- * one fullscreen triangle, one draw call and no textures. Rendering is lazy,
- * visibility-aware, frame-capped and can be disabled independently at runtime.
+ * Purpose-built WebGL layer for the homepage product composition: one
+ * fullscreen triangle, one program, one draw call, zero textures.
+ *
+ * Runtime discipline
+ * - Rendering starts only when the canvas intersects the viewport and stops on
+ *   exit, tab hide and context loss.
+ * - The hot loop allocates nothing and writes no React state; uniforms that
+ *   cannot change between frames are uploaded only when they actually change.
+ * - Quality is adaptive in both directions: sustained long frames step the
+ *   device pixel ratio and the frame cap down, sustained headroom restores one
+ *   step, with hysteresis so it cannot oscillate.
+ * - Teardown deletes the buffer and program and explicitly releases the drawing
+ *   buffer through WEBGL_lose_context.
+ *
  * @param {{strength?: number}} props
  */
 export function HeroSignalField({strength = 1}) {
   const canvasRef = useRef(null);
+  const strengthRef = useRef(strength);
+  strengthRef.current = strength;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const features = document.documentElement.dataset.features || '';
     if (!canvas || !features.includes('webglHero')) return undefined;
 
-    const reducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const constrained =
       window.innerWidth < 720 ||
       (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
       (navigator.deviceMemory && navigator.deviceMemory <= 4);
-    let dprCap = constrained ? 1 : 1.5;
-    // The frame cap starts from the hardware tier and is lowered after the
-    // context exists if the renderer turns out to be software rasterization
-    // (CI containers, thin clients): real GPUs keep the full rate.
-    let fpsCap = reducedMotion ? 0 : constrained ? 24 : 40;
-    let gl;
-    let program;
-    let buffer;
-    let uniforms;
+
+    // Ladder walked by the adaptive controller. Index 0 is the best quality
+    // this device is allowed to attempt.
+    const ladder = constrained
+      ? [
+          {dpr: 1, fps: 24},
+          {dpr: 0.8, fps: 20},
+          {dpr: 0.6, fps: 18},
+        ]
+      : [
+          {dpr: 1.25, fps: 40},
+          {dpr: 1, fps: 32},
+          {dpr: 0.8, fps: 24},
+          {dpr: 0.6, fps: 18},
+        ];
+
+    let tier = 0;
+    let reducedMotion = motionQuery.matches;
+    let gl = null;
+    let program = null;
+    let parallelCompile = null;
+    let starting = false;
+    let inputSeen = false;
+    let unsupported = false; // terminal: this machine will not run the field
+    let released = false; // we dropped the context on purpose
+    let bootHandle = 0;
+    let buffer = null;
+    let uniforms = null;
+    let loseContext = null;
     let frame = 0;
+    let resizeFrame = 0;
     let visible = false;
     let disposed = false;
+    let contextLost = false;
     let startedAt = 0;
     let lastFrameAt = 0;
-    let frameAverage = 0;
-    let samples = 0;
-    let pointerX = FOCAL.x;
-    let pointerY = FOCAL.y;
-    let targetX = pointerX;
-    let targetY = pointerY;
-    let activity = 0;
-    let scrollProgress = 0;
+    let clock = 0; // motion-scaled time, so pausing motion never jumps
+    let costAverage = 0;
+    let overBudget = 0;
+    let underBudget = 0;
+    let pointerX = HOME_X;
+    let pointerY = HOME_Y;
+    let targetX = HOME_X;
+    let targetY = HOME_Y;
+    let focus = 0;
+    let targetFocus = 0;
+    // Dirty flags: these uniforms are uploaded only when they change.
+    let aspectDirty = true;
+    let strengthDirty = true;
+    let uploadedStrength = -1;
 
     const destroyProgram = () => {
       if (!gl) return;
@@ -251,37 +243,79 @@ export function HeroSignalField({strength = 1}) {
       buffer = null;
       program = null;
       uniforms = null;
+      parallelCompile = null;
     };
 
-    const createProgram = () => {
+    /**
+     * Phase 1 — create the context and start the compile. Nothing here queries
+     * compile or link status: those queries block the main thread until the
+     * driver finishes, which on a software rasteriser is long enough to show up
+     * as Total Blocking Time during page load.
+     */
+    const beginProgram = () => {
       gl = canvas.getContext('webgl', {
         alpha: true,
         antialias: false,
         depth: false,
+        stencil: false,
         powerPreference: constrained ? 'low-power' : 'high-performance',
         premultipliedAlpha: true,
         preserveDrawingBuffer: false,
+        failIfMajorPerformanceCaveat: false,
       });
       if (!gl) {
+        unsupported = true;
         canvas.dataset.renderState = 'fallback';
         return false;
       }
+      if (detectSoftwareRenderer(gl)) {
+        unsupported = true;
+        canvas.dataset.renderer = 'software';
+        canvas.dataset.renderState = 'fallback';
+        released = true;
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+        gl = null;
+        return false;
+      }
+
+      // Compile-time feature select: no per-fragment branch, no second program.
+      const derivatives = gl.getExtension('OES_standard_derivatives');
+      const fragmentSource = derivatives
+        ? `#extension GL_OES_standard_derivatives : enable\n#define SMOOTH_LINES\n${FRAGMENT_SHADER}`
+        : FRAGMENT_SHADER;
+
       const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
-      const fragment = compileShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
-      if (!vertex || !fragment) {
+      const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+      program = vertex && fragment ? gl.createProgram() : null;
+      if (!program) {
         if (vertex) gl.deleteShader(vertex);
         if (fragment) gl.deleteShader(fragment);
+        unsupported = true;
         canvas.dataset.renderState = 'fallback';
         return false;
       }
-      program = gl.createProgram();
       gl.attachShader(program, vertex);
       gl.attachShader(program, fragment);
       gl.linkProgram(program);
       gl.deleteShader(vertex);
       gl.deleteShader(fragment);
+
+      parallelCompile = gl.getExtension('KHR_parallel_shader_compile');
+      return true;
+    };
+
+    /** True once the driver has finished linking, without ever blocking on it. */
+    const programIsLinked = () =>
+      parallelCompile
+        ? gl.getProgramParameter(program, parallelCompile.COMPLETION_STATUS_KHR)
+        : true;
+
+    /** Phase 2 — bind state and publish the program. Runs off the load path. */
+    const finishProgram = () => {
+      if (!gl || !program) return false;
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         destroyProgram();
+        unsupported = true;
         canvas.dataset.renderState = 'fallback';
         return false;
       }
@@ -298,157 +332,293 @@ export function HeroSignalField({strength = 1}) {
       gl.enableVertexAttribArray(position);
       gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
       uniforms = {
-        resolution: gl.getUniformLocation(program, 'u_resolution'),
+        aspect: gl.getUniformLocation(program, 'u_aspect'),
         pointer: gl.getUniformLocation(program, 'u_pointer'),
         time: gl.getUniformLocation(program, 'u_time'),
-        motion: gl.getUniformLocation(program, 'u_motion'),
+        focus: gl.getUniformLocation(program, 'u_focus'),
         strength: gl.getUniformLocation(program, 'u_strength'),
-        activity: gl.getUniformLocation(program, 'u_activity'),
-        scroll: gl.getUniformLocation(program, 'u_scroll'),
       };
+
       gl.disable(gl.DEPTH_TEST);
       gl.disable(gl.CULL_FACE);
+      gl.disable(gl.STENCIL_TEST);
+      gl.disable(gl.SCISSOR_TEST);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      if (!reducedMotion) {
-        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        const renderer = debugInfo
-          ? String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL))
-          : '';
-        if (/swiftshader|software|llvmpipe|basic render/i.test(renderer)) {
-          fpsCap = 15;
-          canvas.dataset.quality = 'efficient';
-        }
-      }
+      gl.clearColor(0, 0, 0, 0);
+
+      loseContext = gl.getExtension('WEBGL_lose_context');
+      contextLost = false;
+      aspectDirty = true;
+      strengthDirty = true;
+      uploadedStrength = -1;
+      costAverage = 0;
+      overBudget = 0;
+      underBudget = 0;
       canvas.dataset.renderState = 'ready';
+      canvas.dataset.quality = tier === 0 ? 'full' : 'balanced';
+      resize();
       return true;
     };
 
+    /**
+     * Bring the field up off the input handler: context creation happens on the
+     * next frame and the link result is polled on animation frames rather than
+     * awaited, so no single task owns the whole bring-up.
+     */
+    /**
+     * The field responds to the pointer, so it is brought up on the first real
+     * input rather than during load. Creating a WebGL context initialises the
+     * platform's GL stack, which is expensive on machines without a GPU and
+     * would otherwise land inside the page's blocking-time window for a purely
+     * decorative layer. Input and visibility can arrive in either order, so
+     * both are recorded and whichever completes the pair starts the field.
+     */
+    const INPUT_EVENTS = [
+      'pointermove',
+      'pointerdown',
+      'wheel',
+      'keydown',
+      'scroll',
+    ];
+    const releaseInputListeners = () => {
+      for (const type of INPUT_EVENTS) {
+        window.removeEventListener(type, onFirstInput);
+      }
+    };
+    function onFirstInput() {
+      inputSeen = true;
+      releaseInputListeners();
+      maybeStart();
+    }
+    function maybeStart() {
+      if (!inputSeen || !visible) return;
+      startProgram();
+    }
+
+    const startProgram = () => {
+      if (disposed || unsupported || starting || program) return;
+      starting = true;
+      const boot = () => {
+        bootHandle = 0;
+        if (disposed) {
+          starting = false;
+          return;
+        }
+        if (!beginProgram()) {
+          starting = false;
+          return;
+        }
+        const settle = () => {
+          bootHandle = 0;
+          if (disposed) return;
+          if (!programIsLinked()) {
+            bootHandle = requestAnimationFrame(settle);
+            return;
+          }
+          starting = false;
+          if (finishProgram()) requestRender();
+        };
+        bootHandle = requestAnimationFrame(settle);
+      };
+      // One frame later, so the input handler returns immediately.
+      bootHandle = requestAnimationFrame(boot);
+    };
+
     const resize = () => {
-      if (!gl) return;
+      if (!gl || contextLost) return;
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+      if (!rect.width || !rect.height) return;
+      // Hard device cap first, then the art-directed tier cap.
+      const dpr = Math.min(window.devicePixelRatio || 1, 2, ladder[tier].dpr);
       const width = Math.max(1, Math.round(rect.width * dpr));
       const height = Math.max(1, Math.round(rect.height * dpr));
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
         gl.viewport(0, 0, width, height);
+        aspectDirty = true;
       }
+    };
+
+    const applyTier = (next) => {
+      if (next === tier || next < 0 || next >= ladder.length) return;
+      tier = next;
+      costAverage = 0;
+      overBudget = 0;
+      underBudget = 0;
+      canvas.dataset.quality = tier === 0 ? 'full' : 'balanced';
+      resize();
     };
 
     const render = (time) => {
       frame = 0;
-      if (disposed || !visible || document.hidden || !gl || !program) return;
+      if (disposed || contextLost || !visible || document.hidden) return;
+      if (!gl || !program || !uniforms) return;
+
+      const fpsCap = reducedMotion ? 0 : ladder[tier].fps;
       const interval = fpsCap ? 1000 / fpsCap : Infinity;
-      if (lastFrameAt && time - lastFrameAt < interval) {
+      if (lastFrameAt && time - lastFrameAt < interval - 0.5) {
         frame = requestAnimationFrame(render);
         return;
       }
       if (!startedAt) startedAt = time;
-      const delta = lastFrameAt ? time - lastFrameAt : interval;
+      const delta = lastFrameAt ? Math.min(time - lastFrameAt, 100) : interval;
       lastFrameAt = time;
-      if (fpsCap && samples < 120) {
-        frameAverage = frameAverage
-          ? frameAverage * 0.94 + delta * 0.06
-          : delta;
-        samples += 1;
-        if (samples === 90 && frameAverage > 28 && dprCap > 1) {
-          dprCap = 1;
-          resize();
-          canvas.dataset.quality = 'balanced';
+
+      // Adaptive quality. `delta` includes the throttle wait, so the signal is
+      // how far the real frame overruns its own budget, not raw frame time.
+      if (fpsCap) {
+        costAverage = costAverage ? costAverage * 0.9 + delta * 0.1 : delta;
+        if (costAverage > interval * 1.6) {
+          overBudget += 1;
+          underBudget = 0;
+          if (overBudget > 45) applyTier(tier + 1);
+        } else if (costAverage < interval * 1.12) {
+          underBudget += 1;
+          overBudget = 0;
+          if (underBudget > 420) applyTier(tier - 1);
         }
       }
-      pointerX += (targetX - pointerX) * 0.12;
-      pointerY += (targetY - pointerY) * 0.12;
-      activity = Math.max(0, activity - delta / 1400);
-      gl.useProgram(program);
-      gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
+
+      // Frame-rate independent easing: identical feel at 24fps and 48fps.
+      const step = delta * 0.001;
+      const ease = 1 - Math.exp(-step * 7.5);
+      pointerX += (targetX - pointerX) * ease;
+      pointerY += (targetY - pointerY) * ease;
+      focus += (targetFocus - focus) * (1 - Math.exp(-step * 4.5));
+      clock += reducedMotion ? 0 : step;
+
+      if (aspectDirty) {
+        gl.uniform2f(
+          uniforms.aspect,
+          canvas.width / Math.max(canvas.height, 1),
+          1,
+        );
+        aspectDirty = false;
+      }
+      if (strengthDirty || uploadedStrength !== strengthRef.current) {
+        uploadedStrength = strengthRef.current;
+        gl.uniform1f(uniforms.strength, uploadedStrength);
+        strengthDirty = false;
+      }
       gl.uniform2f(uniforms.pointer, pointerX, pointerY);
-      gl.uniform1f(uniforms.time, (time - startedAt) / 1000);
-      gl.uniform1f(uniforms.motion, reducedMotion ? 0 : 1);
-      gl.uniform1f(uniforms.strength, strength);
-      gl.uniform1f(uniforms.activity, activity);
-      gl.uniform1f(uniforms.scroll, scrollProgress);
-      gl.clearColor(0, 0, 0, 0);
+      gl.uniform1f(uniforms.time, clock);
+      gl.uniform1f(uniforms.focus, focus);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      if (fpsCap) frame = requestAnimationFrame(render);
-    };
 
-    const requestRender = () => {
-      if (!frame && visible && !document.hidden) {
+      if (fpsCap) {
+        frame = requestAnimationFrame(render);
+      } else if (
+        Math.abs(targetX - pointerX) > 0.001 ||
+        Math.abs(targetY - pointerY) > 0.001 ||
+        Math.abs(targetFocus - focus) > 0.01
+      ) {
+        // Reduced motion: still settle the pointer response, then stop.
         frame = requestAnimationFrame(render);
       }
     };
+
+    const requestRender = () => {
+      if (!frame && visible && !document.hidden && !contextLost) {
+        frame = requestAnimationFrame(render);
+      }
+    };
+    const stopRender = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+    };
+
     const onPointerMove = (event) => {
       const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
       targetX = Math.min(
         1,
         Math.max(0, (event.clientX - rect.left) / rect.width),
       );
       targetY =
         1 - Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
-      activity = 1;
+      targetFocus = 1;
       requestRender();
     };
     const onPointerLeave = () => {
-      targetX = FOCAL.x;
-      targetY = FOCAL.y;
-    };
-    const onScroll = () => {
-      // Approximate hero scroll progress without a layout read.
-      scrollProgress = Math.min(
-        1,
-        Math.max(0, window.scrollY / window.innerHeight),
-      );
+      targetX = HOME_X;
+      targetY = HOME_Y;
+      targetFocus = 0;
+      requestRender();
     };
     const onVisibility = () => {
-      if (document.hidden && frame) {
-        cancelAnimationFrame(frame);
-        frame = 0;
+      if (document.hidden) {
+        stopRender();
       } else {
         lastFrameAt = 0;
         requestRender();
       }
     };
+    const onMotionChange = (event) => {
+      reducedMotion = event.matches;
+      lastFrameAt = 0;
+      requestRender();
+    };
     const onContextLost = (event) => {
+      // A context we released ourselves must not be treated as a failure.
+      if (released || unsupported) return;
       event.preventDefault();
-      if (frame) cancelAnimationFrame(frame);
-      frame = 0;
+      contextLost = true;
+      stopRender();
       program = null;
       buffer = null;
       uniforms = null;
+      loseContext = null;
       canvas.dataset.renderState = 'lost';
     };
     const onContextRestored = () => {
       if (disposed) return;
+      // Leave the 'lost' state immediately: the stylesheet hides a lost canvas,
+      // and a hidden canvas reports itself as off-screen.
+      canvas.dataset.renderState = 'idle';
+      visible = true;
       gl = null;
-      if (createProgram()) {
-        resize();
-        requestRender();
-      }
+      program = null;
+      starting = false;
+      startedAt = 0;
+      lastFrameAt = 0;
+      startProgram();
     };
 
     const intersection = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
-        if (!visible && frame) {
-          cancelAnimationFrame(frame);
-          frame = 0;
+        if (!visible) {
+          stopRender();
           return;
         }
-        if (!gl && !createProgram()) return;
+        if (!program) {
+          maybeStart();
+          return;
+        }
+        lastFrameAt = 0;
         resize();
         requestRender();
       },
       {rootMargin: '160px'},
     );
+
+    // Resize is coalesced to one rAF: layout thrash during window drags cannot
+    // trigger repeated drawing-buffer reallocation.
     const resizeObserver = new ResizeObserver(() => {
-      resize();
-      if (reducedMotion) requestRender();
+      if (resizeFrame) return;
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = 0;
+        resize();
+        requestRender();
+      });
     });
 
+    for (const type of INPUT_EVENTS) {
+      window.addEventListener(type, onFirstInput, {passive: true});
+    }
     intersection.observe(canvas);
     resizeObserver.observe(canvas);
     canvas.addEventListener('pointermove', onPointerMove, {passive: true});
@@ -456,23 +626,35 @@ export function HeroSignalField({strength = 1}) {
     canvas.addEventListener('webglcontextlost', onContextLost);
     canvas.addEventListener('webglcontextrestored', onContextRestored);
     document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('scroll', onScroll, {passive: true});
+    if (motionQuery.addEventListener) {
+      motionQuery.addEventListener('change', onMotionChange);
+    }
 
     return () => {
       disposed = true;
       intersection.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('scroll', onScroll);
+      if (motionQuery.removeEventListener) {
+        motionQuery.removeEventListener('change', onMotionChange);
+      }
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('webglcontextlost', onContextLost);
       canvas.removeEventListener('webglcontextrestored', onContextRestored);
-      if (frame) cancelAnimationFrame(frame);
+      stopRender();
+      releaseInputListeners();
+      if (bootHandle) cancelAnimationFrame(bootHandle);
+      if (resizeFrame) cancelAnimationFrame(resizeFrame);
       destroyProgram();
+      // Release the drawing buffer now instead of waiting for GC of the canvas.
+      if (loseContext) loseContext.loseContext();
+      loseContext = null;
       gl = null;
     };
-  }, [strength]);
+    // The GL context is created once. `strength` is read through a ref inside
+    // the loop, so changing it never rebuilds the context.
+  }, []);
 
   return (
     <canvas
