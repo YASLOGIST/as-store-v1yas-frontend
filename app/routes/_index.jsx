@@ -83,7 +83,7 @@ export default function Homepage() {
   const data = useLoaderData();
   return (
     <div className="home">
-      <Hero />
+      <Hero collection={data.featuredCollection} />
       <TechMarquee />
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />
@@ -92,74 +92,116 @@ export default function Homepage() {
   );
 }
 
-function Hero() {
+/**
+ * Editorial hero that uses merchant media when available and retains a
+ * zero-payload visual fallback for stores without collection artwork.
+ * @param {{collection?: FeaturedCollectionFragment}}
+ */
+function Hero({collection}) {
+  const collectionUrl = collection?.handle
+    ? `/collections/${collection.handle}`
+    : '/collections';
+
   return (
-    <section className="hero">
-      <HeroVisual />
+    <section className="hero" aria-labelledby="hero-title">
       <div className="hero-inner">
-        <span className="badge hero-badge">
-          <span className="pulse" aria-hidden="true" />
-          Stock updates live
-        </span>
-        <h1>
-          Equipment for people
-          <br />
-          who <span className="gradient-text">build things</span>
-        </h1>
-        <p className="hero-sub">
-          A tight catalog of power, networking and workshop gear — filterable by
-          price, brand and what is actually in stock right now.
-        </p>
-        <div className="hero-actions">
-          <Link
-            className="btn btn-primary"
-            to="/collections"
-            prefetch="intent"
-            viewTransition
-            data-magnetic
-          >
-            Browse collections
-            <IconArrowRight />
-          </Link>
-          <Link className="btn btn-ghost" to="/search" prefetch="intent">
-            <IconBolt />
-            Search the catalog
-          </Link>
+        <div className="hero-copy">
+          <span className="badge hero-badge">
+            <span className="pulse" aria-hidden="true" />
+            New systems for everyday life
+          </span>
+          <h1 id="hero-title">
+            Objects for the <span className="gradient-text">next idea.</span>
+          </h1>
+          <p className="hero-sub">
+            Considered tools for builders, makers and curious minds. Useful by
+            design, selected to last, and ready to ship.
+          </p>
+          <div className="hero-actions">
+            <Link
+              className="btn btn-primary"
+              to={collectionUrl}
+              prefetch="intent"
+              viewTransition
+              data-magnetic
+            >
+              Shop the latest edit
+              <IconArrowRight />
+            </Link>
+            <Link
+              className="hero-text-link"
+              to="/collections"
+              prefetch="intent"
+            >
+              Browse all collections
+              <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+          <dl className="hero-stats" aria-label="Store experience">
+            <div className="hero-stat">
+              <dt>Checkout</dt>
+              <dd>Secure</dd>
+            </div>
+            <div className="hero-stat">
+              <dt>Delivery</dt>
+              <dd>Edge-fast</dd>
+            </div>
+            <div className="hero-stat">
+              <dt>Discovery</dt>
+              <dd>Predictive</dd>
+            </div>
+          </dl>
         </div>
-        <dl className="hero-stats">
-          <div className="hero-stat">
-            <dd>Shopify</dd>
-            <dt>Checkout and payments</dt>
-          </div>
-          <div className="hero-stat">
-            <dd>Live</dd>
-            <dt>Inventory counts</dt>
-          </div>
-          <div className="hero-stat">
-            <dd>Instant</dd>
-            <dt>Search as you type</dt>
-          </div>
-        </dl>
+        <HeroVisual collection={collection} collectionUrl={collectionUrl} />
       </div>
     </section>
   );
 }
 
-/** Decorative CSS scene: composited transforms only, zero image/3D payload. */
-function HeroVisual() {
+/**
+ * Product-led hero scene. Merchant imagery remains the focal point while the
+ * composited CSS telemetry layer gives pointer depth without another payload.
+ * @param {{collection?: FeaturedCollectionFragment; collectionUrl: string}}
+ */
+function HeroVisual({collection, collectionUrl}) {
   return (
-    <div className="hero-visual" aria-hidden="true">
+    <Link
+      className="hero-visual"
+      to={collectionUrl}
+      prefetch="intent"
+      aria-label={`Explore ${collection?.title ?? 'the latest collection'}`}
+    >
+      <span className="hero-visual-frame">
+        {collection?.image ? (
+          <Image
+            alt=""
+            data={collection.image}
+            fetchpriority="high"
+            loading="eager"
+            sizes="(min-width: 70em) 600px, (min-width: 48em) 48vw, 92vw"
+          />
+        ) : (
+          <span className="hero-visual-fallback">
+            <span className="hero-core-mark">Y</span>
+          </span>
+        )}
+        <span className="hero-visual-shade" />
+        <span className="hero-visual-label">
+          <span>Featured / 01</span>
+          <strong>{collection?.title ?? 'The latest edit'}</strong>
+        </span>
+      </span>
       <span className="hero-orbit hero-orbit-one">
         <span className="hero-orbit-node" />
       </span>
       <span className="hero-orbit hero-orbit-two">
         <span className="hero-orbit-node" />
       </span>
-      <span className="hero-core">
-        <span className="hero-core-mark">Y</span>
+      <span className="hero-coordinate hero-coordinate-top">YAS—01</span>
+      <span className="hero-coordinate hero-coordinate-bottom">
+        SELECTED / 2026
       </span>
-      <span className="hero-scan" />
-    </div>
+    </Link>
   );
 }
 
@@ -199,31 +241,36 @@ function FeaturedCollection({collection}) {
   if (!collection) return null;
   const image = collection?.image;
   return (
-    <section className="home-section">
+    <section className="home-section" aria-labelledby="featured-title">
       <div className="section-head">
         <div>
-          <span className="eyebrow">Featured</span>
-          <h2>Start here</h2>
+          <span className="eyebrow">Featured drop</span>
+          <h2 id="featured-title">Fresh off the line</h2>
         </div>
       </div>
       <Link
         className="featured-collection reveal"
         to={`/collections/${collection.handle}`}
       >
-        {image && (
-          <div className="featured-collection-image">
+        <div className="featured-collection-image">
+          {image ? (
             <Image
+              alt={image.altText || collection.title}
               data={image}
-              fetchpriority="high"
-              loading="eager"
-              sizes="100vw"
+              loading="lazy"
+              sizes="(min-width: 82.5em) 1320px, 100vw"
             />
-          </div>
-        )}
+          ) : (
+            <span className="featured-collection-fallback" aria-hidden="true">
+              <span>YAS / EDIT</span>
+            </span>
+          )}
+        </div>
         <div className="featured-collection-caption">
           <div>
             <span className="badge hero-badge">Collection</span>
-            <h1>{collection.title}</h1>
+            <h3>{collection.title}</h3>
+            <p>Explore the complete collection</p>
           </div>
           <span className="btn btn-primary">
             Shop now
@@ -242,33 +289,48 @@ function FeaturedCollection({collection}) {
  */
 function RecommendedProducts({products}) {
   return (
-    <section className="home-section">
+    <section className="home-section" aria-labelledby="recommended-title">
       <div className="section-head">
         <div>
-          <span className="eyebrow">Catalog</span>
-          <h2>Recently updated</h2>
+          <span className="eyebrow">The current edit</span>
+          <h2 id="recommended-title">Selected for you</h2>
         </div>
         <Link className="btn btn-ghost section-cta" to="/collections">
-          All collections
+          View all
           <IconArrowRight />
         </Link>
       </div>
-      <Suspense fallback={<ProductGridSkeleton count={4} />}>
+      <Suspense fallback={<ProductGridSkeleton count={8} />}>
         <Await resolve={products}>
-          {(response) => (
-            <div className="recommended-products-grid">
-              {response
-                ? response.products.nodes.map((product, index) => (
-                    <ProductItem
-                      key={product.id}
-                      product={product}
-                      index={index}
-                      loading="lazy"
-                    />
-                  ))
-                : null}
-            </div>
-          )}
+          {(response) => {
+            const products = response?.products?.nodes ?? [];
+            if (!products.length) {
+              return (
+                <div className="catalog-empty" role="status">
+                  <span className="eyebrow">Catalog update</span>
+                  <h3>New objects are being added.</h3>
+                  <p>
+                    Browse every collection while the latest edit is prepared.
+                  </p>
+                  <Link className="btn btn-ghost" to="/collections">
+                    Explore collections <IconArrowRight />
+                  </Link>
+                </div>
+              );
+            }
+            return (
+              <div className="recommended-products-grid">
+                {products.map((product, index) => (
+                  <ProductItem
+                    key={product.id}
+                    product={product}
+                    index={index}
+                    loading="lazy"
+                  />
+                ))}
+              </div>
+            );
+          }}
         </Await>
       </Suspense>
     </section>
@@ -299,11 +361,14 @@ function ValueProps() {
     },
   ];
   return (
-    <section className="home-section">
+    <section
+      className="home-section home-section-values"
+      aria-labelledby="values-title"
+    >
       <div className="section-head">
         <div>
-          <span className="eyebrow">How it works</span>
-          <h2>What to expect</h2>
+          <span className="eyebrow">Store standard</span>
+          <h2 id="values-title">The details are infrastructure.</h2>
         </div>
       </div>
       <div className="value-props">
@@ -375,7 +440,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
   query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
+    products(first: 8, sortKey: UPDATED_AT, reverse: true) {
       nodes {
         ...RecommendedProduct
       }
