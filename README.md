@@ -1,18 +1,21 @@
 <div align="center">
+  <img
+    src="./assets/readme/yaslogist-hero.gif"
+    alt="Cinematic animated visualization of YAS Store — the official hexagon and lightning mark inside an amber trust boundary, orbited by edge telemetry while Storefront API, Customer Account API and checkout relay signals converge on the Oxygen edge runtime. A YASLOGIST engineering system."
+    width="100%"
+  />
+  <sub>Looping cinematic hero · 1920×720 · rendered for this repository · static poster at <a href="./assets/readme/yaslogist-hero.png"><code>assets/readme/yaslogist-hero.png</code></a></sub>
+</div>
 
-<img src="public/og-image-animated.gif" alt="YAS Store animated cover: amber hexagon lightning mark and the YAS STORE wordmark on graphite, with the line 'Power, networking and workshop gear.' and a slow diagonal light sweep" width="860">
+<div align="center">
 
-<sub><strong>THE VISUAL THESIS</strong> — precision infrastructure beneath an electric, conversion-led commerce experience</sub>
-<br>
-<sub>Animated on GitHub. External link previews (Slack, LinkedIn, X, iMessage) render the static frame at <a href="public/og-image.jpg"><code>public/og-image.jpg</code></a> instead — see <a href="#cover-and-og-image-revision--aligning-the-asset-with-the-whitepaper">why below</a>.</sub>
+# YAS STORE
 
-# YAS Store
-
-<sub>TECHNICAL WHITEPAPER · RELEASE 2026.9.0</sub>
+**TECHNICAL WHITEPAPER · RELEASE 2026.9.0**
 
 ### The production reference architecture for edge-native Shopify commerce
 
-**Streaming storefront delivery, a centralized zero-trust boundary, and measurable quality gates—built on Shopify Hydrogen and designed for Oxygen.**
+**Streaming storefront delivery, a centralized zero-trust boundary, and measurable quality gates — built on Shopify Hydrogen and designed for Oxygen.**
 
 [![CI](https://github.com/YASLOGIST/as-store-v1yas-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/YASLOGIST/as-store-v1yas-frontend/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/Node.js-%E2%89%A5_22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
@@ -20,23 +23,19 @@
 [![React Router](https://img.shields.io/badge/React_Router-7.18.4-ffc46b)](https://reactrouter.com)
 [![License](https://img.shields.io/badge/License-MIT-9aa3ba)](./LICENSE)
 
-[**Architecture**](#system-architecture) · [**Features**](#feature-matrix) · [**Workflows**](#core-workflows) · [**Stack**](#tech-stack) · [**Security**](#security-performance-and-discovery) · [**Quickstart**](#run-locally)
-
-<br>
-
-[![Production posture](https://img.shields.io/badge/Posture-Production--grade-22c55e)](#verified-engineering-baseline)
-[![Architecture](https://img.shields.io/badge/Architecture-Edge--native-8b5cf6)](#system-architecture)
-[![Delivery](https://img.shields.io/badge/Delivery-Streaming_SSR-06b6d4)](#request-lifecycle)
+[**The System**](#01--the-system) · [**Capabilities**](#02--core-capabilities) · [**Architecture**](#03--engineering-architecture) · [**Blueprint**](#04--system-blueprint) · [**Execution**](#05--execution-intelligence) · [**Ignition**](#06--ignition) · [**Deep Access**](#07--deep-system-access) · [**Status**](#08--engineering-status) · [**YASLOGIST**](#09--yaslogist)
 
 </div>
 
----
+<p align="center">
+  <img src="./assets/readme/yaslogist-divider.gif" alt="" width="100%" />
+</p>
+
+## 01 / THE SYSTEM
 
 > **Executive position**
 >
 > YAS Store is not a theme with an API attached. It is a server-rendered commerce system in which delivery, security, observability, search, cart state, account state, SEO, and accessibility are treated as one operating model. The result is a storefront foundation that can move from evaluation to production without a second architecture pass.
-
-## Executive Brief
 
 YAS Store is engineered for teams that need Shopify's commerce platform without surrendering control of frontend performance, interface quality, or request security. React is streamed from the edge; Shopify clients and signed sessions are created per request; mutations cross explicit validation boundaries; and every production change is evaluated against tests, security checks, and gzip budgets.
 
@@ -49,79 +48,87 @@ YAS Store is engineered for teams that need Shopify's commerce platform without 
 | Controlled frontend growth | CI-enforced JavaScript and CSS gzip ceilings | Performance regressions become build failures, not backlog items |
 | Inclusive global UX | Semantic controls, focus-managed drawers, live regions, RTL-aware document shell | Keyboard, assistive-technology, reduced-motion, and RTL use cases are first-class |
 
-### Reading the cover image
+**Reading the hero.** The opening sequence is a compact expression of the system, not decorative branding: the **hexagonal enclosure** is the bounded trust perimeter; the **lightning core** (the repository's official mark) is edge execution and low-latency commerce; the **orbital paths** are Shopify services moving through a stable request boundary; the three **converging signal feeds** are the Storefront API, the Customer Account API, and the allowlisted checkout relay. The single amber signal on graphite follows the repository's own *Volt* design language — visual energy belongs at the experience layer, complexity remains contained behind explicit technical boundaries.
 
-The cover is a compact expression of the system rather than decorative branding. Its **perspective grid** represents the governed platform layer: predictable routing, contracts, budgets, and observability. The **single amber signal** is the one saturated colour in the system, reserved for the live, the actionable and the in-stock. The **hexagonal enclosure** signals a bounded trust perimeter, while the **lightning mark** communicates edge execution and low-latency commerce. Orbital lines imply Shopify services moving through a stable request boundary—not point-to-point integrations leaking into the interface.
+<p align="center">
+  <img src="./assets/readme/yaslogist-divider.gif" alt="" width="100%" />
+</p>
 
-| Visual signal | Engineering meaning | Customer value |
+## 02 / CORE CAPABILITIES
+
+### Commerce and customer experience
+
+| Capability | Implementation | Value delivered |
 |---|---|---|
-| Structured grid | Repeatable architecture and measurable quality gates | A platform that can scale without visual or operational drift |
-| Electric gradient | The Volt token system and progressive experience states | A distinctive, consistent interface across every journey |
-| Bounded hexagon | Centralized security, validation, session, and cache policy | Safer transactions and more dependable account experiences |
-| Lightning core | Oxygen edge delivery, streaming SSR, and deferred data | Faster useful rendering and a shorter path to purchase |
-| Orbital paths | Request-scoped access to Shopify commerce services | Integrated catalog, cart, checkout, and customer state |
+| Product discovery | Full and predictive search across products, collections, pages, articles, and query suggestions | Faster paths from intent to inventory |
+| Product merchandising | Variant selection, availability, compare-at pricing, sale/sold-out states, image treatment, breadcrumbs | Decision-critical product data remains visible and actionable |
+| Collection merchandising | Server-side sort plus Storefront faceted filters (availability, price, type, vendor) with chips, counts, and a dedicated empty state | Every state is a URL and works without client JavaScript |
+| Quick add | Product-card add-to-cart with optimistic interaction and valid non-nested controls | Lower-friction conversion from listing surfaces |
+| Cart management | Add, update, remove, discount, gift card, buyer identity, cart permalinks | Complete cart lifecycle without abandoning the storefront shell |
+| Customer accounts | OAuth login, profile, addresses, order history, order detail, logout | Shopify-managed identity with a first-party frontend experience |
+| Content commerce | Blogs, articles, CMS pages, policies, collections, and products | Editorial and transactional journeys share one delivery system |
+| Progressive sharing | Native share sheet, then clipboard, then selectable-link fallback | Share behavior degrades cleanly across browsers |
+| PWA shell | Manifest, standard and maskable icons, theme metadata | App-like presentation without making installation a dependency |
 
-> **Design principle:** visual energy belongs at the experience layer; complexity remains contained behind explicit technical boundaries.
+### Experience quality
 
-#### Cover and OG image revision — aligning the asset with the whitepaper
-
-`public/og-image.jpg` is not a README-only decoration. `app/root.jsx` serves the identical file as the document's `og:image`, so the same pixels represent YAS Store on GitHub, in pull requests, and on every external link card — Slack, LinkedIn, X, and iMessage previews included. Because one asset carries both audiences, its copy has to be correct for whichever reader sees it first: an engineering evaluator scanning a shared link, or a shopper on-site.
-
-The prior artwork kept the architecture-grade grid, gradient, hexagon, and lightning mark, but paired them with consumer storefront copy — *"Gear from the future, shipped today."* That line is still correct as on-site shopper hero copy (`app/routes/_index.jsx`, `guides/design-preview.html`), but it undersold the system when the same file surfaced this document to a technical audience. A whitepaper whose own cover reads like an ad copy headline forces the reader to do the repositioning work the document should already be doing for them.
-
-| | Before | After |
+| Capability | Implementation | Operational standard |
 |---|---|---|
-| Headline copy | *"Equipment for people who build things."* | *"Power, networking and workshop gear."* |
-| Audience fit | Shopper-facing marketing tone, reused outside its context | Matches the evaluator reading a technical whitepaper or a shared PR/link card |
-| Consistency | Diverged from the Executive Brief and System Architecture framing below it | Restates this document's thesis in one line, before the reader scrolls |
-| Visual system | Graphite canvas, single amber signal accent, hexagon, lightning, orbital rings | Accent retuned from violet/cyan to amber; geometry unchanged |
-| File contract | 1200×630 JPEG, Open Graph / Twitter Card compliant | Unchanged — same path, same dimensions, same embed points |
+| Streaming states | Shape-matched skeletons and deferred below-the-fold data | Non-critical upstream failure does not block the primary page |
+| Navigation feedback | Visual progress plus polite live-region status | Route changes remain perceivable without delaying navigation |
+| Keyboard interaction | `/` search focus, `Ctrl/⌘ + K` predictive search, `Esc` close/restore | Primary discovery paths work without a pointer |
+| Focus management | Trapped dialogs, scroll lock, focus restoration, unique labels | Drawers behave as accessible modal interfaces |
+| Motion preferences | `prefers-reduced-motion` fallbacks across decorative movement | Animation is enhancement, never a usability requirement |
+| Locale shell | Validated `lang`; automatic RTL direction for recognized locales | Document semantics adapt safely to locale context |
+| Error states | Distinct guidance, no-results, recoverable upstream, 404, and production-safe 500 views | Failures are explicit without exposing internals |
+| Responsive design | Fluid type, spacing, containers, and touch-oriented controls | One system scales from mobile to ultrawide displays |
 
-This was a deliberate **narrative fix, not a rebrand**: the grid, gradient, hexagon, lightning mark, and orbital rings — every element in the table above — are untouched, because they already encode the architecture correctly. Only the headline changed, so that the first thing a reader sees matches the last thing they read. The on-site shopper hero intentionally keeps its own, separate consumer-facing line; a technical cover and a storefront hero are allowed to speak to two different audiences in two different registers, as long as neither one is asked to do both jobs at once.
+### Platform capabilities
 
-#### Second pass: material fidelity and a motion-aware GitHub hero
-
-The narrative fix above was correct but the render underneath it was still flat neon line-art. A second pass raised the production value of the same composition without touching the headline, layout, or color system again:
-
-| Element | First revision | Current revision |
+| Domain | Capability | Implementation evidence |
 |---|---|---|
-| Hexagon badge | Flat neon outline | Physically shaded glass-and-metal badge with real specular highlights and depth |
-| Orbital rings | Plain thin ellipses | Fine metallic rings carrying small glowing telemetry nodes |
-| Atmosphere | Solid color blooms | Soft volumetric corner glows plus a fine scattered particle field |
-| Grid floor | Flat line grid | Grid rendered with perspective light falloff toward the horizon |
-| Format | Static JPEG only | Static JPEG **and** a motion-matched animated companion (below) |
+| Security | Centralized response hardening and nonce-based CSP | `server.js`, `app/entry.server.jsx`, `app/lib/http.js` |
+| Session integrity | Signed `HttpOnly`, `SameSite=Lax`, secure `__Host-` cookie in HTTPS; multi-secret rotation | `app/lib/session.js`, `app/lib/env.js` |
+| Proxy isolation | POST-only checkout relay, validated domain/version, 256 KiB body limit, header allowlist | `app/lib/proxy.js` |
+| Search safety | NFKC normalization, control-character removal, 100-code-point term limit, bounded result count | `app/lib/validation.js` |
+| Commerce safety | Shopify resource-ID checks, maximum 25 lines, quantity ceiling of 99 | `app/lib/validation.js` |
+| SEO | Canonicals, social metadata, Product/Collection/Article/Breadcrumb/WebSite JSON-LD | `app/lib/seo.js` |
+| Crawl control | Generated `robots.txt`, sitemap index, paginated resource sitemaps, `noindex` for private/utility surfaces | `app/routes/[robots.txt].jsx`, sitemap routes |
+| Observability | Validated correlation IDs, `Server-Timing`, minimal structured logs | `app/lib/http.js` |
+| Quality automation | Lint, a11y, formatting, tests, dependency audit, build, bundle budgets | `.github/workflows/ci.yml` |
+| Type safety | Storefront and Customer Account GraphQL declarations plus React Router type generation | generated `.d.ts` files, `npm run codegen` |
 
-Because `og:image` has one job — render correctly as a static crawler preview — it stays a static, 1200×630, Open Graph–compliant JPEG at `public/og-image.jpg`. GitHub, however, renders animated GIFs inline, and this README is read on GitHub far more often than it's shared as a link card. So the hero at the top of this document is now **`public/og-image-animated.gif`**, a motion-matched companion built from that exact static frame:
+<p align="center">
+  <img src="./assets/readme/yaslogist-divider.gif" alt="" width="100%" />
+</p>
 
-1. **One master frame, zero drift.** Every frame of the GIF starts from the identical static JPEG above — nothing is regenerated per frame — so the wordmark, grid, and badge geometry never jitters or drifts across the loop the way independently generated frames would.
-2. **Hexagon core pulse.** A radial glow centered on the badge breathes between ~10% and ~36% intensity on a sine curve, composited with a `screen` blend so it only ever brightens, never muddies, the artwork underneath.
-3. **Diagonal shine sweep.** A soft, rotated light beam ping-pongs across the full frame on a triangle wave, the same cinematic "shine pass" effect used on premium product pages, built from a precisely calibrated horizontal gradient rather than a generic diagonal render to avoid banding artifacts.
-4. **Encoded for the web.** 20 frames, palette-quantized and transparency-optimized, ship at well under 1 MB — small enough to load instantly in a README and intentionally excluded from `app/` so it never touches the storefront's runtime bundle or its [gzip budgets](#performance-budgets).
+## 03 / ENGINEERING ARCHITECTURE
 
-| Asset | Path | Used by | Motion |
-|---|---|---|---|
-| Static cover | `public/og-image.jpg` | `app/root.jsx` `og:image`, external link previews | None — by design, for crawler compatibility |
-| Animated cover | `public/og-image-animated.gif` | This README's hero, rendered by GitHub | Looping pulse + shine sweep |
+### Responsibility model
 
-### Verified engineering baseline
+| Layer | Owns | Deliberately does not own |
+|---|---|---|
+| `server.js` | Request correlation, declared 1 MiB body rejection, context creation, session commit, Shopify redirects, safe failure response | Route-specific business behavior |
+| `app/lib/http.js` | Security headers, sensitive-route cache policy, origin checks, safe redirects, timing, sanitized request logs | Rendering and Shopify queries |
+| `app/lib/context.js` | Runtime configuration validation, request-scoped Shopify clients, cache, cart, and signed session | Global mutable application state |
+| React Router route modules | Page data, mutations, metadata, response semantics | Cross-cutting transport policy |
+| `app/lib/*` domain modules | Input contracts, proxy isolation, navigation safety, locale, search state, SEO schemas | UI composition |
+| React component layer | Progressive enhancement, accessibility, analytics events, interaction state | Secret handling or direct privileged API access |
+| Shopify services | Catalog, customer identity, cart persistence, checkout | Storefront presentation and edge policy |
 
-The repository's [acceptance record](./docs/ACCEPTANCE.md) documents the following baseline:
+### Architectural invariants
 
-| Signal | Baseline | Enforcement |
-|---|---:|---|
-| Automated tests | **69** across 10 files | `npm test` |
-| Security-focused checks | **26**, included in the full suite | `npm run check:security` |
-| Lint and accessibility warnings | **0** | `npm run lint` · `npm run check:a11y` |
-| Largest JavaScript asset | **≤ 50 KiB gzip** | `npm run check:performance` |
-| Total client JavaScript | **≤ 150 KiB gzip** | `npm run check:performance` |
-| Total CSS | **≤ 12 KiB gzip** | `npm run check:performance` |
-| Known dependency advisories at verification | **0** | `npm run audit:security` |
+- **No shared request state.** Shopify clients and session state are scoped to a single request.
+- **No unbounded commerce input.** Search terms, result limits, cart lines, quantities, codes, IDs, and proxy bodies have explicit contracts.
+- **No open redirects.** User-influenced destinations resolve only to same-origin paths.
+- **No public caching of customer state.** Account, cart, discount, API, and cookie-setting responses are forced to `private, no-store`.
+- **No stream buffering for hardening.** Response streams are rewrapped so policy headers remain writable while progressive delivery is preserved.
+- **No sensitive diagnostic payloads.** Logs omit cookies, tokens, query strings, headers, customer input, and stack details.
+- **No silent budget drift.** CI fails when JavaScript or CSS crosses its gzip ceiling.
 
----
+For the behavioral specification and evidence map, see [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
-## System Architecture
-
-### Architecture at a glance
+## 04 / SYSTEM BLUEPRINT
 
 ```mermaid
 flowchart TB
@@ -155,19 +162,7 @@ flowchart TB
   H -->|streamed response| U
 ```
 
-### Responsibility model
-
-| Layer | Owns | Deliberately does not own |
-|---|---|---|
-| `server.js` | Request correlation, declared 1 MiB body rejection, context creation, session commit, Shopify redirects, safe failure response | Route-specific business behavior |
-| `app/lib/http.js` | Security headers, sensitive-route cache policy, origin checks, safe redirects, timing, sanitized request logs | Rendering and Shopify queries |
-| `app/lib/context.js` | Runtime configuration validation, request-scoped Shopify clients, cache, cart, and signed session | Global mutable application state |
-| React Router route modules | Page data, mutations, metadata, response semantics | Cross-cutting transport policy |
-| `app/lib/*` domain modules | Input contracts, proxy isolation, navigation safety, locale, search state, SEO schemas | UI composition |
-| React component layer | Progressive enhancement, accessibility, analytics events, interaction state | Secret handling or direct privileged API access |
-| Shopify services | Catalog, customer identity, cart persistence, checkout | Storefront presentation and edge policy |
-
-### Request lifecycle
+## 05 / EXECUTION INTELLIGENCE
 
 Every request follows the same path:
 
@@ -199,69 +194,64 @@ sequenceDiagram
   W-->>B: Response + X-Request-ID + Server-Timing
 ```
 
-### Architectural invariants
+<p align="center">
+  <img src="./assets/readme/yaslogist-divider.gif" alt="" width="100%" />
+</p>
 
-- **No shared request state.** Shopify clients and session state are scoped to a single request.
-- **No unbounded commerce input.** Search terms, result limits, cart lines, quantities, codes, IDs, and proxy bodies have explicit contracts.
-- **No open redirects.** User-influenced destinations resolve only to same-origin paths.
-- **No public caching of customer state.** Account, cart, discount, API, and cookie-setting responses are forced to `private, no-store`.
-- **No stream buffering for hardening.** Response streams are rewrapped so policy headers remain writable while progressive delivery is preserved.
-- **No sensitive diagnostic payloads.** Logs omit cookies, tokens, query strings, headers, customer input, and stack details.
-- **No silent budget drift.** CI fails when JavaScript or CSS crosses its gzip ceiling.
+## 06 / IGNITION
 
-For the behavioral specification and evidence map, see [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+### Prerequisites
 
----
+- Node.js **22 or newer**, npm **10.x**
+- A Shopify store with the **Headless** sales channel
+- Storefront API credentials; Customer Account credentials are optional unless account flows are required
 
-## Feature Matrix
+### Install and start
 
-### Commerce and customer experience
+```bash
+git clone https://github.com/YASLOGIST/as-store-v1yas-frontend.git
+cd as-store-v1yas-frontend
+npm ci
 
-| Capability | Implementation | Value delivered |
-|---|---|---|
-| Product discovery | Full and predictive search across products, collections, pages, articles, and query suggestions | Faster paths from intent to inventory |
-| Product merchandising | Variant selection, availability, compare-at pricing, sale/sold-out states, image treatment, breadcrumbs | Decision-critical product data remains visible and actionable |
-| Collection merchandising | Server-side sort plus Storefront faceted filters (availability, price, type, vendor) with chips, counts, and a dedicated empty state | Shoppers narrow a grid without losing shareability — every state is a URL and works without client JavaScript |
-| Quick add | Product-card add-to-cart with optimistic interaction and valid non-nested controls | Lower-friction conversion from listing surfaces |
-| Cart management | Add, update, remove, discount, gift card, buyer identity, cart permalinks | Complete cart lifecycle without abandoning the storefront shell |
-| Customer accounts | OAuth login, profile, addresses, order history, order detail, logout | Shopify-managed identity with a first-party frontend experience |
-| Content commerce | Blogs, articles, CMS pages, policies, collections, and products | Editorial and transactional journeys share one delivery system |
-| Progressive sharing | Native share sheet, then clipboard, then selectable-link fallback | Share behavior degrades cleanly across browsers |
-| PWA shell | PWA-ready manifest, standard and maskable icons, theme metadata | App-like presentation without making installation a dependency |
+cp .env.example .env
+openssl rand -base64 32   # use this output for SESSION_SECRET
 
-### Experience quality
+npm run dev
+```
 
-| Capability | Implementation | Operational standard |
-|---|---|---|
-| Streaming states | Shape-matched skeletons and deferred below-the-fold data | Non-critical upstream failure does not block the primary page |
-| Navigation feedback | Visual progress plus polite live-region status | Route changes remain perceivable without delaying navigation |
-| Keyboard interaction | `/` search focus, `Ctrl/⌘ + K` predictive search, `Esc` close/restore | Primary discovery paths work without a pointer |
-| Focus management | Trapped dialogs, scroll lock, focus restoration, unique labels | Drawers behave as accessible modal interfaces |
-| Motion preferences | `prefers-reduced-motion` fallbacks across decorative movement | Animation is enhancement, never a usability requirement |
-| Locale shell | Validated `lang`; automatic RTL direction for recognized locales | Document semantics adapt safely to locale context |
-| Error states | Distinct guidance, no-results, recoverable upstream, 404, and production-safe 500 views | Failures are explicit without exposing internals |
-| Responsive design | Fluid type, spacing, containers, and touch-oriented controls | One system scales from mobile to ultrawide displays |
+### Environment contract
 
-### Platform capabilities
+| Variable | Required | Purpose |
+|---|:---:|---|
+| `PUBLIC_STORE_DOMAIN` | Yes | Shopify store hostname, for example `store.myshopify.com` |
+| `PUBLIC_STOREFRONT_API_TOKEN` | Yes | Public Storefront API access token |
+| `PUBLIC_CHECKOUT_DOMAIN` | Yes | Validated checkout hostname |
+| `SESSION_SECRET` | Yes | Cookie signing secret, minimum 32 characters |
+| `PUBLIC_STORE_LANGUAGE` | No | Shopify language enum; defaults to `EN` (for example `AR`, `PT_BR`) |
+| `PUBLIC_STORE_COUNTRY` | No | Shopify two-letter country enum; defaults to `US` |
+| `PUBLIC_STORE_MARKETS` | No | Allow-listed `LANGUAGE-COUNTRY` values for the market switcher |
+| `PUBLIC_FEATURE_*` | No | Independent public kill switches documented in `.env.example` |
+| `PUBLIC_STOREFRONT_ID` | No | Storefront public ID for web pixel analytics |
+| `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID` | No | Enables Customer Account API flows |
 
-| Domain | Capability | Implementation evidence |
-|---|---|---|
-| Security | Centralized response hardening and nonce-based CSP | `server.js`, `app/entry.server.jsx`, `app/lib/http.js` |
-| Session integrity | Signed `HttpOnly`, `SameSite=Lax`, secure `__Host-` cookie in HTTPS; multi-secret rotation | `app/lib/session.js`, `app/lib/env.js` |
-| Proxy isolation | POST-only checkout relay, validated domain/version, 256 KiB body limit, header allowlist | `app/lib/proxy.js` |
-| Search safety | NFKC normalization, control-character removal, 100-code-point term limit, bounded result count | `app/lib/validation.js` |
-| Commerce safety | Shopify resource-ID checks, maximum 25 lines, quantity ceiling of 99 | `app/lib/validation.js` |
-| SEO | Canonicals, social metadata, Product/Collection/Article/Breadcrumb/WebSite JSON-LD | `app/lib/seo.js` |
-| Crawl control | Generated `robots.txt`, sitemap index, paginated resource sitemaps, `noindex` for private/utility surfaces | `app/routes/[robots.txt].jsx`, sitemap and route metadata |
-| Observability | Validated correlation IDs, `Server-Timing`, minimal structured logs | `app/lib/http.js` |
-| Quality automation | Lint, a11y, formatting, tests, dependency audit, build, bundle budgets | `.github/workflows/ci.yml` |
-| Type safety | Storefront and Customer Account GraphQL declarations plus React Router type generation | generated `.d.ts` files, `npm run codegen` |
+For zero-downtime rotation, use `NEW_SECRET,PREVIOUS_SECRET` — the first value signs new cookies while remaining values keep validating existing ones. Runtime validation reports missing or malformed configuration by variable name and never echoes values.
 
----
+### Toolchain verification without a store
 
-## Core Workflows
+```bash
+npm run check        # lint · format · 122 tests · dependency audit
+npm run build:ci     # credential-free Hydrogen production build
+npm run check:performance   # enforce gzip budgets on the built output
+```
 
-### Workflow contract
+<p align="center">
+  <img src="./assets/readme/yaslogist-divider.gif" alt="" width="100%" />
+</p>
+
+## 07 / DEEP SYSTEM ACCESS
+
+<details>
+<summary><strong>Core workflows</strong> — catalog, search, cart, account, delivery</summary>
 
 | Workflow | Entry point | Critical path | Failure and cache policy |
 |---|---|---|---|
@@ -273,74 +263,13 @@ For the behavioral specification and evidence map, see [`docs/ARCHITECTURE.md`](
 | Edge delivery | Any document request | Context → route data → React stream → security headers | Production exceptions become generic `500`; stack details remain server-side |
 | Release | Pull request or push to `main` | Install → static gates → tests → audit → build → bundle budgets → Oxygen | A failed gate blocks delivery; only the default branch deploys |
 
-### 1. Catalog rendering
+**Catalog conversion property** — the buy path depends on product and variant truth, not on footer content or other deferred data. Filter state lives only in the query string (`?sort=`, repeated `?filter=`); pagination cursors are dropped whenever the result set changes, so a cursor can never outlive the set it indexed.
 
-The route loader requests only the data required by the selected surface. Shared header data is critical; footer, cart, and login state can resolve independently. Deferred reads such as footer data contain upstream failures instead of converting the entire document into a `500`.
+**Search contract** — Unicode NFKC normalization, control removal, whitespace collapse, 100-code-point cap; predictive limits bounded to `1…10`; exactly one of four coherent states (initial guidance, results, no matches, recoverable upstream failure) announced through a single polite live region.
 
-```mermaid
-sequenceDiagram
-  participant B as Browser
-  participant P as Product route
-  participant SF as Storefront API
-  participant SSR as Stream renderer
+**Cart integrity property** — a request can mutate only supported cart operations with bounded Shopify identifiers and quantities; redirects cannot escape the storefront origin.
 
-  B->>P: GET /products/:handle
-  par Critical product data
-    P->>SF: Product + variants query
-    SF-->>P: Product result
-  and Non-critical data
-    P->>SF: Shared deferred reads
-    SF-->>P: Result or contained failure
-  end
-  P->>SSR: Route data + deferred promises
-  SSR-->>B: Document shell, product UI, progressive content
-```
-
-**Conversion property:** the buy path depends on product and variant truth, not on footer content or other deferred data.
-
-**Filter contract:** sort and facets live only in the query string (`?sort=`, repeated `?filter=` inputs). The loader parses them, hands them to Shopify, and drops pagination cursors whenever the result set changes, so a cursor can never outlive the set it indexed. Malformed filter tokens are ignored rather than thrown.
-
-### 2. Search and discovery
-
-1. Normalize input with Unicode NFKC, remove controls, collapse whitespace, and cap it at 100 code points.
-2. Choose regular or predictive query mode from the request.
-3. Bound predictive result limits to `1…10`; regular product results paginate in groups of eight.
-4. Query typed Shopify result buckets.
-5. Return exactly one of four coherent states: initial guidance, results, no matches, or recoverable upstream failure.
-6. Announce status through a single polite live region and keep search pages out of the index.
-
-**Conversion property:** discovery remains fast and understandable while malformed or excessive input is stopped before reaching Shopify.
-
-### 3. Cart mutation
-
-```mermaid
-sequenceDiagram
-  autonumber
-  participant B as Browser
-  participant A as Cart action
-  participant V as Validation boundary
-  participant C as Hydrogen cart API
-  participant S as Signed session
-
-  B->>A: POST intent + form input
-  A->>V: Verify same origin and action shape
-  V->>V: Bound lines, quantity, IDs, and codes
-  V-->>A: Validated mutation input
-  A->>C: Add / update / remove / discount / identity
-  C-->>A: Cart, warnings, errors
-  A->>S: Persist cart identifier when changed
-  A-->>B: Private response or safe local 303
-```
-
-**Integrity property:** a request can mutate only supported cart operations with bounded Shopify identifiers and quantities. Redirects cannot escape the storefront origin.
-
-### 4. Customer account lifecycle
-
-Authentication delegates credentials to Shopify's Customer Account API. The storefront initiates authorization, receives the OAuth callback through Hydrogen's account client, and resolves authenticated account state per request. Profile, address, and order routes operate through that authenticated client and are never publicly cached.
-
-**Trust property:** the storefront integrates Shopify-managed identity and account state without implementing a parallel credential system.
-
-### 5. Continuous delivery
+**Account trust property** — the storefront integrates Shopify-managed identity without implementing a parallel credential system.
 
 ```mermaid
 flowchart LR
@@ -354,48 +283,10 @@ flowchart LR
   M --> O["Deploy to Oxygen"]
 ```
 
-Every pull request runs the same deterministic controls expected before release. The deployment workflow publishes only from `main` and requires the repository's Oxygen deployment secret.
+</details>
 
----
-
-## Tech Stack
-
-| Layer | Technology | Version / contract | Why it is here |
-|---|---|---|---|
-| Commerce framework | Shopify Hydrogen | `2026.4.5` | Storefront primitives, GraphQL clients, cart, analytics, CSP, Oxygen integration |
-| UI runtime | React + React DOM | `18.3.1` | Server streaming, Suspense-compatible rendering, progressive hydration |
-| Routing and data | React Router | `7.18.4` | File routes, loaders, actions, metadata, errors, and server request handling |
-| Edge runtime | Shopify Oxygen / MiniOxygen | Oxygen Workers / `4.2.3` local runtime | Globally distributed execution with a production-like local environment |
-| API layer | Shopify Storefront API | GraphQL, generated declarations | Catalog, search, cart, content, and merchandising data |
-| Identity layer | Shopify Customer Account API | OAuth + GraphQL | Customer profile, addresses, authentication, and orders |
-| Query language | GraphQL | `^16.14.2` | Explicit commerce data contracts and generated operation types |
-| Build system | Vite | `6.4.3`, ES2022 target | Fast local iteration, SSR/client bundling, CSS splitting |
-| Test runner | Vitest | `^5.0.2` | Fast executable contracts for domain modules and primary storefront flows |
-| Static analysis | ESLint | `^9.18.0` | React, hooks, import, Jest, and JSX accessibility rules |
-| Formatting | Prettier + Shopify config | Prettier `^3.4.2` | Stable source formatting shared with Shopify conventions |
-| Type generation | Hydrogen Codegen + React Router typegen | Build-time | Storefront API, Customer Account API, and route declarations |
-| Application language | Modern JavaScript + JSX | ESM, JSDoc, generated `.d.ts` | Runtime simplicity with editor and API contract coverage |
-| Styling | Native CSS | Custom properties, no runtime CSS framework | Small payload, deterministic cascade, complete design-system ownership |
-| Runtime baseline | Node.js + npm | Node `≥22`, npm `10.9.8` | Reproducible local and CI toolchain |
-
-### The Volt interface system
-
-Volt is a dark, high-contrast commerce system implemented in native CSS. It uses a constrained token layer for color, type, space, radius, shadow, glass, duration, and easing; fluid sizing with `clamp()`; and a small utility vocabulary for buttons, badges, skeletons, labels, and reveal states.
-
-| Contract | Implementation |
-|---|---|
-| Brand | Single amber signal accent on a graphite canvas |
-| Payload | Complete CSS ceiling of **12 KiB gzip**, enforced in CI |
-| Motion | Three duration tiers, spring easing, reduced-motion fallbacks |
-| Layout | Fluid gutters and containers from mobile through ultrawide |
-| Delivery | External assets only; CSS code splitting; no runtime style injection |
-| Preview | [`guides/design-preview.html`](./guides/design-preview.html) |
-
----
-
-## Security, Performance, and Discovery
-
-### Security controls
+<details>
+<summary><strong>Security controls</strong> — transport, execution, sessions, inputs, caching</summary>
 
 | Boundary | Control |
 |---|---|
@@ -413,106 +304,51 @@ Volt is a dark, high-contrast commerce system implemented in native CSS. It uses
 
 Security behavior is pinned by executable tests in `app/lib/http.test.js`, `proxy.test.js`, and `validation.test.js`. Report vulnerabilities through [`SECURITY.md`](./SECURITY.md).
 
-### Performance budgets
+</details>
 
-[`scripts/check-bundle.mjs`](./scripts/check-bundle.mjs) measures the production output itself—not source estimates.
+<details>
+<summary><strong>Performance budgets</strong> — measured on the production output, enforced in CI</summary>
 
-| Asset class | Gzip ceiling | Intent |
-|---|---:|---|
-| Largest JavaScript asset | **50 KiB** | Bound route-level parse and execution cost |
-| All client JavaScript | **150 KiB** | Keep the complete interaction layer intentionally small |
-| All CSS | **12 KiB** | Preserve a compact, cacheable visual system |
+[`scripts/check-bundle.mjs`](./scripts/check-bundle.mjs) measures the production output itself — not source estimates.
+
+| Asset class | Gzip ceiling | Measured (2026-10-10, this branch) |
+|---|---:|---:|
+| Largest JavaScript asset | **50 KiB** | 44.6 KiB |
+| All client JavaScript | **150 KiB** | 149.9 KiB |
+| All CSS | **12 KiB** | 12.0 KiB |
 
 The implementation reinforces these budgets with route splitting, external assets (`assetsInlineLimit: 0`), CSS splitting, cached catalog reads, deferred non-critical queries, and streamed SSR.
 
-### Search and crawl model
+</details>
+
+<details>
+<summary><strong>Search and crawl model</strong> — JSON-LD, metadata, robots, sitemaps</summary>
 
 - Product, collection, article, breadcrumb, and website data are emitted as schema.org JSON-LD.
-- Public routes receive canonical, OpenGraph, and Twitter metadata.
+- Public routes receive canonical, OpenGraph, and Twitter metadata. The same `public/og-image.jpg` served by `app/root.jsx` as `og:image` represents the project on GitHub, in pull requests, and on external link cards.
 - `robots.txt`, a sitemap index, and paginated resource sitemaps are generated at the edge.
 - Cart, search, and account surfaces are marked `noindex` so crawl budget stays focused on public content.
 
----
+</details>
 
-## Run Locally
+<details>
+<summary><strong>Route surface</strong> — every implemented route</summary>
 
-### Prerequisites
+| Surface | Routes |
+|---|---|
+| Home and catalog | `/`, `/products/:handle`, `/collections`, `/collections/:handle`, `/collections/all` |
+| Discovery | `/search`, predictive search through the same loader |
+| Cart and promotions | `/cart`, `/cart/:lines`, `/discount/:code` |
+| Content | `/blogs`, `/blogs/:blog`, `/blogs/:blog/:article`, `/pages/:handle`, `/policies/*` |
+| Account | `/account/*`, `/account/login`, `/account/authorize`, `/account/logout` |
+| Platform | `/api/:version/graphql.json`, `/robots.txt`, `/sitemap.xml`, `/sitemap/:type/:page.xml`, `/health.json` |
 
-- Node.js **22 or newer**
-- npm **10.x**
-- A Shopify store with the **Headless** sales channel
-- Storefront API credentials; Customer Account credentials are optional unless account flows are required
+A deployed worker exposes `GET /health.json` for readiness probes; it returns only `{"status":"ok"}` and is never cacheable.
 
-### Install and start
+</details>
 
-```bash
-git clone https://github.com/YASLOGIST/as-store-v1yas-frontend.git
-cd as-store-v1yas-frontend
-npm ci
-
-cp .env.example .env
-openssl rand -base64 32   # use this output for SESSION_SECRET
-
-npm run dev
-```
-
-The development command runs Shopify Hydrogen with GraphQL code generation and hot reload. Open the URL printed by the CLI.
-
-### Environment contract
-
-| Variable | Required | Purpose |
-|---|:---:|---|
-| `PUBLIC_STORE_DOMAIN` | Yes | Shopify store hostname, for example `store.myshopify.com` |
-| `PUBLIC_STOREFRONT_API_TOKEN` | Yes | Public Storefront API access token |
-| `PUBLIC_CHECKOUT_DOMAIN` | Yes | Validated checkout hostname |
-| `SESSION_SECRET` | Yes | Cookie signing secret, minimum 32 characters |
-| `PUBLIC_STORE_LANGUAGE` | No | Shopify language enum; defaults to `EN` (for example `AR`, `PT_BR`) |
-| `PUBLIC_STORE_COUNTRY` | No | Shopify two-letter country enum; defaults to `US` |
-| `PUBLIC_STORE_MARKETS` | No | Allow-listed `LANGUAGE-COUNTRY` values for the market switcher |
-| `PUBLIC_FEATURE_*` | No | Independent public kill switches documented in `.env.example` |
-| `PUBLIC_STOREFRONT_ID` | No | Storefront public ID for web pixel analytics |
-| `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID` | No | Enables Customer Account API flows |
-
-For zero-downtime session-secret rotation, use `NEW_SECRET,PREVIOUS_SECRET`. The first value signs new cookies; remaining values continue validating existing cookies. Runtime validation reports missing or malformed configuration by variable name and never echoes values.
-
-### Operational commands
-
-| Intent | Command | Result |
-|---|---|---|
-| Develop | `npm run dev` | Hydrogen development server, codegen, hot reload |
-| Generate types | `npm run codegen` | Storefront, customer account, and route declarations |
-| Test | `npm test` | Full Vitest suite |
-| Test continuously | `npm run test:watch` | Vitest watch mode |
-| Browser quality gate | `npm run test:e2e` | Local mocked Hydrogen: commerce, quick view, axe, RTL, reduced-motion, no-JS, CWV and screenshots |
-| Prepare E2E browser | `npm run test:e2e:install` | Expand the pinned headless Chromium binary without a network download |
-| Refresh screenshots | `npm run test:e2e:update` | Deliberately update reviewed visual baselines |
-| Lint | `npm run lint` | ESLint across the repository |
-| Accessibility gate | `npm run check:a11y` | JSX semantics and document contracts, zero warnings |
-| Format | `npm run format` | Write Prettier formatting |
-| Validate format | `npm run format:check` | Check formatting without modifying files |
-| Security gate | `npm run check:security` | Dependency audit plus boundary-focused tests |
-| Full quality gate | `npm run check` | Lint, format, tests, and dependency audit |
-| Production build | `npm run build` | Code generation plus Hydrogen build; credentials required |
-| CI build | `npm run build:ci` | Credential-free Hydrogen production build |
-| Enforce budgets | `npm run check:performance` | Measure built client assets against gzip ceilings |
-| Full pre-PR verification | `npm run verify` | Quality gate plus production build |
-| Preview | `npm run preview` | Build and run in the local Oxygen-like runtime |
-
-To validate the toolchain without connecting a store:
-
-```bash
-npm run check
-npm run build:ci
-npm run check:performance
-```
-
-Browser flows run by default against the actual Hydrogen application with a deterministic, request-scoped Storefront API fixture; no credentials or network store are required and no tests skip. Set `E2E_BASE_URL` and `E2E_PRODUCT_HANDLE` to repeat the same suite against an authorized deployment. CI preserves traces and screenshots on failure, runs axe WCAG AA checks, and compares the reviewed home-page screenshot.
-
-`check:performance` expects the output produced by `build:ci` or `build`. A deployed worker exposes `GET /health.json` for readiness probes; it returns only `{"status":"ok"}` and is never cacheable. Context creation validates required environment values before that route runs, so a successful response also confirms viable runtime configuration.
-
----
-
-## Repository Anatomy
+<details>
+<summary><strong>Repository anatomy & documentation</strong></summary>
 
 ```text
 .
@@ -526,6 +362,7 @@ Browser flows run by default against the actual Hydrogen application with a dete
 │   ├── entry.client.jsx       Browser hydration entry
 │   ├── entry.server.jsx       Streaming SSR and nonce CSP
 │   └── root.jsx               Document shell and shared application data
+├── assets/readme/             Cinematic README hero, poster, and motion system
 ├── docs/                      Architecture, audit, acceptance evidence
 ├── guides/                    Search guides and visual-system preview
 ├── public/                    Manifest, icons, and social image
@@ -533,32 +370,6 @@ Browser flows run by default against the actual Hydrogen application with a dete
 ├── server.js                  Oxygen worker and global request boundary
 └── .github/workflows/         CI and Oxygen deployment
 ```
-
-### Route surface
-
-| Surface | Routes |
-|---|---|
-| Home and catalog | `/`, `/products/:handle`, `/collections`, `/collections/:handle`, `/collections/all` |
-| Discovery | `/search`, predictive search through the same loader |
-| Cart and promotions | `/cart`, `/cart/:lines`, `/discount/:code` |
-| Content | `/blogs`, `/blogs/:blog`, `/blogs/:blog/:article`, `/pages/:handle`, `/policies/*` |
-| Account | `/account/*`, `/account/login`, `/account/authorize`, `/account/logout` |
-| Platform | `/api/:version/graphql.json`, `/robots.txt`, `/sitemap.xml`, `/sitemap/:type/:page.xml` |
-
----
-
-## Evaluation and Adoption
-
-A pragmatic evaluation can be completed in four passes:
-
-1. **Inspect the architecture** — review [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) and the trust-boundary modules under `app/lib/`.
-2. **Run the deterministic gates** — `npm ci`, `npm run check`, `npm run build:ci`, then `npm run check:performance`.
-3. **Connect a Shopify store** — populate `.env`, start the app, and execute the configured-store checks in [`docs/ACCEPTANCE.md`](./docs/ACCEPTANCE.md).
-4. **Validate release mechanics** — configure the Oxygen deployment secret and use the existing protected delivery path from pull request to `main`.
-
-This sequence separates source-level confidence from store-specific integration, making adoption risk visible before production traffic is involved.
-
-## Documentation
 
 | Document | Scope |
 |---|---|
@@ -570,20 +381,49 @@ This sequence separates source-level confidence from store-specific integration,
 | [`guides/predictiveSearch/`](./guides/predictiveSearch) | Predictive search implementation guidance |
 | [`guides/search/`](./guides/search) | Full search implementation guidance |
 
-External references: [Hydrogen](https://shopify.dev/docs/custom-storefronts/hydrogen) · [Storefront API](https://shopify.dev/docs/api/storefront) · [Customer Account API](https://shopify.dev/docs/api/customer) · [React Router](https://reactrouter.com/)
+The **Volt** interface system is a dark, high-contrast commerce theme in native CSS: a constrained token layer (graphite canvas, single amber signal accent), fluid sizing with `clamp()`, three motion duration tiers with reduced-motion fallbacks, and a complete CSS ceiling of 12 KiB gzip enforced in CI. Preview it in [`guides/design-preview.html`](./guides/design-preview.html).
 
----
+</details>
 
-## Contributing
+<p align="center">
+  <img src="./assets/readme/yaslogist-divider.gif" alt="" width="100%" />
+</p>
 
-1. Branch from `main`.
-2. Add executable coverage for new behavior, especially at trust boundaries.
-3. Run `npm run verify` before opening a pull request.
-4. Confirm the CI build and bundle-budget gate pass without warnings.
+## 08 / ENGINEERING STATUS
 
-Changes that weaken validation, bypass cache policy, expose sensitive diagnostics, or exceed performance budgets are not release-ready.
+Verified on this branch (2026-10-10) by executing the repository's own gates:
+
+| Signal | Baseline | Enforcement |
+|---|---:|---|
+| Automated tests | **122** across **18** files, all passing | `npm test` |
+| Security-focused boundary checks | **26**, included in the full suite | `npm run check:security` |
+| Lint and accessibility warnings | **0** | `npm run lint` · `npm run check:a11y` |
+| Largest JavaScript asset | **44.6 KiB** gzip / 50 KiB ceiling | `npm run check:performance` |
+| Total client JavaScript | **149.9 KiB** gzip / 150 KiB ceiling | `npm run check:performance` |
+| Total CSS | **12.0 KiB** gzip / 12 KiB ceiling | `npm run check:performance` |
+| High-severity dependency advisories | **0** at verification | `npm run audit:security` |
+| Production build | Completes credential-free | `npm run build:ci` |
+
+Implemented vs. planned:
+
+- **Implemented and executable today** — every capability in §02, the full CI gate, mocked-Storefront browser suites (Playwright with axe WCAG A/AA checks, RTL, reduced-motion, no-JS, and screenshot comparison), and the protected Oxygen delivery path from `main`.
+- **Configured-store validation** — store-specific regression steps (live catalog, checkout relay against a real store, account OAuth round-trips) are documented as an open checklist in [`docs/ACCEPTANCE.md`](./docs/ACCEPTANCE.md); they require store credentials and are deliberately not claimed as executed here.
+- **Opt-in surfaces** — experimental capabilities such as merchant 3D model assets ship behind `PUBLIC_FEATURE_*` kill switches with static fallbacks; disabled by default.
+
+## 09 / YASLOGIST
+
+<p align="center">
+  <img src="./assets/readme/yaslogist-signature.gif" alt="YASLOGIST — www.yaslogist.com — cinematic README system" width="760" />
+</p>
 
 <div align="center">
+
+This repository is part of the **YASLOGIST** engineering ecosystem — a permanent creative and technical signature applied across every system it ships.
+
+**[www.yaslogist.com](https://www.yaslogist.com)**
+
+Cinematic hero, motion system, and documentation design produced for this repository by YASLOGIST.
+Project identity, commerce logic, and engineering evidence remain the property of the repository itself.
 
 **YAS Store** — commerce at the edge, governed like infrastructure.
 
